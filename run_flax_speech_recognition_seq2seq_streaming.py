@@ -66,7 +66,7 @@ from transformers.utils import check_min_version, send_example_telemetry
 from transformers.utils.versions import require_version
 
 import pandas as pd
-        
+
 # Will error if the minimal version of Transformers is not installed. Remove at your own risks.
 check_min_version("4.27.0.dev0")
 
@@ -417,8 +417,8 @@ def collate_batch(samples):
 def data_loader(
     dataset: Dataset,
     batch_size: int,
-    drop_last: bool=True,
-    num_workers: int=0,
+    drop_last: bool = True,
+    num_workers: int = 0,
 ) -> Generator:
     """
     Returns batches of size `batch_size` from `dataset`. If `drop_last` is set to `False`, the final batch may be incomplete,
@@ -455,7 +455,7 @@ def write_metric(summary_writer, train_metrics, eval_metrics, train_time, step):
 
 
 def create_learning_rate_fn(
-    num_train_steps: int, num_warmup_steps: int, learning_rate: float, warmup_init_value: float=0.0, decay_end_value: float=0.0,
+    num_train_steps: int, num_warmup_steps: int, learning_rate: float, warmup_init_value: float = 0.0, decay_end_value: float = 0.0,
 ) -> Callable[[int], jnp.array]:
     """Returns a linear warmup, linear_decay learning rate function."""
     warmup_fn = optax.linear_schedule(
@@ -525,12 +525,15 @@ def main():
     if training_args.push_to_hub:
         if training_args.hub_model_id is None:
             repo_name = get_full_repo_name(
-                Path(training_args.output_dir).absolute(
-                ).name, token=training_args.hub_token
+                Path(training_args.output_dir).absolute().name,
+                token=training_args.hub_token,
+                organization=training_args.push_to_hub_organization,
             )
         else:
             repo_name = training_args.hub_model_id
-        create_repo(repo_name, exist_ok=True, token=training_args.hub_token)
+        create_repo(
+            repo_name, exist_ok=True, token=training_args.hub_token, private=training_args.hub_private_repo
+        )
         repo = Repository(training_args.output_dir,
                           clone_from=repo_name, token=training_args.hub_token)
 
@@ -710,70 +713,86 @@ def main():
             label_str = [label_str[i]
                          for i in range(len(label_str)) if len(label_str[i]) > 0]
 
-        wer = 100 * metric_wer.compute(predictions=pred_str, references=label_str)
-        cer = 100 * metric_cer.compute(predictions=pred_str, references=label_str)
+        wer = 100 * \
+            metric_wer.compute(predictions=pred_str, references=label_str)
+        cer = 100 * \
+            metric_cer.compute(predictions=pred_str, references=label_str)
 
         return {"wer": wer, "cer": cer}
 
     # TODO: Sanchit. This part is not essential and a bit verbose.
     # We do howver think it is extemely useful info for debugging and improving the model
-    
-    def write_predictions(step,eval_samples,eval_metrics, pred_ids, label_ids):
-        predictions_folder_name = os.path.join(training_args.output_dir,"predictions")
+
+    def write_predictions(step, eval_samples, eval_metrics, pred_ids, label_ids):
+        predictions_folder_name = os.path.join(
+            training_args.output_dir, "predictions")
         eval_table = f"| STEP| loss | wer |cer|\n| ---| --- | --- |--- |\n| **{step}**| {eval_metrics['loss']:.3f} | {eval_metrics['wer']:.3f} |{eval_metrics['cer']:.3f} |"
-        
+
         # Put all predictions into a table
-        inference_df = pd.DataFrame(columns=['mp3','target','prediction'])
-        
+        inference_df = pd.DataFrame(columns=['mp3', 'target', 'prediction'])
+
         idx = 0
-        for pred,label in zip(pred_ids,label_ids):
-            pred_text = tokenizer.decode(pred,skip_special_tokens=True)
-            label_text = tokenizer.decode(label,skip_special_tokens=True)
-            formatted_pred_text = " ".join([f"**{word}**" if word in label_text else f"*{word}*" for word in pred_text.split()])
+        for pred, label in zip(pred_ids, label_ids):
+            pred_text = tokenizer.decode(pred, skip_special_tokens=True)
+            label_text = tokenizer.decode(label, skip_special_tokens=True)
+            formatted_pred_text = " ".join(
+                [f"**{word}**" if word in label_text else f"*{word}*" for word in pred_text.split()])
             #wer = 100 * metric_wer.compute(predictions=[pred_text], references=[label_text])
             #wer_formatted = f'{wer:.2f}'
-            audio_control = f'[↓]({os.path.join(predictions_folder_name, "mp3")+"/pred_"+str(idx)+".mp3"})'
-            new_row = pd.DataFrame({'mp3': audio_control, 'target': label_text, 'prediction': formatted_pred_text}, index=[0])
-            inference_df = pd.concat([inference_df, new_row], ignore_index=True)
+            audio_control = f'[↓]({"mp3/pred_"+str(idx)+".mp3"})'
+            new_row = pd.DataFrame(
+                {'mp3': audio_control, 'target': label_text, 'prediction': formatted_pred_text}, index=[0])
+            inference_df = pd.concat(
+                [inference_df, new_row], ignore_index=True)
             idx += 1
-        
+
         # Create the prediction table of the first N rows
-        inference_df = inference_df[['mp3', 'target','prediction']]
-        predict_table = inference_df[0:data_args.number_write_predictions].to_markdown(index=False)
-        
+        inference_df = inference_df[['mp3', 'target', 'prediction']]
+        predict_table = inference_df[0:data_args.number_write_predictions].to_markdown(
+            index=False)
+
         # Build the markdown page
         markdown_str = f"{eval_table}\n\n{predict_table}"
-        
+
         # Save the stats file
         stats_file_name = f"{predictions_folder_name}/step_{step}.md"
         with open(stats_file_name, "w") as f:
             f.write(markdown_str)
-        
+
         # Create an header for all the files
-        md_files = sorted(os.path.basename(file) for file in os.listdir(predictions_folder_name) if file.startswith("step_"))
-        sorted_md_files = sorted(md_files, key=lambda x: int(x[0:-3].split("_")[1]))
-        md_header = " | ".join(f"[Step {file[:-3].split('_')[1]}]({file})" for file in sorted_md_files)
+        md_files = sorted(os.path.basename(file) for file in os.listdir(
+            predictions_folder_name) if file.startswith("step_"))
+        sorted_md_files = sorted(
+            md_files, key=lambda x: int(x[0:-3].split("_")[1]))
+        md_header = " | ".join(
+            f"[Step {file[:-3].split('_')[1]}]({file})" for file in sorted_md_files)
 
         # Add this header to all the stats file in the folder
         for filename in os.listdir(predictions_folder_name):
             if filename.startswith("step_"):
                 with open(os.path.join(predictions_folder_name, filename), "r+") as f:
                     content = f.read()
-                    new_content = md_header + "\n\n" + content[content.index("| STEP| loss | wer"):]
+                    new_content = md_header + "\n\n" + \
+                        content[content.index("| STEP| loss | wer"):]
                     f.seek(0)
                     f.write(new_content)
                     f.truncate()
-        
+
         # Add a folder for the mp3 files
-        if not os.path.exists(os.path.join(predictions_folder_name,"mp3")):
-            os.makedirs(os.path.join(predictions_folder_name,"mp3"))
-         
-        for idx,mp3array in enumerate(eval_samples[0:data_args.number_write_predictions]):
-            audio_segment = AudioSegment(data=mp3array.tobytes(),sample_width=mp3array.dtype.itemsize,frame_rate=16000,channels=1)
-            audio_segment.export(os.path.join(predictions_folder_name, "mp3")+"/pred_"+str(idx)+".mp3", format="mp3")
-            
-        logger.info(f"Created {stats_file_name} and updated the headers of the other stats files")
-    
+        if not os.path.exists(os.path.join(predictions_folder_name, "mp3")):
+            os.makedirs(os.path.join(predictions_folder_name, "mp3"))
+
+        for idx, mp3array in enumerate(eval_samples[0:data_args.number_write_predictions]):
+            audio_segment = AudioSegment(data=mp3array.tobytes(
+            ), sample_width=mp3array.dtype.itemsize, frame_rate=16000, channels=1)
+            file_path = os.path.join(
+                predictions_folder_name, "mp3") + "/pred_" + str(idx) + ".mp3"
+            if not os.path.exists(file_path):
+                audio_segment.export(file_path, format="mp3")
+
+        logger.info(
+            f"Created {stats_file_name} and updated the headers of the other stats files")
+
     # 9. Save feature extractor, tokenizer and config
     feature_extractor.save_pretrained(training_args.output_dir)
     tokenizer.save_pretrained(training_args.output_dir)
@@ -798,7 +817,7 @@ def main():
             from flax.metrics.tensorboard import SummaryWriter
 
             summary_writer = SummaryWriter(
-                log_dir=Path(os.path.join(training_args.output_dir,"events")))
+                log_dir=Path(os.path.join(training_args.output_dir, "events")))
         except ImportError as ie:
             has_tensorboard = False
             logger.warning(
@@ -961,11 +980,12 @@ def main():
 
     # Clean up the prediction folder if write_predictions is set to True
     if data_args.number_write_predictions:
-        predictions_folder_name = os.path.join(training_args.output_dir, "predictions")
+        predictions_folder_name = os.path.join(
+            training_args.output_dir, "predictions")
         shutil.rmtree(predictions_folder_name, ignore_errors=True)
         os.makedirs(predictions_folder_name, exist_ok=True)
         logger.info(f"Created folder {predictions_folder_name}")
-    
+
     # Create parallel version of the train and eval step
     p_train_step = jax.pmap(
         partial(train_step, label_smoothing_factor=training_args.label_smoothing_factor), "batch", donate_argnums=(0, )
@@ -993,7 +1013,8 @@ def main():
 
     train_metrics = []
     epoch = 0
-    train_dataset = vectorized_datasets["train"].shuffle(seed=training_args.seed, buffer_size=data_args.shuffle_buffer_size)
+    train_dataset = vectorized_datasets["train"].shuffle(
+        seed=training_args.seed, buffer_size=data_args.shuffle_buffer_size)
     eval_dataset = vectorized_datasets["eval"]
     train_loader = data_loader(train_dataset, train_batch_size)
     # train
@@ -1023,9 +1044,11 @@ def main():
             eval_preds = []
             eval_labels = []
             eval_samples = []
-            eval_loader = data_loader(eval_dataset, eval_batch_size, drop_last=False)
+            eval_loader = data_loader(
+                eval_dataset, eval_batch_size, drop_last=False)
             if data_args.max_eval_samples:
-                max_eval_steps_iter = range(1 + data_args.max_eval_samples // eval_batch_size)
+                max_eval_steps_iter = range(
+                    1 + data_args.max_eval_samples // eval_batch_size)
             else:
                 max_eval_steps_iter = itertools.repeat(None)
             for _ in tqdm(max_eval_steps_iter, desc="Evaluating...", position=2, leave=False):
@@ -1041,9 +1064,9 @@ def main():
                     state.params, batch.data, min_device_batch=training_args.per_device_eval_batch_size
                 )
                 eval_metrics.append(metrics)
-                if training_args.predict_with_generate and data_args.number_write_predictions and len(eval_samples)<data_args.number_write_predictions+eval_batch_size:
+                if training_args.predict_with_generate and data_args.number_write_predictions and len(eval_samples) < data_args.number_write_predictions+eval_batch_size:
                     eval_samples.extend(samples['input_features'])
-                                
+
                 # generation
                 if training_args.predict_with_generate:
                     generated_ids = pad_shard_unpad(
@@ -1072,9 +1095,10 @@ def main():
             if has_tensorboard and jax.process_index() == 0:
                 write_metric(summary_writer, train_metrics,
                              eval_metrics, train_time, step)
-                
+
             if training_args.predict_with_generate and data_args.number_write_predictions:
-                write_predictions(step,eval_samples,eval_metrics, eval_preds, eval_labels)
+                write_predictions(step, eval_samples,
+                                  eval_metrics, eval_preds, eval_labels)
 
             # save checkpoint after each epoch and push checkpoint to the hub
             if jax.process_index() == 0:
