@@ -14,11 +14,11 @@ python ../run_flax_speech_recognition_seq2seq_streaming.py \
             --warmup_steps 500 \
             --do_train \
             --do_eval \
-            --num_train_steps 10000 \
+            --num_train_steps 20000 \
             --lr_scheduler_type linear \
             --eval_steps 500 \
             --learning_rate 5e-4 \
-            --per_device_train_batch_size 30 \
+            --per_device_train_batch_size 32 \
             --per_device_eval_batch_size 4 \
             --predict_with_generate \
             --number_write_predictions 100 \
