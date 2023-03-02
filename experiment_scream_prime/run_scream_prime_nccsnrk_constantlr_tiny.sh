@@ -1,4 +1,4 @@
-python run_flax_speech_recognition_seq2seq_streaming.py \
+python ../run_flax_speech_recognition_seq2seq_streaming.py \
             --model_name_or_path openai/whisper-tiny \
             --dataset_name NbAiLab/NCC_S3_nrk \
 	        --language Norwegian \
