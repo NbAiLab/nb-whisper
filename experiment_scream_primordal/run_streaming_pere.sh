@@ -1,0 +1,23 @@
+python run_flax_speech_recognition_seq2seq_streaming.py \
+            --model_name_or_path openai/whisper-small \
+            --dataset_name mozilla-foundation/common_voice_11_0 \
+            --dataset_config nn-NO \
+            --language Nynorsk \
+            --text_column_name sentence \
+            --train_split_name train\
+            --eval_split_name test\
+            --output_dir ../whisper-small-nn-test\
+            --overwrite_output_dir\
+            --max_eval_samples=200\
+            --warmup_steps=8 \
+            --do_train \
+            --do_eval \
+            --num_train_steps 1000 \
+            --eval_steps 100 \
+            --learning_rate=2e-4 \
+            --per_device_train_batch_size=4 \
+            --per_device_eval_batch_size=2 \
+            --predict_with_generate \
+            --number_write_predictions=200 \
+            --streaming=True \
+            --push_to_hub
