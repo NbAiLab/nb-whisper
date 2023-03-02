@@ -1,7 +1,7 @@
 export TOKENIZERS_PARALELLISM=true
 export CMALLOC_VERBOSE=0
 export TCMALLOC_VERBOSE=0
-export TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD=100GB
+export TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD=10000000000
 python ../run_flax_speech_recognition_seq2seq_streaming.py \
             --model_name_or_path openai/whisper-tiny \
             --dataset_name NbAiLab/NCC_S3_nrk \
