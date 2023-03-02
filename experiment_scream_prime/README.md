@@ -13,9 +13,9 @@ All models are trained on a single TPU Pod v4-8 with 128GB RAM. The tiny and sma
 | Small  | [Experiment 5](https://huggingface.co/NbAiLab/scream_prime_e5_ncc3nrk_linearlr_small)        | [Experiment 6](https://huggingface.co/NbAiLab/scream_prime_e6_ncc3nrk_constantlr_small)      |
 
 
-* Exp1-6 is trained on the [NCC3NRK-corpus](https://huggingface.co/datasets/NbAiLab/NCC_S3_nrk)
-* Exp7 is trained on the [NCC3-corpus](https://huggingface.co/datasets/NbAiLab/NCC_S3)
-* Exp8 is trained on the [NCC-corpus](https://huggingface.co/datasets/NbAiLab/NCC_S)
+* Experiment 1-6 is trained on the [NCC3NRK-corpus](https://huggingface.co/datasets/NbAiLab/NCC_S3_nrk)
+* Experiment 7 is trained on the [NCC3-corpus](https://huggingface.co/datasets/NbAiLab/NCC_S3)
+* Experiment 8 is trained on the [NCC-corpus](https://huggingface.co/datasets/NbAiLab/NCC_S)
 
 
 For more details about the training parameters, see the tranings scripts. For more information about the corporas see the dataset cards.
