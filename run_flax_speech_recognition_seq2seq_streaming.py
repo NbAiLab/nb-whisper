@@ -527,7 +527,7 @@ def main():
             repo_name = get_full_repo_name(
                 Path(training_args.output_dir).absolute().name,
                 token=training_args.hub_token,
-                organization=training_args.push_to_hub_organization,
+                model_id=training_args.hub_model_id,
             )
         else:
             repo_name = training_args.hub_model_id
