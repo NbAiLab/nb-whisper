@@ -20,6 +20,6 @@ python ../run_flax_speech_recognition_seq2seq_streaming.py \
             --number_write_predictions 100 \
             --streaming True \
             --hub_private_repo True \
-            --hub-model-id NbAiLab/scream_prime_nccnrk_constantlr_tiny \
+            --hub_model_id NbAiLab/scream_prime_nccnrk_constantlr_tiny \
             --use_auth_token True \
             --push_to_hub
