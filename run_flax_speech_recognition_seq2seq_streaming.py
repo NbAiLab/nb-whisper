@@ -28,8 +28,10 @@ from dataclasses import field
 from functools import partial
 from pathlib import Path
 from typing import Any, Callable, Dict, Generator, List, Optional, Union
+from datetime import datetime
 
 import datasets
+import socket
 import flax
 import jax
 import jax.numpy as jnp
@@ -817,7 +819,7 @@ def main():
             from flax.metrics.tensorboard import SummaryWriter
 
             summary_writer = SummaryWriter(
-                log_dir=Path(os.path.join(training_args.output_dir, "events")))
+                log_dir=Path(training_args.output_dir) / "runs" / f"{datetime.now():%b%d_%H-%M-%S}_{socket.gethostname()}")
         except ImportError as ie:
             has_tensorboard = False
             logger.warning(
