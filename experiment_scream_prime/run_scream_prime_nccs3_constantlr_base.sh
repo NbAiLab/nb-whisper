@@ -11,7 +11,7 @@ python ../run_flax_speech_recognition_seq2seq_streaming.py \
             --eval_split_name test\
             --output_dir ../../scream_prime_nccs3_constantlr_base\
             --overwrite_output_dir\
-            --warmup_steps 50 \
+            --warmup_steps 500 \
             --do_train \
             --do_eval \
             --num_train_steps 10000 \
