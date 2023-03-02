@@ -8,9 +8,9 @@ All models are trained on a single TPU Pod v4-8 with 128GB RAM. The tiny and sma
 ## Experiments
 |        | Constant LR | Linear LR |
 |--------|----------|--------|
-| Tiny   | 1        | 2      |
-| Base   | 3, 7, 8  | 4      |
-| Small  | 5        | 6      |
+| Tiny   | [1](https://huggingface.co/NbAiLab/scream_prime_e1_ncc3nrk_linearlr_tiny)        | [2](https://huggingface.co/NbAiLab/scream_prime_e2_ncc3nrk_constantlr_tiny)      |
+| Base   | [3](https://huggingface.co/NbAiLab/scream_prime_e3_ncc3nrk_linearlr_base), [7](https://huggingface.co/NbAiLab/scream_prime_e7_nccs3_constantlr_base), [8](https://huggingface.co/NbAiLab/scream_prime_e8_ncc_constantlr_base)  | [4](https://huggingface.co/NbAiLab/scream_prime_e4_ncc3nrk_constantlr_base)      |
+| Small  | [5](https://huggingface.co/NbAiLab/scream_prime_e5_ncc3nrk_linearlr_small)        | [6](https://huggingface.co/NbAiLab/scream_prime_e6_ncc3nrk_constantlr_small)      |
 
 
 * Exp1-6 is trained on the [NCC3NRK-corpus](https://huggingface.co/datasets/NbAiLab/NCC_S3_nrk)
