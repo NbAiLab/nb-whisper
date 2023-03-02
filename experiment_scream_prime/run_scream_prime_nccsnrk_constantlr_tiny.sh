@@ -1,4 +1,4 @@
-export TOKENIZERS_PARALELLISM=true
+export TOKENIZERS_PARALELLISM=false
 export CMALLOC_VERBOSE=0
 export TCMALLOC_VERBOSE=0
 export TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD=10000000000
@@ -11,12 +11,12 @@ python ../run_flax_speech_recognition_seq2seq_streaming.py \
             --eval_split_name test\
             --output_dir ../../scream_prime_nccnrk_constantlr_tiny\
             --overwrite_output_dir\
-            --warmup_steps 20 \
+            --warmup_steps 50 \
             --do_train \
             --do_eval \
-            --num_train_steps 1000 \
+            --num_train_steps 10000 \
             --lr_scheduler_type constant_with_warmup \
-            --eval_steps 5 \
+            --eval_steps 500 \
             --learning_rate 1.5e-3 \
             --per_device_train_batch_size 64 \
             --per_device_eval_batch_size 12 \
