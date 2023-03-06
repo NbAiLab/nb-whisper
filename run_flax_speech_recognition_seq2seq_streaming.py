@@ -859,7 +859,7 @@ def main():
         warmup_init_value = 0.0
         decay_end_value = 0.0
     linear_decay_lr_schedule_fn = create_learning_rate_fn(
-        data_args.num_train_steps * train_batch_size,
+        data_args.num_train_steps,
         training_args.warmup_steps,
         training_args.learning_rate,
         warmup_init_value=warmup_init_value,
