@@ -9,22 +9,22 @@ python ../run_flax_speech_recognition_seq2seq_streaming.py \
             --text_column_name text \
             --train_split_name train\
             --eval_split_name test\
-            --output_dir ../../scream_prime_e6_ncc3nrk_constantlr_small\
+            --output_dir ../../scream_secundus_e5_ncc3nrk_linearlr_small\
             --overwrite_output_dir\
             --warmup_steps 500 \
             --do_train \
             --do_eval \
             --num_train_steps 20000 \
-            --lr_scheduler_type constant_with_warmup \
+            --lr_scheduler_type linear \
             --eval_steps 500 \
-            --learning_rate 5e-4 \
+            --learning_rate 1e-4 \
             --per_device_train_batch_size 30 \
             --per_device_eval_batch_size 4 \
             --predict_with_generate \
             --number_write_predictions 100 \
             --streaming True \
             --hub_private_repo True \
-            --hub_model_id NbAiLab/scream_prime_e6_ncc3nrk_constantlr_small \
+            --hub_model_id NbAiLab/scream_secundus_e5_ncc3nrk_linearlr_small \
             --use_auth_token True \
             --dtype bfloat16 \
             --push_to_hub

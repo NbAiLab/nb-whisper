@@ -1,7 +1,7 @@
 # SCREAM 
 ## Secundus Experiments
 
-These are the second setr of experiments on the new Norwegian Whisper Model ("Scream") based on the NCC-S corpus serie. This second set of experiments consists of 8 models all trained from the pretrained Whisper models and using half the learning rate as specified in the [Whisper article](https://cdn.openai.com/papers/whisper.pdf). There have also been a bug fix in the optimizer between the first and the second test set.
+These are the second setr of experiments on the new Norwegian Whisper Model ("Scream") based on the NCC-S corpus serie. This second set of experiments consists of 8 models all trained from the pretrained Whisper models and using **half** the learning rate as specified in the [Whisper article](https://cdn.openai.com/papers/whisper.pdf). Since we were not able to run the full batch size on the small model, these have been reduced even more, from 5e-4 to 1e-4.  There have also been a bug fix in the optimizer between the first and the second test set.
 
 All models are trained on a single TPU Pod v4-8 with 128GB RAM. The tiny and small model is trained with a batch of 256 as in the Whisper article. The Small model is trained with a batch size of 144. 
 
