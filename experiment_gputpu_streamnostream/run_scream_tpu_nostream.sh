@@ -14,7 +14,7 @@ python ../run_flax_speech_recognition_seq2seq.py \
             --warmup_steps 100 \
             --do_train \
             --do_eval \
-            --num_epochs 1 \
+            --num_train_epochs 1 \
             --learning_rate 0.75e-3 \
             --per_device_train_batch_size 64 \
             --per_device_eval_batch_size 12 \
