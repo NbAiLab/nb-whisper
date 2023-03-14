@@ -9,7 +9,7 @@ python ../run_flax_speech_recognition_seq2seq.py \
             --text_column_name text \
             --train_split_name train\
             --eval_split_name test\
-            --output_dir ../../scream_gpu_nostream_tiny\
+            --output_dir ../../scream_nrk_gpu_nostream_tiny\
             --overwrite_output_dir\
             --warmup_steps 100 \
             --do_train \
@@ -20,7 +20,7 @@ python ../run_flax_speech_recognition_seq2seq.py \
             --per_device_eval_batch_size 12 \
             --predict_with_generate \
             --hub_private_repo True \
-            --hub_model_id NbAiLab/scream_gpu_nostream_tiny \
+            --hub_model_id NbAiLab/scream_nrk_gpu_nostream_tiny \
             --use_auth_token True \
             --dtype bfloat16 \
             --push_to_hub
