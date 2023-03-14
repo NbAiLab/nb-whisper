@@ -420,7 +420,7 @@ def data_loader(
     dataset: Dataset,
     batch_size: int,
     drop_last: bool = True,
-    num_workers: int = 0,
+    num_workers: int = 4,
 ) -> Generator:
     """
     Returns batches of size `batch_size` from `dataset`. If `drop_last` is set to `False`, the final batch may be incomplete,
