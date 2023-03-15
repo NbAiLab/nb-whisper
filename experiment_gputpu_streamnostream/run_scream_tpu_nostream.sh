@@ -12,6 +12,7 @@ python ../run_flax_speech_recognition_seq2seq.py \
             --output_dir ../../scream_nrk_tpu_nostream_tiny\
             --overwrite_output_dir\
             --warmup_steps 100 \
+	    --preprocessing_num_workers 200 \
             --do_train \
             --do_eval \
             --num_train_epochs 1 \
