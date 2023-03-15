@@ -163,8 +163,8 @@ class DataTrainingArguments:
         default=False, metadata={"help": "Overwrite the cached training and evaluation sets"}
     )
     preprocessing_num_workers: Optional[int] = field(
-        default=None,
-        metadata={"help": "The number of processes to use for the preprocessing."},
+        default=0,
+        metadata={"help": "The number of processes to use for the preprocessing. Works sligtly different than for non-streaming datasets. Is also limited to the number of dataset shards."},
     )
     max_train_samples: Optional[int] = field(
         default=None,
@@ -219,15 +219,16 @@ class DataTrainingArguments:
             "This is important to avoid triggering recompilations on TPU. If unspecified, will default to padding the targets to max length."
         },
     )
-    preprocessing_only: bool = field(
-        default=False,
-        metadata={
-            "help": "Whether to only do data preprocessing and skip training. "
-            "This is especially useful when data preprocessing errors out in distributed training due to timeout. "
-            "In this case, one should run the preprocessing in a non-distributed setup with `preprocessing_only=True` "
-            "so that the cached datasets can consequently be loaded in distributed training"
-        },
-    )
+    # Not supported for streaming
+    #preprocessing_only: bool = field(
+    #    default=False,
+    #    metadata={
+    #        "help": "Whether to only do data preprocessing and skip training. "
+    #        "This is especially useful when data preprocessing errors out in distributed training due to timeout. "
+    #        "In this case, one should run the preprocessing in a non-distributed setup with `preprocessing_only=True` "
+    #        "so that the cached datasets can consequently be loaded in distributed training"
+    #    },
+    #)
     train_split_name: str = field(
         default="train",
         metadata={
@@ -420,7 +421,7 @@ def data_loader(
     dataset: Dataset,
     batch_size: int,
     drop_last: bool = True,
-    num_workers: int = 4,
+    num_workers: int = 0,
 ) -> Generator:
     """
     Returns batches of size `batch_size` from `dataset`. If `drop_last` is set to `False`, the final batch may be incomplete,
@@ -714,7 +715,6 @@ def main():
                         for i in range(len(pred_str)) if len(label_str[i]) > 0]
             label_str = [label_str[i]
                          for i in range(len(label_str)) if len(label_str[i]) > 0]
-
         wer = 100 * \
             metric_wer.compute(predictions=pred_str, references=label_str)
         cer = 100 * \
@@ -1017,8 +1017,15 @@ def main():
     epoch = 0
     train_dataset = vectorized_datasets["train"].shuffle(
         seed=training_args.seed, buffer_size=data_args.shuffle_buffer_size)
+    
+    if train_dataset.n_shards < data_args.preprocessing_num_workers:
+        num_workers = train_dataset.n_shards
+
+    logger.info(f"  Number of train dataset workers = {num_workers} {'(Capped by the number of dataset shards)' if train_dataset.n_shards < data_args.preprocessing_num_workers else ''} {'(ADVICE: In most cases you will speed up training considerably if you increase the value of --preprocessing_num_workers!)' if num_workers < 3 else ''}")
+    
     eval_dataset = vectorized_datasets["eval"]
-    train_loader = data_loader(train_dataset, train_batch_size)
+    
+    train_loader = data_loader(train_dataset, train_batch_size,drop_last=True,num_workers=num_workers)
     # train
     for step in tqdm(range(data_args.num_train_steps), desc="Training...", position=1, leave=False):
         try:
@@ -1026,7 +1033,7 @@ def main():
         except StopIteration:
             epoch += 1
             train_dataset.set_epoch(epoch)
-            train_loader = data_loader(train_dataset, train_batch_size)
+            train_loader = data_loader(train_dataset, train_batch_size, train_batch_size,drop_last=True,num_workers=num_workers)
             samples = next(train_loader)
             logger.info(
                 f"Completed epoch ({epoch} | Loss: {train_metric['loss']}, Learning Rate:"
@@ -1042,18 +1049,21 @@ def main():
         train_metric = unreplicate(train_metric)
         # ======================== Evaluating ==============================
         if step % training_args.eval_steps == 0 and step > 0:
+            exit()
             eval_metrics = []
             eval_preds = []
             eval_labels = []
             eval_samples = []
             eval_loader = data_loader(
-                eval_dataset, eval_batch_size, drop_last=False)
+                eval_dataset, eval_batch_size, drop_last=False, num_workers=1)
             if data_args.max_eval_samples:
                 max_eval_steps_iter = range(
                     1 + data_args.max_eval_samples // eval_batch_size)
             else:
                 max_eval_steps_iter = itertools.repeat(None)
-            for _ in tqdm(max_eval_steps_iter, desc="Evaluating...", position=2, leave=False):
+            
+            for counter in tqdm(max_eval_steps_iter, desc="Evaluating...", position=2, leave=False):
+
                 # Model forward
                 try:
                     samples = next(eval_loader)
@@ -1065,6 +1075,8 @@ def main():
                 metrics = pad_shard_unpad(p_eval_step, static_return=True)(
                     state.params, batch.data, min_device_batch=training_args.per_device_eval_batch_size
                 )
+                
+
                 eval_metrics.append(metrics)
                 if training_args.predict_with_generate and data_args.number_write_predictions and len(eval_samples) < data_args.number_write_predictions+eval_batch_size:
                     eval_samples.extend(samples['input_features'])
@@ -1079,6 +1091,7 @@ def main():
 
             # normalize eval metrics
             eval_metrics = get_metrics(eval_metrics)
+
             eval_metrics = jax.tree_util.tree_map(jnp.mean, eval_metrics)
 
             # compute metrics
