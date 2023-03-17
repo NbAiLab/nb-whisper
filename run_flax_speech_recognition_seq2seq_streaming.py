@@ -1040,7 +1040,7 @@ def main():
         except StopIteration:
             epoch += 1
             train_dataset.set_epoch(epoch)
-            train_loader = data_loader(train_dataset, train_batch_size, train_batch_size,drop_last=True,num_workers=num_workers)
+            train_loader = data_loader(train_dataset, train_batch_size, drop_last=True,num_workers=num_workers)
             samples = next(train_loader)
             logger.info(
                 f"Completed epoch ({epoch} | Loss: {train_metric['loss']}, Learning Rate:"
