@@ -4,7 +4,7 @@ export TCMALLOC_VERBOSE=0
 export TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD=10000000000
 python ../run_flax_speech_recognition_seq2seq_streaming.py \
             --model_name_or_path openai/whisper-tiny \
-            --dataset_name NbAiLab/NCC_S3_nrk \
+            --dataset_name NbAiLab/NCC_S3 \
 	    --language Norwegian \
             --text_column_name text \
             --train_split_name train\
@@ -19,8 +19,8 @@ python ../run_flax_speech_recognition_seq2seq_streaming.py \
             --eval_steps 500 \
             --learning_rate 1e-3 \
 	    --preprocessing_num_workers 50 \
-            --per_device_train_batch_size 256 \
-            --per_device_eval_batch_size 256 \
+            --per_device_train_batch_size 64 \
+            --per_device_eval_batch_size 64 \
             --predict_with_generate \
             --number_write_predictions 100 \
             --streaming True \
