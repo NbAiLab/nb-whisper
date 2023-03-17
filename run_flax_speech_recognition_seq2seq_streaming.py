@@ -1006,7 +1006,7 @@ def main():
     logger.info(
         f"  Learning rate = {training_args.learning_rate}")
     logger.info(
-        f" Scheduler = {training_args.lr_scheduler_type}")
+        f"  Scheduler = {training_args.lr_scheduler_type}")
     logger.info(
         f"  Num examples = {data_args.num_train_steps * train_batch_size}")
     logger.info(
