@@ -1003,7 +1003,7 @@ def main():
         f"  Dataset name = {data_args.dataset_name}")
     logger.info(
         f"  Dataset config name = {data_args.dataset_config_name}")
-     logger.info(
+    logger.info(
         f"  Num examples = {data_args.num_train_steps * train_batch_size}")
     logger.info(
         f"  Instantaneous batch size per device = {training_args.per_device_train_batch_size}")
