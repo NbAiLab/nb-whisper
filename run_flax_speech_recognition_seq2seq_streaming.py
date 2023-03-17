@@ -1049,7 +1049,6 @@ def main():
         train_metric = unreplicate(train_metric)
         # ======================== Evaluating ==============================
         if step % training_args.eval_steps == 0 and step > 0:
-            breakpoint()
             eval_metrics = []
             eval_preds = []
             eval_labels = []
