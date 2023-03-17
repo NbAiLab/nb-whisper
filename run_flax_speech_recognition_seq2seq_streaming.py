@@ -163,7 +163,7 @@ class DataTrainingArguments:
         default=False, metadata={"help": "Overwrite the cached training and evaluation sets"}
     )
     preprocessing_num_workers: Optional[int] = field(
-        default=0,
+        default=50,
         metadata={"help": "The number of processes to use for the preprocessing. Works sligtly different than for non-streaming datasets. Is also limited to the number of dataset shards."},
     )
     max_train_samples: Optional[int] = field(
@@ -915,7 +915,6 @@ def main():
         )
         soft_labels = onehot(labels, vocab_size,
                              on_value=confidence, off_value=low_confidence)
-
         loss = optax.softmax_cross_entropy(logits, soft_labels)
         loss = loss - normalizing_constant
 
@@ -1001,6 +1000,10 @@ def main():
 
     logger.info("***** Running training *****")
     logger.info(
+        f"  Dataset name = {data_args.dataset_name}")
+    logger.info(
+        f"  Dataset config name = {data_args.dataset_config_name}")
+     logger.info(
         f"  Num examples = {data_args.num_train_steps * train_batch_size}")
     logger.info(
         f"  Instantaneous batch size per device = {training_args.per_device_train_batch_size}")
@@ -1021,7 +1024,7 @@ def main():
     if train_dataset.n_shards < data_args.preprocessing_num_workers:
         num_workers = train_dataset.n_shards
 
-    logger.info(f"  Number of train dataset workers = {num_workers} {'(Capped by the number of dataset shards)' if train_dataset.n_shards < data_args.preprocessing_num_workers else ''} {'(ADVICE: In most cases you will speed up training considerably if you increase the value of --preprocessing_num_workers!)' if num_workers < 3 else ''}")
+    logger.info(f"  Number of train dataset workers = {num_workers} {'(Capped by the number of dataset shards)' if train_dataset.n_shards < data_args.preprocessing_num_workers else ''} {'(ADVICE: In most cases you will speed up training considerably if you increase the value of --preprocessing_num_workers!)' if num_workers < 10 else ''}")
     
     eval_dataset = vectorized_datasets["eval"]
     
