@@ -408,9 +408,14 @@ def load_maybe_streaming_dataset(dataset_name, dataset_config_name, split="train
         return interleaved_dataset
     else:
         # load a single split *with* streaming mode
-        dataset = load_dataset(
-            dataset_name, dataset_config_name, split=split, streaming=streaming, **kwargs)
-        return dataset
+        try:
+            dataset = load_dataset(
+                dataset_name, dataset_config_name, split=split, streaming=streaming, **kwargs)
+            return dataset
+        except Exception as e:
+            print("Failed to load dataset")
+            return None
+
 
 
 def collate_batch(samples):
