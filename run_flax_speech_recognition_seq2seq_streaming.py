@@ -219,16 +219,7 @@ class DataTrainingArguments:
             "This is important to avoid triggering recompilations on TPU. If unspecified, will default to padding the targets to max length."
         },
     )
-    # Not supported for streaming
-    #preprocessing_only: bool = field(
-    #    default=False,
-    #    metadata={
-    #        "help": "Whether to only do data preprocessing and skip training. "
-    #        "This is especially useful when data preprocessing errors out in distributed training due to timeout. "
-    #        "In this case, one should run the preprocessing in a non-distributed setup with `preprocessing_only=True` "
-    #        "so that the cached datasets can consequently be loaded in distributed training"
-    #    },
-    #)
+
     train_split_name: str = field(
         default="train",
         metadata={
@@ -726,8 +717,10 @@ def main():
             metric_cer.compute(predictions=pred_str, references=label_str)
 
         return {"wer": wer, "cer": cer}
-
+    
+    ###############################################
     ### Extract this part - Javier
+    import re
     def trim_bold(text):
         if text.startswith(" "):
             return f" {trim_bold(text[1:])}"
@@ -757,7 +750,7 @@ def main():
     
 
     def write_predictions(step, eval_samples, eval_metrics, pred_ids, label_ids, tokenizer):
-        import re
+        
         predictions_folder_name = os.path.join(
             training_args.output_dir, "predictions")
         eval_table = f"| STEP| loss | wer |cer|\n| ---| --- | --- |--- |\n| **{step}**| {eval_metrics['loss']:.3f} | {eval_metrics['wer']:.3f} |{eval_metrics['cer']:.3f} |"
@@ -808,7 +801,6 @@ def main():
                     f.seek(0)
                     f.write(new_content)
                     f.truncate()
-
 
         logger.info(
             f"Created {stats_file_name} and updated the headers of the other stats files")
