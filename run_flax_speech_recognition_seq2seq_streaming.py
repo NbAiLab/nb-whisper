@@ -1036,7 +1036,8 @@ def main():
     eval_dataset = vectorized_datasets["eval"]
     
     train_loader = data_loader(train_dataset, train_batch_size,drop_last=True,num_workers=num_workers)
-    # train
+    
+    # ======================== Training ==============================
     for step in tqdm(range(data_args.num_train_steps), desc="Training...", position=1, leave=False):
         try:
             samples = next(train_loader)
@@ -1057,6 +1058,7 @@ def main():
 
         train_time += time.time() - train_start
         train_metric = unreplicate(train_metric)
+        
         # ======================== Evaluating ==============================
         if step % training_args.eval_steps == 0 and step > 0:
             eval_metrics = []
@@ -1085,7 +1087,6 @@ def main():
                     state.params, batch.data, min_device_batch=training_args.per_device_eval_batch_size
                 )
                 
-
                 eval_metrics.append(metrics)
                 if training_args.predict_with_generate and data_args.number_write_predictions and len(eval_samples) < data_args.number_write_predictions+eval_batch_size:
                     eval_samples.extend(samples['input_features'])
