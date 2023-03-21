@@ -727,8 +727,6 @@ def main():
 
         return {"wer": wer, "cer": cer}
 
-    # TODO: Sanchit. This part is not essential and a bit verbose.
-    # We do howver think it is extemely useful info for debugging and improving the model
 
     def write_predictions(step, eval_samples, eval_metrics, pred_ids, label_ids):
         predictions_folder_name = os.path.join(
@@ -1123,6 +1121,7 @@ def main():
                              eval_metrics, train_time, step)
 
             if training_args.predict_with_generate and data_args.number_write_predictions:
+                breakpoint()
                 write_predictions(step, eval_samples,
                                   eval_metrics, eval_preds, eval_labels)
 
