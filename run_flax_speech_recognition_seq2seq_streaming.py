@@ -728,7 +728,7 @@ def main():
         return {"wer": wer, "cer": cer}
 
 
-    def write_predictions(step, eval_samples, eval_metrics, pred_ids, label_ids):
+    def write_predictions(step, eval_samples, eval_metrics, pred_ids, label_ids, tokenizer):
         predictions_folder_name = os.path.join(
             training_args.output_dir, "predictions")
         eval_table = f"| STEP| loss | wer |cer|\n| ---| --- | --- |--- |\n| **{step}**| {eval_metrics['loss']:.3f} | {eval_metrics['wer']:.3f} |{eval_metrics['cer']:.3f} |"
@@ -1121,11 +1121,9 @@ def main():
                 write_metric(summary_writer, train_metrics,
                              eval_metrics, train_time, step)
 
-            breakpoint()
             if training_args.predict_with_generate and data_args.number_write_predictions:
-                breakpoint()
                 write_predictions(step, eval_samples,
-                                  eval_metrics, eval_preds, eval_labels)
+                                  eval_metrics, eval_preds, eval_labels, tokenizer)
 
             # save checkpoint after each epoch and push checkpoint to the hub
             if jax.process_index() == 0:
