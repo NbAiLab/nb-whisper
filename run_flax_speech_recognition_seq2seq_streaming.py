@@ -749,13 +749,12 @@ def main():
         return formatted_label_text, formatted_pred_text
     
 
-    def write_predictions(step, eval_samples, eval_metrics, pred_ids, label_ids, tokenizer):
-        
+    def write_predictions(step, eval_samples, eval_metrics, pred_ids, label_ids, tokenizer):    
         predictions_folder_name = os.path.join(
             training_args.output_dir, "predictions")
         eval_table = f"| STEP| loss | wer |cer|\n| ---| --- | --- |--- |\n| **{step}**| {eval_metrics['loss']:.3f} | {eval_metrics['wer']:.3f} |{eval_metrics['cer']:.3f} |"
 
-        # Put all predictions into a table
+        # Put predictions into a table
         inference_df = pd.DataFrame(columns=['target', 'prediction'])
 
         idx = 0
@@ -805,6 +804,10 @@ def main():
         logger.info(
             f"Created {stats_file_name} and updated the headers of the other stats files")
 
+    ###############################################
+    
+    
+    
     # 9. Save feature extractor, tokenizer and config
     feature_extractor.save_pretrained(training_args.output_dir)
     tokenizer.save_pretrained(training_args.output_dir)
