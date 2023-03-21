@@ -727,32 +727,58 @@ def main():
 
         return {"wer": wer, "cer": cer}
 
+    ### Extract this part - Javier
+    def trim_bold(text):
+        if text.startswith(" "):
+            return f" {trim_bold(text[1:])}"
+        elif text.endswith(" "):
+            return f"{trim_bold(text[:-1])} "
+        else:
+            return f"**{text}**"
+
+    def format_diff(label_text, pred_text):
+        label_words = re.split(r"\b", label_text)
+        label_bag = set(word.strip() for word in label_words)
+        pred_words = re.split(r"\b", pred_text)
+        pred_bag = set(word.strip() for word in pred_words)
+
+        formatted_label_text = "".join(
+            [trim_bold(word)
+            if word.strip() not in pred_bag else f"{word}" for word in label_words]
+        )
+        formatted_pred_text = "".join(
+            [trim_bold(word)
+            if word.strip() not in label_bag else f"{word}" for word in pred_words]
+        )
+        formatted_label_text = formatted_label_text.replace("****", "").replace(".", r"\.").replace(",", r"\,").replace("-", r"\-")
+        formatted_pred_text = formatted_pred_text.replace("****", "").replace(".", r"\.").replace(",", r"\,").replace("-", r"\-")
+
+        return formatted_label_text, formatted_pred_text
+    
 
     def write_predictions(step, eval_samples, eval_metrics, pred_ids, label_ids, tokenizer):
+        import re
         predictions_folder_name = os.path.join(
             training_args.output_dir, "predictions")
         eval_table = f"| STEP| loss | wer |cer|\n| ---| --- | --- |--- |\n| **{step}**| {eval_metrics['loss']:.3f} | {eval_metrics['wer']:.3f} |{eval_metrics['cer']:.3f} |"
 
         # Put all predictions into a table
-        inference_df = pd.DataFrame(columns=['mp3', 'target', 'prediction'])
+        inference_df = pd.DataFrame(columns=['target', 'prediction'])
 
         idx = 0
         for pred, label in zip(pred_ids, label_ids):
-            pred_text = tokenizer.decode(pred, skip_special_tokens=True)
             label_text = tokenizer.decode(label, skip_special_tokens=True)
-            formatted_pred_text = " ".join(
-                [f"**{word}**" if word in label_text else f"*{word}*" for word in pred_text.split()])
-            #wer = 100 * metric_wer.compute(predictions=[pred_text], references=[label_text])
-            #wer_formatted = f'{wer:.2f}'
-            audio_control = f'[↓]({"mp3/pred_"+str(idx)+".mp3"})'
+            pred_text = tokenizer.decode(pred, skip_special_tokens=True)
+            formatted_label_text, formatted_pred_text = format_diff(label_text, pred_text)
+            
             new_row = pd.DataFrame(
-                {'mp3': audio_control, 'target': label_text, 'prediction': formatted_pred_text}, index=[0])
+                {'target': formatted_label_text, 'prediction': formatted_pred_text}, index=[0])
             inference_df = pd.concat(
                 [inference_df, new_row], ignore_index=True)
             idx += 1
 
         # Create the prediction table of the first N rows
-        inference_df = inference_df[['mp3', 'target', 'prediction']]
+        inference_df = inference_df[['target', 'prediction']]
         predict_table = inference_df[0:data_args.number_write_predictions].to_markdown(
             index=False)
 
@@ -783,17 +809,6 @@ def main():
                     f.write(new_content)
                     f.truncate()
 
-        # Add a folder for the mp3 files
-        if not os.path.exists(os.path.join(predictions_folder_name, "mp3")):
-            os.makedirs(os.path.join(predictions_folder_name, "mp3"))
-
-        for idx, mp3array in enumerate(eval_samples[0:data_args.number_write_predictions]):
-            audio_segment = AudioSegment(data=mp3array.tobytes(
-            ), sample_width=mp3array.dtype.itemsize, frame_rate=16000, channels=1)
-            file_path = os.path.join(
-                predictions_folder_name, "mp3") + "/pred_" + str(idx) + ".mp3"
-            if not os.path.exists(file_path):
-                audio_segment.export(file_path, format="mp3")
 
         logger.info(
             f"Created {stats_file_name} and updated the headers of the other stats files")
