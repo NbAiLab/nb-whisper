@@ -6,7 +6,7 @@ python run_flax_speech_recognition_seq2seq_streaming.py \
             --text_column_name sentence \
             --train_split_name test\
             --eval_split_name test\
-            --output_dir whisper-tiny-ft-dummy\
+            --output_dir ../../whisper-tiny-ft-dummy\
             --overwrite_output_dir\
             --max_eval_samples=16\
             --warmup_steps=8 \
@@ -18,4 +18,5 @@ python run_flax_speech_recognition_seq2seq_streaming.py \
             --per_device_train_batch_size=2 \
             --per_device_eval_batch_size=2 \
             --predict_with_generate \
+            --number_write_predictions 10 \
             --streaming=True

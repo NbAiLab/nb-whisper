@@ -1121,6 +1121,7 @@ def main():
                 write_metric(summary_writer, train_metrics,
                              eval_metrics, train_time, step)
 
+            breakpoint()
             if training_args.predict_with_generate and data_args.number_write_predictions:
                 breakpoint()
                 write_predictions(step, eval_samples,
