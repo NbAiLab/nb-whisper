@@ -527,6 +527,11 @@ def main():
         repo = Repository(training_args.output_dir,
                           clone_from=repo_name, token=training_args.hub_token)
 
+    # Set the model_name_or_path
+    model_name_or_path = model_args.model_name_or_path
+    logger.info(
+        f"My model: {model_name_or_path}"
+    )
     # Try to detect last checkpoint and continue if possible
     if os.path.exists(os.path.join(training_args.output_dir, "flax_model.msgpack")):
         logger.info(
@@ -539,7 +544,7 @@ def main():
         )
     
     logger.info(
-        f"My model: {model_args.model_name_or_path}"
+        f"My model: {model_name_or_path}"
     )
     
     breakpoint()
