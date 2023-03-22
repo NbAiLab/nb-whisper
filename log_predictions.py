@@ -10,9 +10,6 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO if jax.process_index()
                 == 0 else logging.ERROR)
 
-logger.info(
-    f"Created {stats_file_name} and updated the headers of the other stats files")
-
 def trim_bold(text):
     if text.startswith(" "):
         return f" {trim_bold(text[1:])}"

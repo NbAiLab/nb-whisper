@@ -29,4 +29,6 @@ python run_flax_speech_recognition_seq2seq_streaming_dev.py \
             --predict_with_generate \
             --log_eval_predictions_fn log_predictions.write_predictions \
             --log_max_eval_predictions 100 \
-            --streaming=True
+            --streaming=True \
+            --push_to_hub
+            
