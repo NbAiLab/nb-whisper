@@ -1,4 +1,4 @@
-export TOKENIZERS_PARALELLISM=true
+export TOKENIZERS_PARALELLISM=false
 export CMALLOC_VERBOSE=0
 export TCMALLOC_VERBOSE=0
 export TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD=10000000000
@@ -10,6 +10,7 @@ python run_flax_speech_recognition_seq2seq_streaming_dev.py \
             --train_split_name validation\
             --eval_split_name test\
             --output_dir ../../whisper_dummy\
+            --overwrite_output_dir\
             --max_eval_samples=20\
             --warmup_steps=100 \
             --do_train \
