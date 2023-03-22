@@ -532,12 +532,14 @@ def main():
         logger.info(
             f"Checkpoint detected, resuming training at {training_args.output_dir}. Not implemented yet"
         )
+        model_args.model_name_or_path = os.path.join(training_args.output_dir, "flax_model.msgpack")
     else:
         logger.info(
-            f"No valid checkpoint found in {training_args.output_dir}."
+            f"No valid checkpoint found in {training_args.output_dir}. Starting from {model_args.model_name_or_path}."
         )
+        
+    print(model_args.model_name_or_path)
     breakpoint()
-    
     # 3. Load dataset
     raw_datasets = IterableDatasetDict() if data_args.streaming else DatasetDict()
 
