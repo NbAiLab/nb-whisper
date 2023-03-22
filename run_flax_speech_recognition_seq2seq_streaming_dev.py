@@ -834,7 +834,7 @@ def main():
     current_step = 0
     while current_step < data_args.init_train_steps:
         current_step += 1
-        learning_rate = linear_decay_lr_schedule_fn(current_step)
+        learning_rate = linear_decay_lr_schedule_fn(step=current_step)
         print(learning_rate)
         
     
