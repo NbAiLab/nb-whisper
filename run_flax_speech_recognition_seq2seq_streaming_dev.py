@@ -535,7 +535,7 @@ def main():
         raise ValueError(
             f"No valid checkpoint found in {training_args.output_dir}."
         )
-    elif :
+    else:
         logger.info(
             f"Checkpoint detected, resuming training at {last_checkpoint}. Not implemented yet"
         )
