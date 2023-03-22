@@ -66,6 +66,7 @@ from transformers.file_utils import get_full_repo_name
 from transformers.utils import check_min_version, send_example_telemetry
 from transformers.utils.versions import require_version
 
+from flax.training import checkpoints
 
 # Will error if the minimal version of Transformers is not installed. Remove at your own risks.
 check_min_version("4.27.0.dev0")
@@ -526,6 +527,20 @@ def main():
         repo = Repository(training_args.output_dir,
                           clone_from=repo_name, token=training_args.hub_token)
 
+    # Try to detect last checkpoint and continue if possible
+    breakpoint()
+    from transformers.trainer_utils import get_last_checkpoint, is_main_process
+    last_checkpoint = get_last_checkpoint(training_args.output_dir)
+    if last_checkpoint is None:
+        raise ValueError(
+            f"No valid checkpoint found in {training_args.output_dir}."
+        )
+    elif :
+        logger.info(
+            f"Checkpoint detected, resuming training at {last_checkpoint}. Not implemented yet"
+        )
+    
+    
     # 3. Load dataset
     raw_datasets = IterableDatasetDict() if data_args.streaming else DatasetDict()
 
@@ -1058,8 +1073,7 @@ def main():
                 tokenizer.save_pretrained(training_args.output_dir)
                 if training_args.push_to_hub:
                     repo.push_to_hub(
-                        commit_message=f"Saving weights and logs of epoch {epoch}", blocking=False)
-
+                        commit_message=f"Saving weights and logs of step {step} - epoch {epoch}", blocking=False)
 
 if __name__ == "__main__":
     main()
