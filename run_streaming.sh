@@ -1,4 +1,4 @@
-python run_flax_speech_recognition_seq2seq_streaming.py \
+python run_flax_speech_recognition_seq2seq_streaming_dev.py \
             --model_name_or_path openai/whisper-tiny \
             --dataset_name mozilla-foundation/common_voice_11_0 \
             --dataset_config nn-NO \
