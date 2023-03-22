@@ -993,7 +993,7 @@ def main():
     eval_dataset = vectorized_datasets["eval"]
     train_loader = data_loader(train_dataset, train_batch_size, num_workers=num_workers)
     # train
-    for step in tqdm(range(data_args.init_train_steps,data_args.num_train_steps), , initial=data_args.init_train_steps, desc="Training...", position=1, leave=False):
+    for step in tqdm(range(data_args.init_train_steps,data_args.num_train_steps), initial=data_args.init_train_steps, desc="Training...", position=1, leave=False):
         try:
             samples = next(train_loader)
         except StopIteration:
