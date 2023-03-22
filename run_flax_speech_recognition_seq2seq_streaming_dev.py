@@ -529,9 +529,7 @@ def main():
 
     # Set the model_name_or_path
     model_name_or_path = model_args.model_name_or_path
-    logger.info(
-        f"My model: {model_name_or_path}"
-    )
+
     # Try to detect last checkpoint and continue if possible
     if os.path.exists(os.path.join(training_args.output_dir, "flax_model.msgpack")):
         logger.info(
@@ -543,11 +541,7 @@ def main():
             f"No valid checkpoint found in {training_args.output_dir}. Starting from {model_args.model_name_or_path}."
         )
     
-    logger.info(
-        f"My model: {model_name_or_path}"
-    )
     
-    breakpoint()
     # 3. Load dataset
     raw_datasets = IterableDatasetDict() if data_args.streaming else DatasetDict()
 
@@ -595,19 +589,19 @@ def main():
 
     # 5. Load pretrained model, tokenizer, and feature extractor
     config = AutoConfig.from_pretrained(
-        model_args.config_name if model_args.config_name else model_args.model_name_or_path,
+        model_args.config_name if model_args.config_name else model_name_or_path,
         cache_dir=model_args.cache_dir,
         revision=model_args.model_revision,
         use_auth_token=True if model_args.use_auth_token else None,
     )
     feature_extractor = AutoFeatureExtractor.from_pretrained(
-        model_args.feature_extractor_name if model_args.feature_extractor_name else model_args.model_name_or_path,
+        model_args.feature_extractor_name if model_args.feature_extractor_name else model_name_or_path,
         cache_dir=model_args.cache_dir,
         revision=model_args.model_revision,
         use_auth_token=True if model_args.use_auth_token else None,
     )
     tokenizer = AutoTokenizer.from_pretrained(
-        model_args.tokenizer_name if model_args.tokenizer_name else model_args.model_name_or_path,
+        model_args.tokenizer_name if model_args.tokenizer_name else model_name_or_path,
         cache_dir=model_args.cache_dir,
         use_fast=model_args.use_fast_tokenizer,
         revision=model_args.model_revision,
@@ -615,7 +609,7 @@ def main():
     )
 
     model = FlaxAutoModelForSpeechSeq2Seq.from_pretrained(
-        model_args.model_name_or_path,
+        model_name_or_path,
         config=config,
         dtype=getattr(jnp, model_args.dtype),
         cache_dir=model_args.cache_dir,
