@@ -7,8 +7,8 @@ import pandas as pd
 logger = logging.getLogger(__name__)
 
 # Setting log level to screen and making sure only one processor per machine outputs logs
-logger.setLevel(logging.INFO if jax.process_index()
-                == 0 else logging.ERROR)
+logger.setLevel(logging.INFO if jax.process_index() == 0 else logging.ERROR)
+
 
 def trim_bold(text):
     if text.startswith(" "):

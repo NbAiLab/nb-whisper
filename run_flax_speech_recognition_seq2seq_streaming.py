@@ -39,7 +39,13 @@ import numpy as np
 import optax
 import pandas as pd
 import torch
-from datasets import Dataset, DatasetDict, IterableDatasetDict, interleave_datasets, load_dataset
+from datasets import (
+    Dataset,
+    DatasetDict,
+    IterableDatasetDict,
+    interleave_datasets,
+    load_dataset,
+)
 from torch.utils.data import IterableDataset
 from flax import jax_utils, traverse_util
 from flax.jax_utils import pad_shard_unpad, unreplicate
@@ -70,8 +76,10 @@ from transformers.utils.versions import require_version
 # Will error if the minimal version of Transformers is not installed. Remove at your own risks.
 check_min_version("4.27.0.dev0")
 
-require_version("datasets>=1.18.2",
-                "To fix: pip install -r examples/flax/speech-recogintion/requirements.txt")
+require_version(
+    "datasets>=1.18.2",
+    "To fix: pip install -r examples/flax/speech-recogintion/requirements.txt",
+)
 
 logger = logging.getLogger(__name__)
 
@@ -84,31 +92,44 @@ class ModelArguments:
 
     model_name_or_path: str = field(
         metadata={
-            "help": "Path to pretrained model or model identifier from huggingface.co/models"}
+            "help": "Path to pretrained model or model identifier from huggingface.co/models"
+        }
     )
     config_name: Optional[str] = field(
-        default=None, metadata={"help": "Pretrained config name or path if not the same as model_name"}
+        default=None,
+        metadata={
+            "help": "Pretrained config name or path if not the same as model_name"
+        },
     )
     tokenizer_name: Optional[str] = field(
-        default=None, metadata={"help": "Pretrained tokenizer name or path if not the same as model_name"}
+        default=None,
+        metadata={
+            "help": "Pretrained tokenizer name or path if not the same as model_name"
+        },
     )
     feature_extractor_name: Optional[str] = field(
-        default=None, metadata={"help": "feature extractor name or path if not the same as model_name"}
+        default=None,
+        metadata={
+            "help": "feature extractor name or path if not the same as model_name"
+        },
     )
     cache_dir: Optional[str] = field(
         default=None,
         metadata={
-            "help": "Where to store the pretrained models downloaded from huggingface.co"},
+            "help": "Where to store the pretrained models downloaded from huggingface.co"
+        },
     )
     use_fast_tokenizer: bool = field(
         default=True,
         metadata={
-            "help": "Whether to use one of the fast tokenizer (backed by the tokenizers library) or not."},
+            "help": "Whether to use one of the fast tokenizer (backed by the tokenizers library) or not."
+        },
     )
     model_revision: str = field(
         default="main",
         metadata={
-            "help": "The specific model version to use (can be a branch name, tag name or commit id)."},
+            "help": "The specific model version to use (can be a branch name, tag name or commit id)."
+        },
     )
     use_auth_token: bool = field(
         default=False,
@@ -144,21 +165,28 @@ class DataTrainingArguments:
     """
 
     dataset_name: str = field(
-        default=None, metadata={"help": "The name of the dataset to use (via the datasets library)."}
+        default=None,
+        metadata={"help": "The name of the dataset to use (via the datasets library)."},
     )
     dataset_config_name: Optional[str] = field(
-        default=None, metadata={"help": "The configuration name of the dataset to use (via the datasets library)."}
+        default=None,
+        metadata={
+            "help": "The configuration name of the dataset to use (via the datasets library)."
+        },
     )
     text_column: Optional[str] = field(
         default=None,
         metadata={
-            "help": "The name of the column in the datasets containing the full texts (for summarization)."},
+            "help": "The name of the column in the datasets containing the full texts (for summarization)."
+        },
     )
     dataset_cache_dir: Optional[str] = field(
-        default=None, metadata={"help": "Path to cache directory for saving and loading datasets"}
+        default=None,
+        metadata={"help": "Path to cache directory for saving and loading datasets"},
     )
     overwrite_cache: bool = field(
-        default=False, metadata={"help": "Overwrite the cached training and evaluation sets"}
+        default=False,
+        metadata={"help": "Overwrite the cached training and evaluation sets"},
     )
     preprocessing_num_workers: Optional[int] = field(
         default=50,
@@ -181,27 +209,32 @@ class DataTrainingArguments:
     audio_column_name: str = field(
         default="audio",
         metadata={
-            "help": "The name of the dataset column containing the audio data. Defaults to 'audio'"},
+            "help": "The name of the dataset column containing the audio data. Defaults to 'audio'"
+        },
     )
     text_column_name: str = field(
         default="text",
         metadata={
-            "help": "The name of the dataset column containing the text data. Defaults to 'text'"},
+            "help": "The name of the dataset column containing the text data. Defaults to 'text'"
+        },
     )
     max_duration_in_seconds: float = field(
         default=30.0,
         metadata={
-            "help": "Filter audio files that are longer than `max_duration_in_seconds` seconds"},
+            "help": "Filter audio files that are longer than `max_duration_in_seconds` seconds"
+        },
     )
     min_duration_in_seconds: float = field(
         default=0.0,
         metadata={
-            "help": "Filter audio files that are shorter than `min_duration_in_seconds` seconds"},
+            "help": "Filter audio files that are shorter than `min_duration_in_seconds` seconds"
+        },
     )
     max_label_length: float = field(
         default=128,
         metadata={
-            "help": "Truncate transcriptions that are longer `max_eval_length` tokens."},
+            "help": "Truncate transcriptions that are longer `max_eval_length` tokens."
+        },
     )
     pad_input_to_multiple_of: Optional[int] = field(
         default=None,
@@ -235,13 +268,13 @@ class DataTrainingArguments:
     )
     do_remove_punctuation: bool = field(
         default=False,
-        metadata={
-            "help": "Whether the target text should be striped of punctuation."},
+        metadata={"help": "Whether the target text should be striped of punctuation."},
     )
     do_normalize_eval: bool = field(
         default=True,
         metadata={
-            "help": "Whether to normalise the references and predictions in the eval WER calculation."},
+            "help": "Whether to normalise the references and predictions in the eval WER calculation."
+        },
     )
     language: str = field(
         default=None,
@@ -255,10 +288,12 @@ class DataTrainingArguments:
     task: str = field(
         default="transcribe",
         metadata={
-            "help": "Task, either `transcribe` for speech recognition or `translate` for speech translation."},
+            "help": "Task, either `transcribe` for speech recognition or `translate` for speech translation."
+        },
     )
-    num_train_steps: int = field(default=50000, metadata={
-                                 "help": "The number of training steps."})
+    num_train_steps: int = field(
+        default=50000, metadata={"help": "The number of training steps."}
+    )
     shuffle_buffer_size: Optional[int] = field(
         default=500,
         metadata={
@@ -271,7 +306,8 @@ class DataTrainingArguments:
     streaming: bool = field(
         default=True,
         metadata={
-            "help": "Whether to use streaming mode to load and pre-process the data."},
+            "help": "Whether to use streaming mode to load and pre-process the data."
+        },
     )
     log_max_eval_predictions: Optional[int] = field(
         default=0,
@@ -346,7 +382,9 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
     pad_input_to_multiple_of: Optional[int] = None
     pad_target_to_multiple_of: Optional[int] = None
 
-    def __call__(self, features: List[Dict[str, Union[List[int], np.ndarray]]]) -> Dict[str, np.ndarray]:
+    def __call__(
+        self, features: List[Dict[str, Union[List[int], np.ndarray]]]
+    ) -> Dict[str, np.ndarray]:
         model_input_name = self.processor.model_input_names[0]
         input_features = {model_input_name: features[model_input_name]}
         label_features = {"input_ids": features["labels"]}
@@ -375,12 +413,10 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
             labels = labels[:, 1:]
             labels_batch.attention_mask = labels_batch.attention_mask[:, 1:]
 
-        decoder_input_ids = shift_tokens_right(
-            labels, self.decoder_start_token_id)
+        decoder_input_ids = shift_tokens_right(labels, self.decoder_start_token_id)
 
         # replace padding with -100 to ignore correctly when computing the loss
-        labels = np.ma.array(labels, mask=np.not_equal(
-            labels_batch.attention_mask, 1))
+        labels = np.ma.array(labels, mask=np.not_equal(labels_batch.attention_mask, 1))
         labels = labels.filled(fill_value=-100)
 
         batch["labels"] = labels
@@ -389,7 +425,9 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
         return batch
 
 
-def load_maybe_streaming_dataset(dataset_name, dataset_config_name, split="train", streaming=True, **kwargs):
+def load_maybe_streaming_dataset(
+    dataset_name, dataset_config_name, split="train", streaming=True, **kwargs
+):
     """
     Utility function to load a dataset in streaming mode. For datasets with multiple splits,
     each split is loaded individually and then splits combined by taking alternating examples from
@@ -398,8 +436,13 @@ def load_maybe_streaming_dataset(dataset_name, dataset_config_name, split="train
     if "+" in split:
         # load multiple splits separated by the `+` symbol with streaming mode
         dataset_splits = [
-            load_dataset(dataset_name, dataset_config_name,
-                         split=split_name, streaming=streaming, **kwargs)
+            load_dataset(
+                dataset_name,
+                dataset_config_name,
+                split=split_name,
+                streaming=streaming,
+                **kwargs,
+            )
             for split_name in split.split("+")
         ]
         # interleave multiple splits to form one dataset
@@ -408,7 +451,12 @@ def load_maybe_streaming_dataset(dataset_name, dataset_config_name, split="train
     else:
         # load a single split *with* streaming mode
         dataset = load_dataset(
-            dataset_name, dataset_config_name, split=split, streaming=streaming, **kwargs)
+            dataset_name,
+            dataset_config_name,
+            split=split,
+            streaming=streaming,
+            **kwargs,
+        )
         return dataset
 
 
@@ -419,20 +467,22 @@ def collate_batch(samples):
 def data_loader(
     dataset: Dataset,
     batch_size: int,
-    drop_last: bool=True,
-    num_workers: int=0,
+    drop_last: bool = True,
+    num_workers: int = 0,
 ) -> Generator:
     """
     Returns batches of size `batch_size` from `dataset`. If `drop_last` is set to `False`, the final batch may be incomplete,
     and range in size from 1 to `batch_size`. Shuffle batches if `shuffle` is `True`.
     """
-    data_loader_iterator = iter(torch.utils.data.DataLoader(
-        batch_size=batch_size,
-        dataset=dataset.with_format("torch"),
-        num_workers=num_workers,
-        collate_fn=collate_batch,
-        drop_last=drop_last,
-    ))
+    data_loader_iterator = iter(
+        torch.utils.data.DataLoader(
+            batch_size=batch_size,
+            dataset=dataset.with_format("torch"),
+            num_workers=num_workers,
+            collate_fn=collate_batch,
+            drop_last=drop_last,
+        )
+    )
     return data_loader_iterator
 
 
@@ -440,20 +490,32 @@ class TrainState(train_state.TrainState):
     dropout_rng: jnp.ndarray
 
     def replicate(self):
-        return jax_utils.replicate(self).replace(dropout_rng=shard_prng_key(self.dropout_rng))
+        return jax_utils.replicate(self).replace(
+            dropout_rng=shard_prng_key(self.dropout_rng)
+        )
 
 
 def create_learning_rate_fn(
-    num_train_steps: int, num_warmup_steps: int, learning_rate: float, warmup_init_value: float=0.0, decay_end_value: float=0.0,
+    num_train_steps: int,
+    num_warmup_steps: int,
+    learning_rate: float,
+    warmup_init_value: float = 0.0,
+    decay_end_value: float = 0.0,
 ) -> Callable[[int], jnp.array]:
     """Returns a linear warmup, linear_decay learning rate function."""
     warmup_fn = optax.linear_schedule(
-        init_value=warmup_init_value, end_value=learning_rate, transition_steps=num_warmup_steps)
+        init_value=warmup_init_value,
+        end_value=learning_rate,
+        transition_steps=num_warmup_steps,
+    )
     decay_fn = optax.linear_schedule(
-        init_value=learning_rate, end_value=decay_end_value, transition_steps=num_train_steps - num_warmup_steps
+        init_value=learning_rate,
+        end_value=decay_end_value,
+        transition_steps=num_train_steps - num_warmup_steps,
     )
     schedule_fn = optax.join_schedules(
-        schedules=[warmup_fn, decay_fn], boundaries=[num_warmup_steps])
+        schedules=[warmup_fn, decay_fn], boundaries=[num_warmup_steps]
+    )
     return schedule_fn
 
 
@@ -463,20 +525,23 @@ def main():
     # or by passing the --help flag to this script.
     # We now keep distinct sets of args, for a cleaner separation of concerns.
     parser = HfArgumentParser(
-        (ModelArguments, DataTrainingArguments, Seq2SeqTrainingArguments))
+        (ModelArguments, DataTrainingArguments, Seq2SeqTrainingArguments)
+    )
 
     if len(sys.argv) == 2 and sys.argv[1].endswith(".json"):
         # If we pass only one argument to the script and it's the path to a json file,
         # let's parse it to get our arguments.
         model_args, data_args, training_args = parser.parse_json_file(
-            json_file=os.path.abspath(sys.argv[1]))
+            json_file=os.path.abspath(sys.argv[1])
+        )
     else:
         model_args, data_args, training_args = parser.parse_args_into_dataclasses()
 
     # Sending telemetry. Tracking the example usage helps us better allocate resources to maintain them. The
     # information sent is the one passed as arguments along with your JAX/Flax versions.
-    send_example_telemetry("run_speech_recognition_seq2seq",
-                           model_args, data_args, framework="flax")
+    send_example_telemetry(
+        "run_speech_recognition_seq2seq", model_args, data_args, framework="flax"
+    )
 
     # 2. Setup logging
     # Make one log on every process with the configuration for debugging.
@@ -487,8 +552,7 @@ def main():
     )
     # Set the verbosity to info of the Transformers logger.
     # We only want one process per machine to log things on the screen.
-    logger.setLevel(logging.INFO if jax.process_index()
-                    == 0 else logging.ERROR)
+    logger.setLevel(logging.INFO if jax.process_index() == 0 else logging.ERROR)
     if jax.process_index() == 0:
         datasets.utils.logging.set_verbosity_warning()
         transformers.utils.logging.set_verbosity_info()
@@ -521,10 +585,16 @@ def main():
         else:
             repo_name = training_args.hub_model_id
         create_repo(
-            repo_name, exist_ok=True, token=training_args.hub_token, private=training_args.hub_private_repo
+            repo_name,
+            exist_ok=True,
+            token=training_args.hub_token,
+            private=training_args.hub_private_repo,
         )
-        repo = Repository(training_args.output_dir,
-                          clone_from=repo_name, token=training_args.hub_token)
+        repo = Repository(
+            training_args.output_dir,
+            clone_from=repo_name,
+            token=training_args.hub_token,
+        )
 
     # 3. Load dataset
     raw_datasets = IterableDatasetDict() if data_args.streaming else DatasetDict()
@@ -554,8 +624,7 @@ def main():
             "Cannot not train and not do evaluation. At least one of training or evaluation has to be performed."
         )
 
-    raw_datasets_features = list(
-        next(iter(raw_datasets.values())).features.keys())
+    raw_datasets_features = list(next(iter(raw_datasets.values())).features.keys())
 
     if data_args.audio_column_name not in raw_datasets_features:
         raise ValueError(
@@ -573,19 +642,25 @@ def main():
 
     # 5. Load pretrained model, tokenizer, and feature extractor
     config = AutoConfig.from_pretrained(
-        model_args.config_name if model_args.config_name else model_args.model_name_or_path,
+        model_args.config_name
+        if model_args.config_name
+        else model_args.model_name_or_path,
         cache_dir=model_args.cache_dir,
         revision=model_args.model_revision,
         use_auth_token=True if model_args.use_auth_token else None,
     )
     feature_extractor = AutoFeatureExtractor.from_pretrained(
-        model_args.feature_extractor_name if model_args.feature_extractor_name else model_args.model_name_or_path,
+        model_args.feature_extractor_name
+        if model_args.feature_extractor_name
+        else model_args.model_name_or_path,
         cache_dir=model_args.cache_dir,
         revision=model_args.model_revision,
         use_auth_token=True if model_args.use_auth_token else None,
     )
     tokenizer = AutoTokenizer.from_pretrained(
-        model_args.tokenizer_name if model_args.tokenizer_name else model_args.model_name_or_path,
+        model_args.tokenizer_name
+        if model_args.tokenizer_name
+        else model_args.model_name_or_path,
         cache_dir=model_args.cache_dir,
         use_fast=model_args.use_fast_tokenizer,
         revision=model_args.model_revision,
@@ -603,27 +678,35 @@ def main():
 
     if model.config.decoder_start_token_id is None:
         raise ValueError(
-            "Make sure that `config.decoder_start_token_id` is correctly defined")
+            "Make sure that `config.decoder_start_token_id` is correctly defined"
+        )
 
     # 6. Resample speech dataset: `datasets` takes care of automatically loading and resampling the audio,
     # so we just need to set the correct target sampling rate.
-    dataset_sampling_rate = next(
-        iter(raw_datasets.values())).features[data_args.audio_column_name].sampling_rate
+    dataset_sampling_rate = (
+        next(iter(raw_datasets.values()))
+        .features[data_args.audio_column_name]
+        .sampling_rate
+    )
 
     if dataset_sampling_rate != feature_extractor.sampling_rate:
         raw_datasets = raw_datasets.cast_column(
-            data_args.audio_column_name, datasets.features.Audio(
-                sampling_rate=feature_extractor.sampling_rate)
+            data_args.audio_column_name,
+            datasets.features.Audio(sampling_rate=feature_extractor.sampling_rate),
         )
 
     # 7. Preprocessing the datasets.
     # We need to read the audio files as arrays and tokenize the targets.
     max_input_length = int(
-        data_args.max_duration_in_seconds * feature_extractor.sampling_rate)
+        data_args.max_duration_in_seconds * feature_extractor.sampling_rate
+    )
     min_input_length = int(
-        data_args.min_duration_in_seconds * feature_extractor.sampling_rate)
+        data_args.min_duration_in_seconds * feature_extractor.sampling_rate
+    )
     max_label_length = (
-        data_args.max_label_length if data_args.max_label_length is not None else model.config.max_length
+        data_args.max_label_length
+        if data_args.max_label_length is not None
+        else model.config.max_length
     )
     pad_input_to_multiple_of = data_args.pad_input_to_multiple_of
     pad_target_to_multiple_of = data_args.pad_target_to_multiple_of
@@ -637,21 +720,24 @@ def main():
 
     if data_args.language is not None:
         # We only need to set the task id when the language is specified (i.e. in a multilingual setting)
-        tokenizer.set_prefix_tokens(
-            language=data_args.language, task=data_args.task)
+        tokenizer.set_prefix_tokens(language=data_args.language, task=data_args.task)
 
     def prepare_dataset(batch):
         # process audio
         sample = batch[audio_column_name]
         inputs = feature_extractor(
-            sample["array"], sampling_rate=sample["sampling_rate"])
+            sample["array"], sampling_rate=sample["sampling_rate"]
+        )
         # process audio length
         batch[model_input_name] = inputs.get(model_input_name)[0]
         batch["input_length"] = len(sample["array"])
 
         # process targets
-        input_str = batch[text_column_name].lower(
-        ) if do_lower_case else batch[text_column_name]
+        input_str = (
+            batch[text_column_name].lower()
+            if do_lower_case
+            else batch[text_column_name]
+        )
         if do_remove_punctuation:
             input_str = normalizer(input_str).strip()
         batch["labels"] = tokenizer(input_str).input_ids
@@ -697,10 +783,12 @@ def main():
             pred_str = [normalizer(pred) for pred in pred_str]
             label_str = [normalizer(label) for label in label_str]
             # filtering step to only evaluate the samples that correspond to non-zero references:
-            pred_str = [pred_str[i]
-                        for i in range(len(pred_str)) if len(label_str[i]) > 0]
-            label_str = [label_str[i]
-                         for i in range(len(label_str)) if len(label_str[i]) > 0]
+            pred_str = [
+                pred_str[i] for i in range(len(pred_str)) if len(label_str[i]) > 0
+            ]
+            label_str = [
+                label_str[i] for i in range(len(label_str)) if len(label_str[i]) > 0
+            ]
 
         wer = 100 * metric_wer.compute(predictions=pred_str, references=label_str)
         cer = 100 * metric_cer.compute(predictions=pred_str, references=label_str)
@@ -710,7 +798,15 @@ def main():
         else:
             return {"wer": wer, "cer": cer}
 
-    def write_metric(summary_writer, train_metrics, eval_metrics, train_time, step, predictions=None, labels=None):
+    def write_metric(
+        summary_writer,
+        train_metrics,
+        eval_metrics,
+        train_time,
+        step,
+        predictions=None,
+        labels=None,
+    ):
         summary_writer.scalar("train_time", train_time, step)
 
         train_metrics = get_metrics(train_metrics)
@@ -723,19 +819,44 @@ def main():
             summary_writer.scalar(f"eval_{metric_name}", value, step)
         # Log evaluation predictions
         if predictions and labels:
-            df = pd.DataFrame({
-                "references": labels,
-                "predictions": predictions,
-            })
-            df["wer"] = df.apply(lambda row: metric_wer.compute(predictions=[row["predictions"]], references=[row["references"]]), axis=1)
-            df["cer"] = df.apply(lambda row: metric_cer.compute(predictions=[row["predictions"]], references=[row["references"]]), axis=1)
+            df = pd.DataFrame(
+                {
+                    "references": labels,
+                    "predictions": predictions,
+                }
+            )
+            df["wer"] = df.apply(
+                lambda row: metric_wer.compute(
+                    predictions=[row["predictions"]], references=[row["references"]]
+                ),
+                axis=1,
+            )
+            df["cer"] = df.apply(
+                lambda row: metric_cer.compute(
+                    predictions=[row["predictions"]], references=[row["references"]]
+                ),
+                axis=1,
+            )
             markdown_table = df.to_markdown(index=False)
-            eval_metrics_table = pd.DataFrame.from_dict([{"step": step, **eval_metrics}]).to_markdown(index=False)
-            summary_writer.text("eval_predictions", eval_metrics_table + "\n\n" + markdown_table, step)
+            eval_metrics_table = pd.DataFrame.from_dict(
+                [{"step": step, **eval_metrics}]
+            ).to_markdown(index=False)
+            summary_writer.text(
+                "eval_predictions", eval_metrics_table + "\n\n" + markdown_table, step
+            )
             if data_args.log_eval_predictions_fn:
-                module, fname = data_args.log_eval_predictions_fn.rsplit('.', 1)
+                module, fname = data_args.log_eval_predictions_fn.rsplit(".", 1)
                 fn = getattr(import_module(module), fname)
-                fn(summary_writer, train_metrics, eval_metrics, train_time, step, predictions=predictions, labels=labels, training_args=training_args)
+                fn(
+                    summary_writer,
+                    train_metrics,
+                    eval_metrics,
+                    train_time,
+                    step,
+                    predictions=predictions,
+                    labels=labels,
+                    training_args=training_args,
+                )
 
     # 9. Save feature extractor, tokenizer and config
     feature_extractor.save_pretrained(training_args.output_dir)
@@ -751,7 +872,9 @@ def main():
         target_padding="longest",
         max_target_length=max_label_length,
         pad_input_to_multiple_of=pad_input_to_multiple_of,
-        pad_target_to_multiple_of=pad_target_to_multiple_of if pad_target_to_multiple_of else max_label_length,
+        pad_target_to_multiple_of=pad_target_to_multiple_of
+        if pad_target_to_multiple_of
+        else max_label_length,
     )
 
     # Enable tensorboard only on the master node
@@ -761,7 +884,10 @@ def main():
             from flax.metrics.tensorboard import SummaryWriter
 
             summary_writer = SummaryWriter(
-                log_dir=Path(training_args.output_dir) / "runs" / f"{datetime.now():%b%d_%H-%M-%S}_{socket.gethostname()}")
+                log_dir=Path(training_args.output_dir)
+                / "runs"
+                / f"{datetime.now():%b%d_%H-%M-%S}_{socket.gethostname()}"
+            )
         except ImportError as ie:
             has_tensorboard = False
             logger.warning(
@@ -779,11 +905,11 @@ def main():
     # rng, input_rng = jax.random.split(rng)
 
     # Store some constant
-    #num_epochs = int(training_args.num_train_epochs)
-    train_batch_size = int(
-        training_args.per_device_train_batch_size) * jax.device_count()
-    eval_batch_size = int(
-        training_args.per_device_eval_batch_size) * jax.device_count()
+    # num_epochs = int(training_args.num_train_epochs)
+    train_batch_size = (
+        int(training_args.per_device_train_batch_size) * jax.device_count()
+    )
+    eval_batch_size = int(training_args.per_device_eval_batch_size) * jax.device_count()
 
     # Create learning rate schedule
     lr_scheduler_types = {"linear", "constant", "constant_with_warmup"}
@@ -824,8 +950,10 @@ def main():
                 if layer_norm_name in "".join(layer).lower()
             ]
         )
-        flat_mask = {path: (path[-1] != "bias" and path[-2:]
-                            not in layer_norm_named_params) for path in flat_params}
+        flat_mask = {
+            path: (path[-1] != "bias" and path[-2:] not in layer_norm_named_params)
+            for path in flat_params
+        }
         return traverse_util.unflatten_dict(flat_mask)
 
     # create adam optimizer
@@ -840,7 +968,8 @@ def main():
 
     # Setup train state
     state = TrainState.create(
-        apply_fn=model.__call__, params=model.params, tx=adamw, dropout_rng=dropout_rng)
+        apply_fn=model.__call__, params=model.params, tx=adamw, dropout_rng=dropout_rng
+    )
 
     # label smoothed cross entropy
     def loss_fn(logits, labels, label_smoothing_factor=0.0):
@@ -852,11 +981,12 @@ def main():
         confidence = 1.0 - label_smoothing_factor
         low_confidence = (1.0 - confidence) / (vocab_size - 1)
         normalizing_constant = -(
-            confidence * jnp.log(confidence) + (vocab_size - 1) *
-            low_confidence * jnp.log(low_confidence + 1e-20)
+            confidence * jnp.log(confidence)
+            + (vocab_size - 1) * low_confidence * jnp.log(low_confidence + 1e-20)
         )
-        soft_labels = onehot(labels, vocab_size,
-                             on_value=confidence, off_value=low_confidence)
+        soft_labels = onehot(
+            labels, vocab_size, on_value=confidence, off_value=low_confidence
+        )
 
         loss = optax.softmax_cross_entropy(logits, soft_labels)
         loss = loss - normalizing_constant
@@ -875,7 +1005,8 @@ def main():
         def compute_loss(params):
             labels = batch.pop("labels")
             logits = state.apply_fn(
-                **batch, params=params, dropout_rng=dropout_rng, train=True)[0]
+                **batch, params=params, dropout_rng=dropout_rng, train=True
+            )[0]
             loss, num_labels = loss_fn(logits, labels, label_smoothing_factor)
             return loss, num_labels
 
@@ -890,11 +1021,12 @@ def main():
         # true grad = total grad / total samples
         grad = jax.lax.psum(grad, "batch")
         grad = jax.tree_util.tree_map(lambda x: x / num_labels, grad)
-        new_state = state.apply_gradients(
-            grads=grad, dropout_rng=new_dropout_rng)
+        new_state = state.apply_gradients(grads=grad, dropout_rng=new_dropout_rng)
 
-        metrics = {"loss": loss,
-                   "learning_rate": linear_decay_lr_schedule_fn(state.step)}
+        metrics = {
+            "loss": loss,
+            "learning_rate": linear_decay_lr_schedule_fn(state.step),
+        }
         return new_state, metrics
 
     # Define eval fn
@@ -913,41 +1045,51 @@ def main():
         return metrics
 
     # Define generation function
-    num_beams = model_args.num_beams if model_args.num_beams is not None else model.config.num_beams
+    num_beams = (
+        model_args.num_beams
+        if model_args.num_beams is not None
+        else model.config.num_beams
+    )
     gen_kwargs = {"max_length": max_label_length, "num_beams": num_beams}
 
     def generate_step(params, batch):
         model.params = params
-        output_ids = model.generate(batch[model_input_name], attention_mask=batch.get(
-            "attention_mask"), **gen_kwargs)
+        output_ids = model.generate(
+            batch[model_input_name],
+            attention_mask=batch.get("attention_mask"),
+            **gen_kwargs,
+        )
         return output_ids.sequences
 
     # Create parallel version of the train and eval step
     p_train_step = jax.pmap(
-        partial(train_step, label_smoothing_factor=training_args.label_smoothing_factor), "batch", donate_argnums=(0, )
+        partial(
+            train_step, label_smoothing_factor=training_args.label_smoothing_factor
+        ),
+        "batch",
+        donate_argnums=(0,),
     )
-    p_eval_step = jax.pmap(partial(
-        eval_step, label_smoothing_factor=training_args.label_smoothing_factor), "batch")
+    p_eval_step = jax.pmap(
+        partial(eval_step, label_smoothing_factor=training_args.label_smoothing_factor),
+        "batch",
+    )
     p_generate_step = jax.pmap(generate_step, "batch")
 
     # Replicate the train state on each device
     state = state.replicate()
 
     logger.info("***** Running training *****")
+    logger.info(f"  Dataset name = {data_args.dataset_name}")
+    logger.info(f"  Dataset config name = {data_args.dataset_config_name}")
+    logger.info(f"  Learning rate = {training_args.learning_rate}")
+    logger.info(f"  Scheduler = {training_args.lr_scheduler_type}")
+    logger.info(f"  Num examples = {data_args.num_train_steps * train_batch_size}")
     logger.info(
-        f"  Dataset name = {data_args.dataset_name}")
+        f"  Instantaneous batch size per device = {training_args.per_device_train_batch_size}"
+    )
     logger.info(
-        f"  Dataset config name = {data_args.dataset_config_name}")
-    logger.info(
-        f"  Learning rate = {training_args.learning_rate}")
-    logger.info(
-        f"  Scheduler = {training_args.lr_scheduler_type}")
-    logger.info(
-        f"  Num examples = {data_args.num_train_steps * train_batch_size}")
-    logger.info(
-        f"  Instantaneous batch size per device = {training_args.per_device_train_batch_size}")
-    logger.info(
-        f"  Total train batch size (w. parallel & distributed) = {train_batch_size}")
+        f"  Total train batch size (w. parallel & distributed) = {train_batch_size}"
+    )
     logger.info(f"  Total optimization steps = {data_args.num_train_steps}")
 
     train_time = 0
@@ -957,23 +1099,31 @@ def main():
 
     train_metrics = []
     epoch = 0
-    train_dataset = vectorized_datasets["train"].shuffle(seed=training_args.seed, buffer_size=data_args.shuffle_buffer_size)
-  
+    train_dataset = vectorized_datasets["train"].shuffle(
+        seed=training_args.seed, buffer_size=data_args.shuffle_buffer_size
+    )
+
     if train_dataset.n_shards < data_args.preprocessing_num_workers:
         num_workers = train_dataset.n_shards
 
-    logger.info(f"  Number of train dataset workers = {num_workers} {'(Capped by the number of dataset shards)' if train_dataset.n_shards < data_args.preprocessing_num_workers else ''} {'(ADVICE: In most cases you will speed up training considerably if you increase the value of --preprocessing_num_workers!)' if num_workers < 10 else ''}")
- 
+    logger.info(
+        f"  Number of train dataset workers = {num_workers} {'(Capped by the number of dataset shards)' if train_dataset.n_shards < data_args.preprocessing_num_workers else ''} {'(ADVICE: In most cases you will speed up training considerably if you increase the value of --preprocessing_num_workers!)' if num_workers < 10 else ''}"
+    )
+
     eval_dataset = vectorized_datasets["eval"]
     train_loader = data_loader(train_dataset, train_batch_size, num_workers=num_workers)
     # train
-    for step in tqdm(range(data_args.num_train_steps), desc="Training...", position=1, leave=False):
+    for step in tqdm(
+        range(data_args.num_train_steps), desc="Training...", position=1, leave=False
+    ):
         try:
             samples = next(train_loader)
         except StopIteration:
             epoch += 1
             train_dataset.set_epoch(epoch)
-            train_loader = data_loader(train_dataset, train_batch_size, num_workers=num_workers)
+            train_loader = data_loader(
+                train_dataset, train_batch_size, num_workers=num_workers
+            )
             samples = next(train_loader)
             logger.info(
                 f"Completed epoch ({epoch} | Loss: {train_metric['loss']}, Learning Rate:"
@@ -994,10 +1144,14 @@ def main():
             eval_labels = []
             eval_loader = data_loader(eval_dataset, eval_batch_size, drop_last=False)
             if data_args.max_eval_samples:
-                max_eval_steps_iter = range(1 + data_args.max_eval_samples // eval_batch_size)
+                max_eval_steps_iter = range(
+                    1 + data_args.max_eval_samples // eval_batch_size
+                )
             else:
                 max_eval_steps_iter = itertools.repeat(None)
-            for _ in tqdm(max_eval_steps_iter, desc="Evaluating...", position=2, leave=False):
+            for _ in tqdm(
+                max_eval_steps_iter, desc="Evaluating...", position=2, leave=False
+            ):
                 # Model forward
                 try:
                     samples = next(eval_loader)
@@ -1007,16 +1161,22 @@ def main():
                 labels = batch["labels"]
 
                 metrics = pad_shard_unpad(p_eval_step, static_return=True)(
-                    state.params, batch.data, min_device_batch=training_args.per_device_eval_batch_size
+                    state.params,
+                    batch.data,
+                    min_device_batch=training_args.per_device_eval_batch_size,
                 )
                 eval_metrics.append(metrics)
 
                 # generation
                 if training_args.predict_with_generate:
-                    generated_ids = pad_shard_unpad(
-                        p_generate_step)(state.params, batch.data)
-                    eval_preds.extend(jax.device_get(
-                        generated_ids.reshape(-1, gen_kwargs["max_length"])))
+                    generated_ids = pad_shard_unpad(p_generate_step)(
+                        state.params, batch.data
+                    )
+                    eval_preds.extend(
+                        jax.device_get(
+                            generated_ids.reshape(-1, gen_kwargs["max_length"])
+                        )
+                    )
                     eval_labels.extend(labels)
 
             # normalize eval metrics
@@ -1031,7 +1191,8 @@ def main():
                 )
                 eval_metrics.update(metric_values)
                 metric_desc = " ".join(
-                    [f"Eval {key}: {value} |" for key, value in metric_values.items()])
+                    [f"Eval {key}: {value} |" for key, value in metric_values.items()]
+                )
 
             # Print metrics
             desc = f"Epoch... ({epoch} | Eval Loss: {eval_metrics['loss']} | {metric_desc})"
@@ -1039,7 +1200,11 @@ def main():
 
             # Save metrics
             if has_tensorboard and jax.process_index() == 0:
-                log_max_predictions = data_args.log_max_eval_predictions if data_args.log_max_eval_predictions else 0
+                log_max_predictions = (
+                    data_args.log_max_eval_predictions
+                    if data_args.log_max_eval_predictions
+                    else 0
+                )
                 write_metric(
                     summary_writer,
                     train_metrics,
@@ -1047,18 +1212,21 @@ def main():
                     train_time,
                     step,
                     predictions=pred_str[:log_max_predictions],
-                    labels=label_str[:log_max_predictions]
+                    labels=label_str[:log_max_predictions],
                 )
 
             # save checkpoint after each epoch and push checkpoint to the hub
             if jax.process_index() == 0:
                 params = jax.device_get(
-                    jax.tree_util.tree_map(lambda x: x[0], state.params))
+                    jax.tree_util.tree_map(lambda x: x[0], state.params)
+                )
                 model.save_pretrained(training_args.output_dir, params=params)
                 tokenizer.save_pretrained(training_args.output_dir)
                 if training_args.push_to_hub:
                     repo.push_to_hub(
-                        commit_message=f"Saving weights and logs of epoch {epoch}", blocking=False)
+                        commit_message=f"Saving weights and logs of epoch {epoch}",
+                        blocking=False,
+                    )
 
 
 if __name__ == "__main__":
