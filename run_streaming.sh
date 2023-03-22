@@ -18,7 +18,6 @@ python run_flax_speech_recognition_seq2seq_streaming_dev.py \
             --per_device_train_batch_size=2 \
             --per_device_eval_batch_size=2 \
             --predict_with_generate \
-            --number_write_predictions 10 \
             --log_eval_predictions_fn log_predictions.write_predictions \
             --log_max_eval_predictions 100 \
             --streaming=True
