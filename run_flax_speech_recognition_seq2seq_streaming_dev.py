@@ -262,6 +262,8 @@ class DataTrainingArguments:
     )
     num_train_steps: int = field(default=50000, metadata={
                                  "help": "The number of training steps."})
+    init_train_steps: Optional[int] = field(default=0, metadata={
+                                 "help": "The number of training steps where the scheduler should start."})
     shuffle_buffer_size: Optional[int] = field(
         default=500,
         metadata={
@@ -818,6 +820,7 @@ def main():
     else:
         warmup_init_value = 0.0
         decay_end_value = 0.0
+        
     linear_decay_lr_schedule_fn = create_learning_rate_fn(
         data_args.num_train_steps,
         training_args.warmup_steps,
@@ -826,6 +829,10 @@ def main():
         decay_end_value=decay_end_value,
     )
 
+    # If init_train_steps is set, we will advance the scheduler
+    for _ in range(data_args.init_train_steps): 
+        linear_decay_lr_schedule_fn.step()
+        
     # We use Optax's "masking" functionality to not apply weight decay
     # to bias and LayerNorm scale parameters. decay_mask_fn returns a
     # mask boolean with the same structure as the parameters.
@@ -985,7 +992,7 @@ def main():
     eval_dataset = vectorized_datasets["eval"]
     train_loader = data_loader(train_dataset, train_batch_size, num_workers=num_workers)
     # train
-    for step in tqdm(range(data_args.num_train_steps), desc="Training...", position=1, leave=False):
+    for step in tqdm(range(data_args.init_train_steps,data_args.num_train_steps), desc="Training...", position=1, leave=False):
         try:
             samples = next(train_loader)
         except StopIteration:
