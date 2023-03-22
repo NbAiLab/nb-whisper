@@ -18,6 +18,7 @@ python run_flax_speech_recognition_seq2seq_streaming_dev.py \
             --num_train_steps 30 \
             --eval_steps 5 \
             --learning_rate=1e-5 \
+            --preprocessing_num_workers 10 \
             --per_device_train_batch_size=2 \
             --per_device_eval_batch_size=2 \
             --streaming True \

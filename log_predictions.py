@@ -53,6 +53,10 @@ def write_predictions(
 ):
     predictions_folder_name = os.path.join(
         training_args.output_dir, "predictions")
+    
+    if not os.path.exists(predictions_folder_name):
+        os.makedirs(predictions_folder_name)
+    
     eval_table = f"| STEP| loss | wer |cer|\n| ---| --- | --- |--- |\n| **{step}**| {eval_metrics['loss']:.3f} | {eval_metrics['wer']:.3f} |{eval_metrics['cer']:.3f} |"
 
     # Put predictions into a table
