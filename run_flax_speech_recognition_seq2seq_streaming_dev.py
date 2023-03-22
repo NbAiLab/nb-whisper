@@ -830,8 +830,9 @@ def main():
     )
 
     # If init_train_steps is set, we will advance the scheduler
-    for _ in range(data_args.init_train_steps): 
-        linear_decay_lr_schedule_fn.step()
+    for step in range(data_args.init_train_steps):
+        current_lr = linear_decay_lr_schedule_fn(step)
+        print(current_lr)
         
     # We use Optax's "masking" functionality to not apply weight decay
     # to bias and LayerNorm scale parameters. decay_mask_fn returns a
