@@ -10,13 +10,12 @@ python run_flax_speech_recognition_seq2seq_streaming_dev.py \
             --train_split_name validation\
             --eval_split_name test\
             --output_dir ../../whisper_dummy\
-            --overwrite_output_dir\
             --max_eval_samples=20\
-            --warmup_steps=8 \
+            --warmup_steps=100 \
             --do_train \
             --do_eval \
-            --num_train_steps 30 \
-            --eval_steps 5 \
+            --num_train_steps 500 \
+            --eval_steps 50 \
             --learning_rate=1e-5 \
             --preprocessing_num_workers 10 \
             --per_device_train_batch_size=2 \

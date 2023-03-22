@@ -531,7 +531,7 @@ def main():
     model_name_or_path = model_args.model_name_or_path
 
     # Try to detect last checkpoint and continue if possible
-    if os.path.exists(os.path.join(training_args.output_dir, "flax_model.msgpack")):
+    if os.path.exists(os.path.join(training_args.output_dir, "flax_model.msgpack")) and not training_args.overwrite_output_dir:
         logger.info(
             f"Checkpoint detected, resuming training at {training_args.output_dir}."
         )
