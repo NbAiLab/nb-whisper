@@ -973,7 +973,7 @@ def main():
         f"  Instantaneous batch size per device = {training_args.per_device_train_batch_size}")
     logger.info(
         f"  Total train batch size (w. parallel & distributed) = {train_batch_size}")
-    logger.info(f"  Total optimization steps = {data_args.num_train_steps}")
+    logger.info(f"  Total optimization steps = {data_args.num_train_steps} {'(Starting at {data_args.init_train_steps})' if data_args.init_train_steps > 0 else ''}")
 
     train_time = 0
 
