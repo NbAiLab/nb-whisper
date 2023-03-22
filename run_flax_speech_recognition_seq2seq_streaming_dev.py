@@ -856,7 +856,7 @@ def main():
 
     # create adam optimizer
     adamw = optax.adamw(
-        learning_rate=linear_decay_lr_schedule_fn,
+        learning_rate=linear_decay_lr_schedule_fn(step=data_args.init_train_steps),
         b1=training_args.adam_beta1,
         b2=training_args.adam_beta2,
         eps=training_args.adam_epsilon,
@@ -974,7 +974,7 @@ def main():
         f"  Instantaneous batch size per device = {training_args.per_device_train_batch_size}")
     logger.info(
         f"  Total train batch size (w. parallel & distributed) = {train_batch_size}")
-    logger.info(f"  Total optimization steps = {data_args.num_train_steps} {'(Starting at ' + str(data_args.init_train_steps) + ')' if data_args.init_train_steps > 0 else ''}")
+    logger.info(f"  Total optimization steps = {data_args.num_train_steps-data_args.init_train_steps} {'(Starting at ' + str(data_args.init_train_steps) + ' and finishing at ' + str(data_args.num_train_steps) + ')' if data_args.init_train_steps > 0 else ''}")
 
     train_time = 0
 
