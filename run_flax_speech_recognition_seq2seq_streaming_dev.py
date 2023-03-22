@@ -826,14 +826,14 @@ def main():
         training_args.warmup_steps,
         training_args.learning_rate,
         warmup_init_value=warmup_init_value,
-        decay_end_value=decay_end_value,
-        step = data_args.init_train_steps
+        decay_end_value=decay_end_value
     )
 
     # If init_train_steps is set, we will advance the scheduler
-    # for step in range(data_args.init_train_steps):
-    #    current_lr = linear_decay_lr_schedule_fn(step)
-    #    print(current_lr)
+    # Advance the learning rate schedule to step 500
+    for _ in range(data_args.init_train_steps):
+        linear_decay_lr_schedule_fn()
+    
         
     # We use Optax's "masking" functionality to not apply weight decay
     # to bias and LayerNorm scale parameters. decay_mask_fn returns a
