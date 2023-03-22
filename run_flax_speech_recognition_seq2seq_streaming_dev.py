@@ -537,7 +537,7 @@ def main():
         logger.info(
             f"Checkpoint detected, resuming training at {training_args.output_dir}."
         )
-        model_args.model_name_or_path = os.path.join(training_args.output_dir, "flax_model.msgpack")
+        model_name_or_path = os.path.join(training_args.output_dir, "flax_model.msgpack")
     else:
         logger.info(
             f"No valid checkpoint found in {training_args.output_dir}. Starting from {model_args.model_name_or_path}."
