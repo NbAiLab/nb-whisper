@@ -1,14 +1,18 @@
 import logging
 import os
 import re
-
+import jax
 import pandas as pd
 
 logger = logging.getLogger(__name__)
-#Setting log level to screen and making sure only one processor per machine outputs logs
 
+# Setting log level to screen and making sure only one processor per machine outputs logs
 logger.setLevel(logging.INFO if jax.process_index()
-                    == 0 else logging.ERROR)
+                == 0 else logging.ERROR)
+
+logger.info(
+    f"Created {stats_file_name} and updated the headers of the other stats files")
+
 def trim_bold(text):
     if text.startswith(" "):
         return f" {trim_bold(text[1:])}"
@@ -26,14 +30,16 @@ def format_diff(label_text, pred_text):
 
     formatted_label_text = "".join(
         [trim_bold(word)
-        if word.strip() not in pred_bag else f"{word}" for word in label_words]
+         if word.strip() not in pred_bag else f"{word}" for word in label_words]
     )
     formatted_pred_text = "".join(
         [trim_bold(word)
-        if word.strip() not in label_bag else f"{word}" for word in pred_words]
+         if word.strip() not in label_bag else f"{word}" for word in pred_words]
     )
-    formatted_label_text = formatted_label_text.replace("****", "").replace(".", r"\.").replace(",", r"\,").replace("-", r"\-")
-    formatted_pred_text = formatted_pred_text.replace("****", "").replace(".", r"\.").replace(",", r"\,").replace("-", r"\-")
+    formatted_label_text = formatted_label_text.replace(
+        "****", "").replace(".", r"\.").replace(",", r"\,").replace("-", r"\-")
+    formatted_pred_text = formatted_pred_text.replace(
+        "****", "").replace(".", r"\.").replace(",", r"\,").replace("-", r"\-")
 
     return formatted_label_text, formatted_pred_text
 
@@ -54,17 +60,18 @@ def write_predictions(
 ):
     predictions_folder_name = os.path.join(
         training_args.output_dir, "predictions")
-    
+
     if not os.path.exists(predictions_folder_name):
         os.makedirs(predictions_folder_name)
-    
+
     eval_table = f"| STEP| loss | wer |cer|\n| ---| --- | --- |--- |\n| **{step}**| {eval_metrics['loss']:.3f} | {eval_metrics['wer']:.3f} |{eval_metrics['cer']:.3f} |"
 
     # Put predictions into a table
     inference_df = pd.DataFrame(columns=['target', 'prediction'])
 
     for pred_text, label_text in zip(predictions, labels):
-        formatted_label_text, formatted_pred_text = format_diff(label_text, pred_text)
+        formatted_label_text, formatted_pred_text = format_diff(
+            label_text, pred_text)
         new_row = pd.DataFrame(
             {'target': formatted_label_text, 'prediction': formatted_pred_text}, index=[0])
         inference_df = pd.concat(
