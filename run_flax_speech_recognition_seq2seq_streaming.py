@@ -10,7 +10,7 @@
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# WITHOUT WARRANTIES OR COND    ITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
@@ -20,23 +20,24 @@ Fine-tuning the Flax library models for sequence to sequence speech recognition.
 
 import itertools
 import logging
-import math
 import os
 import sys
+import socket
 import time
 from dataclasses import field
+from datetime import datetime
 from functools import partial
+from importlib import import_module
 from pathlib import Path
 from typing import Any, Callable, Dict, Generator, List, Optional, Union
-from datetime import datetime
 
 import datasets
-import socket
 import flax
 import jax
 import jax.numpy as jnp
 import numpy as np
 import optax
+import pandas as pd
 import torch
 from datasets import Dataset, DatasetDict, IterableDatasetDict, interleave_datasets, load_dataset
 from torch.utils.data import IterableDataset
@@ -46,9 +47,7 @@ from flax.training import train_state
 from flax.training.common_utils import get_metrics, onehot, shard, shard_prng_key
 from huggingface_hub import Repository, create_repo
 from tqdm import tqdm
-from pydub import AudioSegment
 
-import shutil
 import evaluate
 import transformers
 from transformers import (
@@ -67,7 +66,6 @@ from transformers.file_utils import get_full_repo_name
 from transformers.utils import check_min_version, send_example_telemetry
 from transformers.utils.versions import require_version
 
-import pandas as pd
 
 # Will error if the minimal version of Transformers is not installed. Remove at your own risks.
 check_min_version("4.27.0.dev0")
@@ -164,7 +162,7 @@ class DataTrainingArguments:
     )
     preprocessing_num_workers: Optional[int] = field(
         default=50,
-        metadata={"help": "The number of processes to use for the preprocessing. Works sligtly different than for non-streaming datasets. Is also limited to the number of dataset shards."},
+        metadata={"help": "The number of processes to use for the preprocessing."},
     )
     max_train_samples: Optional[int] = field(
         default=None,
@@ -219,7 +217,6 @@ class DataTrainingArguments:
             "This is important to avoid triggering recompilations on TPU. If unspecified, will default to padding the targets to max length."
         },
     )
-
     train_split_name: str = field(
         default="train",
         metadata={
@@ -276,10 +273,21 @@ class DataTrainingArguments:
         metadata={
             "help": "Whether to use streaming mode to load and pre-process the data."},
     )
-    number_write_predictions: Optional[int] = field(
+    log_max_eval_predictions: Optional[int] = field(
         default=0,
         metadata={
-            "help": "If set to a non-zero value, this indicates the number of predicitons from the evaluation set that is written to the predictions folder. Requires --predict_with_generate to be set."},
+            "help": (
+                "Number of label and prediction pairs to write to the summary at each evaluation step."
+            )
+        },
+    )
+    log_eval_predictions_fn: Optional[str] = field(
+        default=None,
+        metadata={
+            "help": (
+                "Python path to function for logging evaluation predictions. It can be an external function like fn(summary_writer, train_metrics, eval_metrics, train_time, step, predictions, labels) ."
+            )
+        },
     )
 
 
@@ -399,14 +407,9 @@ def load_maybe_streaming_dataset(dataset_name, dataset_config_name, split="train
         return interleaved_dataset
     else:
         # load a single split *with* streaming mode
-        try:
-            dataset = load_dataset(
-                dataset_name, dataset_config_name, split=split, streaming=streaming, **kwargs)
-            return dataset
-        except Exception as e:
-            print("Failed to load dataset")
-            return None
-
+        dataset = load_dataset(
+            dataset_name, dataset_config_name, split=split, streaming=streaming, **kwargs)
+        return dataset
 
 
 def collate_batch(samples):
@@ -416,8 +419,8 @@ def collate_batch(samples):
 def data_loader(
     dataset: Dataset,
     batch_size: int,
-    drop_last: bool = True,
-    num_workers: int = 0,
+    drop_last: bool=True,
+    num_workers: int=0,
 ) -> Generator:
     """
     Returns batches of size `batch_size` from `dataset`. If `drop_last` is set to `False`, the final batch may be incomplete,
@@ -440,21 +443,8 @@ class TrainState(train_state.TrainState):
         return jax_utils.replicate(self).replace(dropout_rng=shard_prng_key(self.dropout_rng))
 
 
-def write_metric(summary_writer, train_metrics, eval_metrics, train_time, step):
-    summary_writer.scalar("train_time", train_time, step)
-
-    train_metrics = get_metrics(train_metrics)
-    for key, vals in train_metrics.items():
-        tag = f"train_{key}"
-        for i, val in enumerate(vals):
-            summary_writer.scalar(tag, val, step - len(vals) + i + 1)
-
-    for metric_name, value in eval_metrics.items():
-        summary_writer.scalar(f"eval_{metric_name}", value, step)
-
-
 def create_learning_rate_fn(
-    num_train_steps: int, num_warmup_steps: int, learning_rate: float, warmup_init_value: float = 0.0, decay_end_value: float = 0.0,
+    num_train_steps: int, num_warmup_steps: int, learning_rate: float, warmup_init_value: float=0.0, decay_end_value: float=0.0,
 ) -> Callable[[int], jnp.array]:
     """Returns a linear warmup, linear_decay learning rate function."""
     warmup_fn = optax.linear_schedule(
@@ -526,7 +516,7 @@ def main():
             repo_name = get_full_repo_name(
                 Path(training_args.output_dir).absolute().name,
                 token=training_args.hub_token,
-                model_id=training_args.hub_model_id,
+                organization=training_args.push_to_hub_organization,
             )
         else:
             repo_name = training_args.hub_model_id
@@ -694,7 +684,7 @@ def main():
     metric_cer = evaluate.load("cer")
     do_normalize_eval = data_args.do_normalize_eval
 
-    def compute_metrics(pred_ids, label_ids):
+    def compute_metrics(pred_ids, label_ids, return_preds_labels=False):
         # replace padded labels by the padding token
         for idx in range(len(label_ids)):
             label_ids[idx][label_ids[idx] == -100] = tokenizer.pad_token_id
@@ -711,103 +701,42 @@ def main():
                         for i in range(len(pred_str)) if len(label_str[i]) > 0]
             label_str = [label_str[i]
                          for i in range(len(label_str)) if len(label_str[i]) > 0]
-        wer = 100 * \
-            metric_wer.compute(predictions=pred_str, references=label_str)
-        cer = 100 * \
-            metric_cer.compute(predictions=pred_str, references=label_str)
 
-        return {"wer": wer, "cer": cer}
-    
-    ###############################################
-    ### Extract this part - Javier
-    import re
-    def trim_bold(text):
-        if text.startswith(" "):
-            return f" {trim_bold(text[1:])}"
-        elif text.endswith(" "):
-            return f"{trim_bold(text[:-1])} "
+        wer = 100 * metric_wer.compute(predictions=pred_str, references=label_str)
+        cer = 100 * metric_cer.compute(predictions=pred_str, references=label_str)
+
+        if return_preds_labels:
+            return {"wer": wer, "cer": cer}, pred_str, label_str
         else:
-            return f"**{text}**"
+            return {"wer": wer, "cer": cer}
 
-    def format_diff(label_text, pred_text):
-        label_words = re.split(r"\b", label_text)
-        label_bag = set(word.strip() for word in label_words)
-        pred_words = re.split(r"\b", pred_text)
-        pred_bag = set(word.strip() for word in pred_words)
+    def write_metric(summary_writer, train_metrics, eval_metrics, train_time, step, predictions=None, labels=None):
+        summary_writer.scalar("train_time", train_time, step)
 
-        formatted_label_text = "".join(
-            [trim_bold(word)
-            if word.strip() not in pred_bag else f"{word}" for word in label_words]
-        )
-        formatted_pred_text = "".join(
-            [trim_bold(word)
-            if word.strip() not in label_bag else f"{word}" for word in pred_words]
-        )
-        formatted_label_text = formatted_label_text.replace("****", "").replace(".", r"\.").replace(",", r"\,").replace("-", r"\-")
-        formatted_pred_text = formatted_pred_text.replace("****", "").replace(".", r"\.").replace(",", r"\,").replace("-", r"\-")
+        train_metrics = get_metrics(train_metrics)
+        for key, vals in train_metrics.items():
+            tag = f"train_{key}"
+            for i, val in enumerate(vals):
+                summary_writer.scalar(tag, val, step - len(vals) + i + 1)
 
-        return formatted_label_text, formatted_pred_text
-    
+        for metric_name, value in eval_metrics.items():
+            summary_writer.scalar(f"eval_{metric_name}", value, step)
+        # Log evaluation predictions
+        if predictions and labels:
+            df = pd.DataFrame({
+                "references": labels,
+                "predictions": predictions,
+            })
+            df["wer"] = df.apply(lambda row: metric_wer.compute(predictions=[row["predictions"]], references=[row["references"]]), axis=1)
+            df["cer"] = df.apply(lambda row: metric_cer.compute(predictions=[row["predictions"]], references=[row["references"]]), axis=1)
+            markdown_table = df.to_markdown(index=False)
+            eval_metrics_table = pd.DataFrame.from_dict([{"step": step, **eval_metrics}]).to_markdown(index=False)
+            summary_writer.text("eval_predictions", eval_metrics_table + "\n\n" + markdown_table, step)
+            if data_args.log_eval_predictions_fn:
+                module, fname = data_args.log_eval_predictions_fn.rsplit('.', 1)
+                fn = getattr(import_module(module), fname)
+                fn(summary_writer, train_metrics, eval_metrics, train_time, step, predictions=predictions, labels=labels, training_args=training_args)
 
-    def write_predictions(step, eval_samples, eval_metrics, pred_ids, label_ids, tokenizer):    
-        predictions_folder_name = os.path.join(
-            training_args.output_dir, "predictions")
-        eval_table = f"| STEP| loss | wer |cer|\n| ---| --- | --- |--- |\n| **{step}**| {eval_metrics['loss']:.3f} | {eval_metrics['wer']:.3f} |{eval_metrics['cer']:.3f} |"
-
-        # Put predictions into a table
-        inference_df = pd.DataFrame(columns=['target', 'prediction'])
-
-        idx = 0
-        for pred, label in zip(pred_ids, label_ids):
-            label_text = tokenizer.decode(label, skip_special_tokens=True)
-            pred_text = tokenizer.decode(pred, skip_special_tokens=True)
-            formatted_label_text, formatted_pred_text = format_diff(label_text, pred_text)
-            
-            new_row = pd.DataFrame(
-                {'target': formatted_label_text, 'prediction': formatted_pred_text}, index=[0])
-            inference_df = pd.concat(
-                [inference_df, new_row], ignore_index=True)
-            idx += 1
-
-        # Create the prediction table of the first N rows
-        inference_df = inference_df[['target', 'prediction']]
-        predict_table = inference_df[0:data_args.number_write_predictions].to_markdown(
-            index=False)
-
-        # Build the markdown page
-        markdown_str = f"{eval_table}\n\n{predict_table}"
-
-        # Save the stats file
-        stats_file_name = f"{predictions_folder_name}/step_{step}.md"
-        with open(stats_file_name, "w") as f:
-            f.write(markdown_str)
-
-        # Create an header for all the files
-        md_files = sorted(os.path.basename(file) for file in os.listdir(
-            predictions_folder_name) if file.startswith("step_"))
-        sorted_md_files = sorted(
-            md_files, key=lambda x: int(x[0:-3].split("_")[1]))
-        md_header = " | ".join(
-            f"[Step {file[:-3].split('_')[1]}]({file})" for file in sorted_md_files)
-
-        # Add this header to all the stats file in the folder
-        for filename in os.listdir(predictions_folder_name):
-            if filename.startswith("step_"):
-                with open(os.path.join(predictions_folder_name, filename), "r+") as f:
-                    content = f.read()
-                    new_content = md_header + "\n\n" + \
-                        content[content.index("| STEP| loss | wer"):]
-                    f.seek(0)
-                    f.write(new_content)
-                    f.truncate()
-
-        logger.info(
-            f"Created {stats_file_name} and updated the headers of the other stats files")
-
-    ###############################################
-    
-    
-    
     # 9. Save feature extractor, tokenizer and config
     feature_extractor.save_pretrained(training_args.output_dir)
     tokenizer.save_pretrained(training_args.output_dir)
@@ -928,6 +857,7 @@ def main():
         )
         soft_labels = onehot(labels, vocab_size,
                              on_value=confidence, off_value=low_confidence)
+
         loss = optax.softmax_cross_entropy(logits, soft_labels)
         loss = loss - normalizing_constant
 
@@ -992,14 +922,6 @@ def main():
             "attention_mask"), **gen_kwargs)
         return output_ids.sequences
 
-    # Clean up the prediction folder if write_predictions is set to True
-    if data_args.number_write_predictions:
-        predictions_folder_name = os.path.join(
-            training_args.output_dir, "predictions")
-        shutil.rmtree(predictions_folder_name, ignore_errors=True)
-        os.makedirs(predictions_folder_name, exist_ok=True)
-        logger.info(f"Created folder {predictions_folder_name}")
-
     # Create parallel version of the train and eval step
     p_train_step = jax.pmap(
         partial(train_step, label_smoothing_factor=training_args.label_smoothing_factor), "batch", donate_argnums=(0, )
@@ -1035,26 +957,23 @@ def main():
 
     train_metrics = []
     epoch = 0
-    train_dataset = vectorized_datasets["train"].shuffle(
-        seed=training_args.seed, buffer_size=data_args.shuffle_buffer_size)
-    
+    train_dataset = vectorized_datasets["train"].shuffle(seed=training_args.seed, buffer_size=data_args.shuffle_buffer_size)
+  
     if train_dataset.n_shards < data_args.preprocessing_num_workers:
         num_workers = train_dataset.n_shards
 
     logger.info(f"  Number of train dataset workers = {num_workers} {'(Capped by the number of dataset shards)' if train_dataset.n_shards < data_args.preprocessing_num_workers else ''} {'(ADVICE: In most cases you will speed up training considerably if you increase the value of --preprocessing_num_workers!)' if num_workers < 10 else ''}")
-    
+ 
     eval_dataset = vectorized_datasets["eval"]
-    
-    train_loader = data_loader(train_dataset, train_batch_size,drop_last=True,num_workers=num_workers)
-    
-    # ======================== Training ==============================
+    train_loader = data_loader(train_dataset, train_batch_size, num_workers=num_workers)
+    # train
     for step in tqdm(range(data_args.num_train_steps), desc="Training...", position=1, leave=False):
         try:
             samples = next(train_loader)
         except StopIteration:
             epoch += 1
             train_dataset.set_epoch(epoch)
-            train_loader = data_loader(train_dataset, train_batch_size, drop_last=True,num_workers=num_workers)
+            train_loader = data_loader(train_dataset, train_batch_size, num_workers=num_workers)
             samples = next(train_loader)
             logger.info(
                 f"Completed epoch ({epoch} | Loss: {train_metric['loss']}, Learning Rate:"
@@ -1068,23 +987,17 @@ def main():
 
         train_time += time.time() - train_start
         train_metric = unreplicate(train_metric)
-        
         # ======================== Evaluating ==============================
         if step % training_args.eval_steps == 0 and step > 0:
             eval_metrics = []
             eval_preds = []
             eval_labels = []
-            eval_samples = []
-            eval_loader = data_loader(
-                eval_dataset, eval_batch_size, drop_last=False, num_workers=1)
+            eval_loader = data_loader(eval_dataset, eval_batch_size, drop_last=False)
             if data_args.max_eval_samples:
-                max_eval_steps_iter = range(
-                    1 + data_args.max_eval_samples // eval_batch_size)
+                max_eval_steps_iter = range(1 + data_args.max_eval_samples // eval_batch_size)
             else:
                 max_eval_steps_iter = itertools.repeat(None)
-            
-            for counter in tqdm(max_eval_steps_iter, desc="Evaluating...", position=2, leave=False):
-
+            for _ in tqdm(max_eval_steps_iter, desc="Evaluating...", position=2, leave=False):
                 # Model forward
                 try:
                     samples = next(eval_loader)
@@ -1096,10 +1009,7 @@ def main():
                 metrics = pad_shard_unpad(p_eval_step, static_return=True)(
                     state.params, batch.data, min_device_batch=training_args.per_device_eval_batch_size
                 )
-                
                 eval_metrics.append(metrics)
-                if training_args.predict_with_generate and data_args.number_write_predictions and len(eval_samples) < data_args.number_write_predictions+eval_batch_size:
-                    eval_samples.extend(samples['input_features'])
 
                 # generation
                 if training_args.predict_with_generate:
@@ -1111,13 +1021,14 @@ def main():
 
             # normalize eval metrics
             eval_metrics = get_metrics(eval_metrics)
-
             eval_metrics = jax.tree_util.tree_map(jnp.mean, eval_metrics)
 
             # compute metrics
             metric_desc = ""
             if training_args.predict_with_generate:
-                metric_values = compute_metrics(eval_preds, eval_labels)
+                metric_values, pred_str, label_str = compute_metrics(
+                    eval_preds, eval_labels, return_preds_labels=True
+                )
                 eval_metrics.update(metric_values)
                 metric_desc = " ".join(
                     [f"Eval {key}: {value} |" for key, value in metric_values.items()])
@@ -1128,12 +1039,16 @@ def main():
 
             # Save metrics
             if has_tensorboard and jax.process_index() == 0:
-                write_metric(summary_writer, train_metrics,
-                             eval_metrics, train_time, step)
-
-            if training_args.predict_with_generate and data_args.number_write_predictions:
-                write_predictions(step, eval_samples,
-                                  eval_metrics, eval_preds, eval_labels, tokenizer)
+                log_max_predictions = data_args.log_max_eval_predictions if data_args.log_max_eval_predictions else 0
+                write_metric(
+                    summary_writer,
+                    train_metrics,
+                    eval_metrics,
+                    train_time,
+                    step,
+                    predictions=pred_str[:log_max_predictions],
+                    labels=label_str[:log_max_predictions]
+                )
 
             # save checkpoint after each epoch and push checkpoint to the hub
             if jax.process_index() == 0:
