@@ -14,7 +14,6 @@ python ../run_flax_speech_recognition_seq2seq_streaming.py \
             --warmup_steps 1000 \
             --do_train \
             --do_eval \
-            --init_train_step 37000 \
             --num_train_steps 10000 \
 	        --lr_scheduler_type linear \
             --eval_steps 500 \
