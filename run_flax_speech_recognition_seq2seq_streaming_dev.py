@@ -832,7 +832,7 @@ def main():
     # If init_train_steps is set, we will advance the scheduler
     # Advance the learning rate schedule to ini train steps
  
-    linear_decay_lr_schedule_fn(step=data_args.init_train_steps)
+    #linear_decay_lr_schedule_fn(step=data_args.init_train_steps)
     
     # We use Optax's "masking" functionality to not apply weight decay
     # to bias and LayerNorm scale parameters. decay_mask_fn returns a
@@ -857,7 +857,7 @@ def main():
     
     # create adam optimizer
     adamw = optax.adamw(
-        learning_rate=linear_decay_lr_schedule_fn,
+        learning_rate=linear_decay_lr_schedule_fn(step=data_args.init_train_steps),
         b1=training_args.adam_beta1,
         b2=training_args.adam_beta2,
         eps=training_args.adam_epsilon,

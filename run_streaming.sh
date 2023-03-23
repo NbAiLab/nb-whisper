@@ -7,16 +7,16 @@ python run_flax_speech_recognition_seq2seq_streaming_dev.py \
             --dataset_name NbAiLab/NCC_speech_nrk_v4 \
 	        --language Norwegian \
             --text_column_name text \
-            --train_split_name validation\
-            --eval_split_name test\
+            --train_split_name train\
+            --eval_split_name validation\
             --output_dir ../../whisper_dummy\
             --overwrite_output_dir\
             --max_eval_samples=20\
             --warmup_steps=100 \
             --do_train \
             --do_eval \
-            --init_train_steps 900 \
-            --num_train_steps 1100 \
+            --init_train_steps 1100 \
+            --num_train_steps 1300 \
             --eval_steps 50 \
             --learning_rate=1e-5 \
             --preprocessing_num_workers 10 \
