@@ -1009,9 +1009,11 @@ def main():
 
         batch = data_collator(samples)
         batch = shard(batch.data)
+        breakpoint()
         state, train_metric = p_train_step(state, batch)
         train_metrics.append(train_metric)
-
+        breakpoint()
+        
         train_time += time.time() - train_start
         train_metric = unreplicate(train_metric)
         # ======================== Evaluating ==============================
