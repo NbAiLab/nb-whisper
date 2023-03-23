@@ -15,6 +15,7 @@ python run_flax_speech_recognition_seq2seq_streaming_dev.py \
             --warmup_steps=200 \
             --do_train \
             --do_eval \
+            --init_train_steps 600 \
             --num_train_steps 2000 \
             --eval_steps 200 \
             --learning_rate=1e-5 \
@@ -31,5 +32,5 @@ python run_flax_speech_recognition_seq2seq_streaming_dev.py \
             --log_max_eval_predictions 100 \
             --streaming=True \
             --push_to_hub
-            #--init_train_steps 1400 \
+            
             
