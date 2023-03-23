@@ -15,7 +15,7 @@ python run_flax_speech_recognition_seq2seq_streaming_dev.py \
             --warmup_steps=200 \
             --do_train \
             --do_eval \
-            --init_train_steps 600 \
+            --init_train_steps 0 \
             --num_train_steps 2000 \
             --eval_steps 200 \
             --learning_rate=1e-5 \
