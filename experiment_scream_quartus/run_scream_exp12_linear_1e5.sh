@@ -25,7 +25,6 @@ python ../run_flax_speech_recognition_seq2seq_streaming.py \
             --predict_with_generate \
             --log_max_eval_predictions 100 \
             --log_eval_predictions_fn "log_predictions.write_predictions" \
-            --number_write_predictions 100 \
             --streaming True \
             --hub_private_repo True \
             --hub_model_id NbAiLab/scream_tertius_exp12_linear_1e5 \
