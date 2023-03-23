@@ -22,7 +22,8 @@ python ../run_flax_speech_recognition_seq2seq_streaming.py \
             --per_device_train_batch_size 64 \
             --per_device_eval_batch_size 64 \
             --predict_with_generate \
-            --number_write_predictions 100 \
+            --log_max_eval_predictions 100 \
+            --log_eval_predictions_fn "log_predictions.write_predictions" \
             --streaming True \
             --hub_private_repo True \
             --hub_model_id NbAiLab/scream_quartus_exp1_constant_1e5 \
