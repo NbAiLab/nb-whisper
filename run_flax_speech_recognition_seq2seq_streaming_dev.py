@@ -449,7 +449,7 @@ class TrainState(train_state.TrainState):
 
 
 def create_learning_rate_fn(
-    num_train_steps: int, num_warmup_steps: int, learning_rate: float, warmup_init_value: float=0.0, decay_end_value: float=0.0,
+    num_train_steps: int, num_warmup_steps: int, learning_rate: float, start_step: int = 0, warmup_init_value: float=0.0, decay_end_value: float=0.0,
 ) -> Callable[[int], jnp.array]:
     """Returns a linear warmup, linear_decay learning rate function."""
     warmup_fn = optax.linear_schedule(
@@ -459,7 +459,11 @@ def create_learning_rate_fn(
     )
     schedule_fn = optax.join_schedules(
         schedules=[warmup_fn, decay_fn], boundaries=[num_warmup_steps])
-    return schedule_fn
+    
+    def learning_rate_fn(step: int) -> jnp.array:
+        return schedule_fn(step + start_step)
+    
+    return learning_rate_fn
 
 
 def main():
@@ -825,6 +829,7 @@ def main():
         data_args.num_train_steps,
         training_args.warmup_steps,
         training_args.learning_rate,
+        start_step=data_args.init_train_steps,
         warmup_init_value=warmup_init_value,
         decay_end_value=decay_end_value
     )
@@ -857,7 +862,7 @@ def main():
     
     # create adam optimizer
     adamw = optax.adamw(
-        learning_rate=linear_decay_lr_schedule_fn(step=data_args.init_train_steps),
+        learning_rate=linear_decay_lr_schedule_fn,
         b1=training_args.adam_beta1,
         b2=training_args.adam_beta2,
         eps=training_args.adam_epsilon,
