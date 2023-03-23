@@ -9,22 +9,21 @@ python run_flax_speech_recognition_seq2seq_streaming_dev.py \
             --text_column_name text \
             --train_split_name train\
             --eval_split_name validation\
-            --output_dir ../../whisper_dummy\
+            --output_dir ../../whisper_dummy2\
             --overwrite_output_dir\
-            --max_eval_samples=20\
-            --warmup_steps=100 \
+            --max_eval_samples=200\
+            --warmup_steps=200 \
             --do_train \
             --do_eval \
-            --init_train_steps 1400 \
-            --num_train_steps 1500 \
-            --eval_steps 50 \
+            --num_train_steps 2000 \
+            --eval_steps 200 \
             --learning_rate=1e-5 \
-            --preprocessing_num_workers 10 \
-            --per_device_train_batch_size=2 \
-            --per_device_eval_batch_size=2 \
+            --preprocessing_num_workers 50 \
+            --per_device_train_batch_size=16 \
+            --per_device_eval_batch_size=4 \
             --streaming True \
             --hub_private_repo True \
-            --hub_model_id NbAiLab/whisper_dummy \
+            --hub_model_id NbAiLab/whisper_dummy2 \
             --use_auth_token True \
             --dtype bfloat16 \
             --predict_with_generate \
@@ -32,4 +31,5 @@ python run_flax_speech_recognition_seq2seq_streaming_dev.py \
             --log_max_eval_predictions 100 \
             --streaming=True \
             --push_to_hub
+            #--init_train_steps 1400 \
             
