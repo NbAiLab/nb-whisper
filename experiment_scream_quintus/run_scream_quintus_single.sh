@@ -25,8 +25,8 @@ python ../run_flax_speech_recognition_seq2seq_streaming_dev.py \
             --log_max_eval_predictions 100 \
             --log_eval_predictions_fn "log_predictions.write_predictions" \
             --streaming True \
-            --hub_private_repo True \
-            --hub_model_id NbAiLab/scream_quintus_single_linear_1e5 \
             --use_auth_token True \
             --dtype bfloat16 \
-            --push_to_hub
+            #--hub_private_repo True \
+            #--hub_model_id NbAiLab/scream_quintus_single_linear_1e5 \
+            #--push_to_hub
