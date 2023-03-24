@@ -521,10 +521,10 @@ def main():
     )
     # Set the verbosity to info of the Transformers logger.
     # We only want one process per machine to log things on the screen.
-    breakpoint()
-    logger.setLevel(logging.INFO if jax.process_index() % jax.local_device_count() == 0 else logging.ERROR)
 
-    if jax.process_index() % jax.local_device_count() == 0:
+    logger.setLevel(logging.INFO if jax.local_devices()[0].id%jax.local_device_count() == 0 else logging.ERROR)
+
+    if jax.local_devices()[0].id%jax.local_device_count() == 0:
         datasets.utils.logging.set_verbosity_warning()
         transformers.utils.logging.set_verbosity_info()
     else:
@@ -1131,7 +1131,7 @@ def main():
             logger.info(desc)
 
             # Save metrics
-            if has_tensorboard and (jax.process_index()% jax.local_device_count()) == 0:
+            if has_tensorboard and jax.process_index() == 0:
                 log_max_predictions = data_args.log_max_eval_predictions if data_args.log_max_eval_predictions else 0
                 write_metric(
                     summary_writer,
@@ -1144,7 +1144,7 @@ def main():
                 )
 
             # save checkpoint after each epoch and push checkpoint to the hub
-            if jax.process_index()% jax.local_device_count()  == 0:
+            if jax.process_index()  == 0:
                 params = jax.device_get(
                     jax.tree_util.tree_map(lambda x: x[0], state.params))
                 model.save_pretrained(training_args.output_dir, params=params)
