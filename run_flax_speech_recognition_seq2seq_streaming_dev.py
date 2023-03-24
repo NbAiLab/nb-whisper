@@ -1002,6 +1002,7 @@ def main():
  
     eval_dataset = vectorized_datasets["eval"]
     train_loader = data_loader(train_dataset, train_batch_size, num_workers=num_workers)
+    
     # train
     for step in tqdm(range(data_args.num_train_steps), desc="Training...", position=1, leave=False):
         
@@ -1022,6 +1023,8 @@ def main():
             )
 
         batch = data_collator(samples)
+        breakpoint()
+        
         batch = shard(batch.data)
         state, train_metric = p_train_step(state, batch)
         train_metrics.append(train_metric)
