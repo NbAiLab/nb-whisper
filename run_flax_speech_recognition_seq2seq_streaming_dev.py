@@ -359,13 +359,13 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
             print(f"{step_name} elapsed time: {elapsed_time:.2f} seconds")
             return time.time()
         
-        report_time(process_start_time, "Start processor")
+        report_time(process_start_time, "* Start processor")
         
         model_input_name = self.processor.model_input_names[0]
         input_features = {model_input_name: features[model_input_name]}
         label_features = {"input_ids": features["labels"]}
 
-        report_time(process_start_time, "Start reformatting")
+        report_time(process_start_time, "* Start reformatting")
 
         # reformat list to dict and set to pytorch format
         batch = self.processor.feature_extractor.pad(
@@ -383,13 +383,15 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
             pad_to_multiple_of=self.pad_target_to_multiple_of,
             return_tensors="np",
         )
-        report_time(process_start_time, "Start labels")
+        report_time(process_start_time, "* Start labels")
         # if bos token is appended in previous tokenization step,
         # cut bos token here as it's append later anyways
         labels = labels_batch["input_ids"]
         if (labels[:, 0] == self.decoder_start_token_id).all().item():
             labels = labels[:, 1:]
             labels_batch.attention_mask = labels_batch.attention_mask[:, 1:]
+        
+        report_time(process_start_time, "* Start shift right")
 
         decoder_input_ids = shift_tokens_right(
             labels, self.decoder_start_token_id)
@@ -402,7 +404,7 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
         batch["labels"] = labels
         batch["decoder_input_ids"] = decoder_input_ids
         
-        report_time(process_start_time, "Start return")
+        report_time(process_start_time, "* Start return")
 
         return batch
 
