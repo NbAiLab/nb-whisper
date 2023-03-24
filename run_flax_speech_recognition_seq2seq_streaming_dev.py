@@ -1021,7 +1021,9 @@ def main():
     logger.info(f"  Number of train dataset workers = {num_workers} {'(Capped by the number of dataset shards)' if train_dataset.n_shards < data_args.preprocessing_num_workers else ''} {'(ADVICE: In most cases you will speed up training considerably if you increase the value of --preprocessing_num_workers!)' if num_workers < 10 else ''}")
  
     eval_dataset = vectorized_datasets["eval"]
-    train_loader = data_loader(train_dataset, train_batch_size, num_workers=num_workers)
+    
+    train_loader = data_loader(train_dataset, train_batch_size, num_workers=1)
+    #train_loader = data_loader(train_dataset, train_batch_size, num_workers=num_workers)
     
     # DEBUG DELETE
     def report_time(start_time, step_name):
