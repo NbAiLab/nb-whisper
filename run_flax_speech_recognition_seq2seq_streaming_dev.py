@@ -1032,9 +1032,18 @@ def main():
             )
 
         batch = data_collator(samples)
-        breakpoint()
         
-        batch = shard(batch.data)
+        local_host_model_inputs = {
+            key: np.split(batch.data[key], num_of_hosts, axis=0)[
+                current_host_idx
+            ]
+            for key, value in batch.data.items()
+        }
+        
+        # batch = shard(batch.data)
+        # TODO Check if this should be local_host_model_inputs.data
+        batch = shard(local_host_model_inputs)
+        
         state, train_metric = p_train_step(state, batch)
         train_metrics.append(train_metric)
         
