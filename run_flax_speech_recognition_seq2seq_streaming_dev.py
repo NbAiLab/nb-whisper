@@ -1030,7 +1030,6 @@ def main():
         return time.time()
         
     
-    # train
     for step in tqdm(range(data_args.num_train_steps), desc="Training...", position=1, leave=False):
         # initialize the start time for reporting
         
@@ -1061,7 +1060,7 @@ def main():
         
         # batch = shard(local_batch)
         
-        batch = shard(batch)
+        batch = shard(batch.data)
         state, train_metric = p_train_step(state, batch)
         
         
