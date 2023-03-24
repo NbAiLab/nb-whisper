@@ -1015,10 +1015,10 @@ def main():
 
     
     
-    if train_dataset.n_shards < data_args.preprocessing_num_workers:
-        num_workers = train_dataset.n_shards
+    #if train_dataset.n_shards < data_args.preprocessing_num_workers:
+    #    num_workers = train_dataset.n_shards
 
-    logger.info(f"  Number of train dataset workers = {num_workers} {'(Capped by the number of dataset shards)' if train_dataset.n_shards < data_args.preprocessing_num_workers else ''} {'(ADVICE: In most cases you will speed up training considerably if you increase the value of --preprocessing_num_workers!)' if num_workers < 10 else ''}")
+    #logger.info(f"  Number of train dataset workers = {num_workers} {'(Capped by the number of dataset shards)' if train_dataset.n_shards < data_args.preprocessing_num_workers else ''} {'(ADVICE: In most cases you will speed up training considerably if you increase the value of --preprocessing_num_workers!)' if num_workers < 10 else ''}")
  
     eval_dataset = vectorized_datasets["eval"]
     
