@@ -521,6 +521,7 @@ def main():
     )
     # Set the verbosity to info of the Transformers logger.
     # We only want one process per machine to log things on the screen.
+    breakpoint()
     logger.setLevel(logging.INFO if jax.process_index() % jax.local_device_count() == 0 else logging.ERROR)
 
     if jax.process_index() % jax.local_device_count() == 0:
