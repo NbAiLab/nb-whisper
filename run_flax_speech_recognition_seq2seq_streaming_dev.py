@@ -417,8 +417,33 @@ def load_maybe_streaming_dataset(dataset_name, dataset_config_name, split="train
         return dataset
 
 
+#def collate_batch(samples):
+#    return {key: [feature[key] for feature in samples] for key in samples[0]}
+
+@jax.pmap
 def collate_batch(samples):
-    return {key: [feature[key] for feature in samples] for key in samples[0]}
+    start_time = time.time()
+
+    # Use list comprehension to extract feature values
+    result_list = {key: [feature[key] for feature in samples] for key in samples[0]}
+
+    # Print the total execution time for all workers using list comprehension
+    print(f"Total execution time using list comprehension on worker {jax.process_index()}: {time.time() - start_time:.2f} seconds")
+
+    # Use vectorized operations to extract feature values
+    start_time = time.time()
+    result_jax = jax.tree_map(lambda x: jax.numpy.stack(x, axis=0), samples[0])
+
+    # Print the total execution time for all workers using JAX method
+    print(f"Total execution time using JAX method on worker {jax.process_index()}: {time.time() - start_time:.2f} seconds")
+
+    # Compare the results of both methods
+    if all(result_list[key] == jax.tree_map(lambda x: x[0], result_jax[key]) for key in result_list.keys()):
+        print(f"Results from both methods are identical on worker {jax.process_index()}")
+    else:
+        print(f"Results from both methods are different on worker {jax.process_index()}")
+
+    return result_list
 
 
 def data_loader(
@@ -496,9 +521,9 @@ def main():
     )
     # Set the verbosity to info of the Transformers logger.
     # We only want one process per machine to log things on the screen.
-    logger.setLevel(logging.INFO if jax.process_index()
-                    == 0 else logging.ERROR)
-    if jax.process_index() == 0:
+    logger.setLevel(logging.INFO if jax.process_index() % jax.local_device_count() == 0 else logging.ERROR)
+
+    if jax.process_index() % jax.local_device_count() == 0:
         datasets.utils.logging.set_verbosity_warning()
         transformers.utils.logging.set_verbosity_info()
     else:
@@ -784,7 +809,7 @@ def main():
 
     # Enable tensorboard only on the master node
     has_tensorboard = is_tensorboard_available()
-    if has_tensorboard and jax.process_index() == 0:
+    if has_tensorboard and (jax.process_index() % jax.local_device_count()) == 0:
         try:
             from flax.metrics.tensorboard import SummaryWriter
 
@@ -809,9 +834,9 @@ def main():
     # Store some constant
     #num_epochs = int(training_args.num_train_epochs)
     train_batch_size = int(
-        training_args.per_device_train_batch_size) * jax.device_count() * jax.process_count()
+        training_args.per_device_train_batch_size) * jax.device_count()
     eval_batch_size = int(
-        training_args.per_device_eval_batch_size) * jax.device_count() * jax.process_count()
+        training_args.per_device_eval_batch_size) * jax.device_count()
 
     # Create learning rate schedule
     lr_scheduler_types = {"linear", "constant", "constant_with_warmup"}
@@ -973,6 +998,7 @@ def main():
     num_of_hosts = jax.process_count()
     current_host_idx = jax.process_index()
     
+    
     logger.info("***** Running training *****")
     logger.info(
         f"  Dataset name = {data_args.dataset_name}")
@@ -1033,16 +1059,14 @@ def main():
 
         batch = data_collator(samples)
         
-        local_host_model_inputs = {
+        local_batch = {
             key: np.split(batch.data[key], num_of_hosts, axis=0)[
                 current_host_idx
             ]
             for key, value in batch.data.items()
         }
         
-        # batch = shard(batch.data)
-        # TODO Check if this should be local_host_model_inputs.data
-        batch = shard(local_host_model_inputs)
+        batch = shard(local_batch)
         
         state, train_metric = p_train_step(state, batch)
         train_metrics.append(train_metric)
@@ -1066,6 +1090,12 @@ def main():
                 except StopIteration:
                     break
                 batch = data_collator(samples)
+                
+                # Javier - what are your thoughts on this?
+                # TODO - Should this be sharded as well??
+                # I think it works today, and that it will do everything in parallel. However, I think it will be slower than sharding it.
+                # I also think we will run out of memory if the set eval_batch size and train batch size the same here...
+                
                 labels = batch["labels"]
 
                 metrics = pad_shard_unpad(p_eval_step, static_return=True)(
@@ -1100,7 +1130,7 @@ def main():
             logger.info(desc)
 
             # Save metrics
-            if has_tensorboard and jax.process_index() == 0:
+            if has_tensorboard and (jax.process_index()% jax.local_device_count()) == 0:
                 log_max_predictions = data_args.log_max_eval_predictions if data_args.log_max_eval_predictions else 0
                 write_metric(
                     summary_writer,
@@ -1113,7 +1143,7 @@ def main():
                 )
 
             # save checkpoint after each epoch and push checkpoint to the hub
-            if jax.process_index() == 0:
+            if jax.process_index()% jax.local_device_count()  == 0:
                 params = jax.device_get(
                     jax.tree_util.tree_map(lambda x: x[0], state.params))
                 model.save_pretrained(training_args.output_dir, params=params)
