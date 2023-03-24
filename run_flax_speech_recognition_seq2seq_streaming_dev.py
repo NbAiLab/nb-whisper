@@ -417,34 +417,8 @@ def load_maybe_streaming_dataset(dataset_name, dataset_config_name, split="train
         return dataset
 
 
-#def collate_batch(samples):
-#    return {key: [feature[key] for feature in samples] for key in samples[0]}
-
-# @jax.pmap
 def collate_batch(samples):
-    start_time = time.time()
-
-    # Use list comprehension to extract feature values
-    result_list = {key: [feature[key] for feature in samples] for key in samples[0]}
-
-    # Print the total execution time for all workers using list comprehension
-    print(f"Total execution time using list comprehension on worker {jax.process_index()}: {time.time() - start_time:.2f} seconds")
-
-    # Use vectorized operations to extract feature values
-    # start_time = time.time()
-    # result_jax = jax.tree_map(lambda x: jax.numpy.stack(x, axis=0), samples[0])
-
-    # # Print the total execution time for all workers using JAX method
-    # print(f"Total execution time using JAX method on worker {jax.process_index()}: {time.time() - start_time:.2f} seconds")
-
-    # # Compare the results of both methods
-    # if all(result_list[key] == jax.tree_map(lambda x: x[0], result_jax[key]) for key in result_list.keys()):
-    #     print(f"Results from both methods are identical on worker {jax.process_index()}")
-    # else:
-    #     print(f"Results from both methods are different on worker {jax.process_index()}")
-
-    return result_list
-
+    return {key: [feature[key] for feature in samples] for key in samples[0]}
 
 def data_loader(
     dataset: Dataset,
@@ -1043,9 +1017,19 @@ def main():
     eval_dataset = vectorized_datasets["eval"]
     train_loader = data_loader(train_dataset, train_batch_size, num_workers=num_workers)
     
+    # DEBUG DELETE
+    def report_time(start_time, step_name):
+        elapsed_time = time.time() - start_time
+        print(f"{step_name} elapsed time: {elapsed_time:.2f} seconds")
+        return time.time()
+        
+    # initialize the start time for reporting
+    start_time = time.time()
+    
     # train
     for step in tqdm(range(data_args.num_train_steps), desc="Training...", position=1, leave=False):
         
+        report_time(start_time, "Start getting data")
         # Skip initial steps if these are specified. 
         if step < data_args.init_train_steps:
             continue
@@ -1062,8 +1046,11 @@ def main():
                 f" {train_metric['learning_rate']})"
             )
 
+        report_time(start_time, "Start data collation")
         batch = data_collator(samples)
         
+        report_time(start_time, "Start create local batch")
+
         local_batch = {
             key: np.split(batch.data[key], num_of_hosts, axis=0)[
                 current_host_idx
@@ -1071,9 +1058,14 @@ def main():
             for key, value in batch.data.items()
         }
         
+        report_time(start_time, "Start sharding")
+
         batch = shard(local_batch)
         
         state, train_metric = p_train_step(state, batch)
+        
+        report_time(start_time, "Finished updating the mode")
+        
         train_metrics.append(train_metric)
         
         train_time += time.time() - train_start
