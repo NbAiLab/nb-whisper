@@ -420,7 +420,7 @@ def load_maybe_streaming_dataset(dataset_name, dataset_config_name, split="train
 #def collate_batch(samples):
 #    return {key: [feature[key] for feature in samples] for key in samples[0]}
 
-@jax.pmap
+# @jax.pmap
 def collate_batch(samples):
     start_time = time.time()
 
@@ -431,17 +431,17 @@ def collate_batch(samples):
     print(f"Total execution time using list comprehension on worker {jax.process_index()}: {time.time() - start_time:.2f} seconds")
 
     # Use vectorized operations to extract feature values
-    start_time = time.time()
-    result_jax = jax.tree_map(lambda x: jax.numpy.stack(x, axis=0), samples[0])
+    # start_time = time.time()
+    # result_jax = jax.tree_map(lambda x: jax.numpy.stack(x, axis=0), samples[0])
 
-    # Print the total execution time for all workers using JAX method
-    print(f"Total execution time using JAX method on worker {jax.process_index()}: {time.time() - start_time:.2f} seconds")
+    # # Print the total execution time for all workers using JAX method
+    # print(f"Total execution time using JAX method on worker {jax.process_index()}: {time.time() - start_time:.2f} seconds")
 
-    # Compare the results of both methods
-    if all(result_list[key] == jax.tree_map(lambda x: x[0], result_jax[key]) for key in result_list.keys()):
-        print(f"Results from both methods are identical on worker {jax.process_index()}")
-    else:
-        print(f"Results from both methods are different on worker {jax.process_index()}")
+    # # Compare the results of both methods
+    # if all(result_list[key] == jax.tree_map(lambda x: x[0], result_jax[key]) for key in result_list.keys()):
+    #     print(f"Results from both methods are identical on worker {jax.process_index()}")
+    # else:
+    #     print(f"Results from both methods are different on worker {jax.process_index()}")
 
     return result_list
 
@@ -522,9 +522,12 @@ def main():
     # Set the verbosity to info of the Transformers logger.
     # We only want one process per machine to log things on the screen.
 
-    logger.setLevel(logging.INFO if jax.local_devices()[0].id%jax.local_device_count() == 0 else logging.ERROR)
+    # logger.setLevel(logging.INFO if jax.local_devices()[0].id%jax.local_device_count() == 0 else logging.ERROR)
 
-    if jax.local_devices()[0].id%jax.local_device_count() == 0:
+    # logger.setLevel(logging.INFO if jax.process_index()
+    #                == 0 else logging.ERROR)
+    
+    if jax.process_index() == 0:
         datasets.utils.logging.set_verbosity_warning()
         transformers.utils.logging.set_verbosity_info()
     else:
