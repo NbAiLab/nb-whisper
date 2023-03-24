@@ -1011,7 +1011,7 @@ def main():
     train_dataset = vectorized_datasets["train"].shuffle(seed=training_args.seed, buffer_size=data_args.shuffle_buffer_size)
     
     #Split by node
-    train_dataset = split_dataset_by_node(ds, rank=current_host_idx, world_size=num_of_hosts)
+    train_dataset = split_dataset_by_node(train_dataset, rank=current_host_idx, world_size=num_of_hosts)
 
     
     
