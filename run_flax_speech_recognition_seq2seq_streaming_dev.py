@@ -32,6 +32,7 @@ from pathlib import Path
 from typing import Any, Callable, Dict, Generator, List, Optional, Union
 
 import datasets
+from datasets.distributed import split_dataset_by_node
 import flax
 import jax
 import jax.numpy as jnp
@@ -352,20 +353,9 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
     pad_target_to_multiple_of: Optional[int] = None
 
     def __call__(self, features: List[Dict[str, Union[List[int], np.ndarray]]]) -> Dict[str, np.ndarray]:
-        process_start_time = time.time()
-        
-        def report_time(start_time, step_name):
-            elapsed_time = time.time() - start_time
-            print(f"{step_name} elapsed time: {elapsed_time:.2f} seconds")
-            return time.time()
-        
-        report_time(process_start_time, "* Start processor")
-        
         model_input_name = self.processor.model_input_names[0]
         input_features = {model_input_name: features[model_input_name]}
         label_features = {"input_ids": features["labels"]}
-
-        report_time(process_start_time, "* Start reformatting")
 
         # reformat list to dict and set to pytorch format
         batch = self.processor.feature_extractor.pad(
@@ -383,15 +373,13 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
             pad_to_multiple_of=self.pad_target_to_multiple_of,
             return_tensors="np",
         )
-        report_time(process_start_time, "* Start labels")
+
         # if bos token is appended in previous tokenization step,
         # cut bos token here as it's append later anyways
         labels = labels_batch["input_ids"]
         if (labels[:, 0] == self.decoder_start_token_id).all().item():
             labels = labels[:, 1:]
             labels_batch.attention_mask = labels_batch.attention_mask[:, 1:]
-        
-        report_time(process_start_time, "* Start shift right")
 
         decoder_input_ids = shift_tokens_right(
             labels, self.decoder_start_token_id)
@@ -403,8 +391,6 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
 
         batch["labels"] = labels
         batch["decoder_input_ids"] = decoder_input_ids
-        
-        report_time(process_start_time, "* Start return")
 
         return batch
 
@@ -1023,7 +1009,12 @@ def main():
     train_metrics = []
     epoch = 0
     train_dataset = vectorized_datasets["train"].shuffle(seed=training_args.seed, buffer_size=data_args.shuffle_buffer_size)
-  
+    
+    #Split by node
+    train_dataset = split_dataset_by_node(ds, rank=current_host_idx, world_size=num_of_hosts)
+
+    
+    
     if train_dataset.n_shards < data_args.preprocessing_num_workers:
         num_workers = train_dataset.n_shards
 
@@ -1042,9 +1033,7 @@ def main():
     # train
     for step in tqdm(range(data_args.num_train_steps), desc="Training...", position=1, leave=False):
         # initialize the start time for reporting
-        start_time = time.time()
         
-        report_time(start_time, "Start getting data")
         # Skip initial steps if these are specified. 
         if step < data_args.init_train_steps:
             continue
@@ -1061,25 +1050,20 @@ def main():
                 f" {train_metric['learning_rate']})"
             )
 
-        report_time(start_time, "Start data collation")
         batch = data_collator(samples)
-        
-        report_time(start_time, "Start create local batch")
 
-        local_batch = {
-            key: np.split(batch.data[key], num_of_hosts, axis=0)[
-                current_host_idx
-            ]
-            for key, value in batch.data.items()
-        }
+        # local_batch = {
+        #     key: np.split(batch.data[key], num_of_hosts, axis=0)[
+        #         current_host_idx
+        #     ]
+        #     for key, value in batch.data.items()
+        # }
         
-        report_time(start_time, "Start sharding")
-        batch = shard(local_batch)
+        # batch = shard(local_batch)
         
-        report_time(start_time, "Start training")
+        batch = shard(batch)
         state, train_metric = p_train_step(state, batch)
         
-        report_time(start_time, "Finished updating the mode")
         
         train_metrics.append(train_metric)
         
