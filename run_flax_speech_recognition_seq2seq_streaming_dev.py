@@ -809,9 +809,9 @@ def main():
     # Store some constant
     #num_epochs = int(training_args.num_train_epochs)
     train_batch_size = int(
-        training_args.per_device_train_batch_size) * jax.device_count()
+        training_args.per_device_train_batch_size) * jax.device_count() * jax.process_count()
     eval_batch_size = int(
-        training_args.per_device_eval_batch_size) * jax.device_count()
+        training_args.per_device_eval_batch_size) * jax.device_count() * jax.process_count()
 
     # Create learning rate schedule
     lr_scheduler_types = {"linear", "constant", "constant_with_warmup"}
@@ -968,7 +968,11 @@ def main():
 
     # Replicate the train state on each device
     state = state.replicate()
-
+    
+    # Number of hosts
+    num_of_hosts = jax.process_count()
+    current_host_idx = jax.process_index()
+    
     logger.info("***** Running training *****")
     logger.info(
         f"  Dataset name = {data_args.dataset_name}")
@@ -980,6 +984,11 @@ def main():
         f"  Scheduler = {training_args.lr_scheduler_type}")
     logger.info(
         f"  Num examples = {data_args.num_train_steps * train_batch_size}")
+    if num_of_hosts > 1:
+        logger.info(
+            f"  Number of hosts = {num_of_hosts}")
+        logger.info(
+            f"  Current host idx = {current_host_idx}")
     logger.info(
         f"  Instantaneous batch size per device = {training_args.per_device_train_batch_size}")
     logger.info(
