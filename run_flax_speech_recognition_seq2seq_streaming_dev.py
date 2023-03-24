@@ -1023,11 +1023,11 @@ def main():
         print(f"{step_name} elapsed time: {elapsed_time:.2f} seconds")
         return time.time()
         
-    # initialize the start time for reporting
-    start_time = time.time()
     
     # train
     for step in tqdm(range(data_args.num_train_steps), desc="Training...", position=1, leave=False):
+        # initialize the start time for reporting
+        start_time = time.time()
         
         report_time(start_time, "Start getting data")
         # Skip initial steps if these are specified. 
