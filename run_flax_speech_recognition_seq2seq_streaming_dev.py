@@ -1022,7 +1022,8 @@ def main():
  
     eval_dataset = vectorized_datasets["eval"]
     
-    train_loader = data_loader(train_dataset, train_batch_size, num_workers=1)
+    # Should be divided?
+    train_loader = data_loader(train_dataset, train_batch_size, num_workers=6)
     #train_loader = data_loader(train_dataset, train_batch_size, num_workers=num_workers)
     
     # DEBUG DELETE
