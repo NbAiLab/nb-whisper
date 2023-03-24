@@ -1059,9 +1059,9 @@ def main():
         }
         
         report_time(start_time, "Start sharding")
-
         batch = shard(local_batch)
         
+        report_time(start_time, "Start training")
         state, train_metric = p_train_step(state, batch)
         
         report_time(start_time, "Finished updating the mode")
