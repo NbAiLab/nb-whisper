@@ -527,12 +527,12 @@ def main():
     # logger.setLevel(logging.INFO if jax.process_index()
     #                == 0 else logging.ERROR)
     
-    # if jax.process_index() == 0:
-    #     datasets.utils.logging.set_verbosity_warning()
-    #     transformers.utils.logging.set_verbosity_info()
-    # else:
-    #     datasets.utils.logging.set_verbosity_error()
-    #     transformers.utils.logging.set_verbosity_error()
+    if jax.process_index() == 0:
+        datasets.utils.logging.set_verbosity_warning()
+        transformers.utils.logging.set_verbosity_info()
+    else:
+        datasets.utils.logging.set_verbosity_error()
+        transformers.utils.logging.set_verbosity_error()
     
     logger.setLevel(logging.INFO)
     logger.info("Training/evaluation parameters %s", training_args)
