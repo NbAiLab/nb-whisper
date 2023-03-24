@@ -352,9 +352,20 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
     pad_target_to_multiple_of: Optional[int] = None
 
     def __call__(self, features: List[Dict[str, Union[List[int], np.ndarray]]]) -> Dict[str, np.ndarray]:
+        process_start_time = time.time()
+        
+        def report_time(start_time, step_name):
+            elapsed_time = time.time() - start_time
+            print(f"{step_name} elapsed time: {elapsed_time:.2f} seconds")
+            return time.time()
+        
+        report_time(process_start_time, "Start processor")
+        
         model_input_name = self.processor.model_input_names[0]
         input_features = {model_input_name: features[model_input_name]}
         label_features = {"input_ids": features["labels"]}
+
+        report_time(process_start_time, "Start reformatting")
 
         # reformat list to dict and set to pytorch format
         batch = self.processor.feature_extractor.pad(
@@ -372,7 +383,7 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
             pad_to_multiple_of=self.pad_target_to_multiple_of,
             return_tensors="np",
         )
-
+        report_time(process_start_time, "Start labels")
         # if bos token is appended in previous tokenization step,
         # cut bos token here as it's append later anyways
         labels = labels_batch["input_ids"]
@@ -390,6 +401,8 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
 
         batch["labels"] = labels
         batch["decoder_input_ids"] = decoder_input_ids
+        
+        report_time(process_start_time, "Start return")
 
         return batch
 
@@ -788,7 +801,7 @@ def main():
 
     # Enable tensorboard only on the master node
     has_tensorboard = is_tensorboard_available()
-    if has_tensorboard and (jax.process_index() % jax.local_device_count()) == 0:
+    if has_tensorboard and jax.process_index() == 0:
         try:
             from flax.metrics.tensorboard import SummaryWriter
 
