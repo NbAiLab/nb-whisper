@@ -8,9 +8,9 @@ python ../run_flax_speech_recognition_seq2seq_streaming_dev.py \
 	        --language Norwegian \
             --text_column_name text \
             --train_split_name train\
-            --eval_split_name test\
-            --output_dir ../../test\
-            --overwrite_output_dir\
+            --eval_split_name validation\
+            --output_dir ../../test2 \
+            --overwrite_output_dir \
             --warmup_steps 100 \
             --do_train \
             --do_eval \

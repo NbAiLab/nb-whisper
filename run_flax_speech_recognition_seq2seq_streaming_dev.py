@@ -1024,7 +1024,7 @@ def main():
     
     # Should be divided?
     # train_loader = data_loader(train_dataset, train_batch_size, num_workers=6)
-    train_loader = data_loader(train_dataset, train_batch_size, num_workers=num_workers)
+    train_loader = data_loader(train_dataset, train_batch_size, num_workers=data_args.preprocessing_num_workers)
     
     # DEBUG DELETE
     def report_time(start_time, step_name):
