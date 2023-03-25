@@ -9,7 +9,7 @@ python ../run_flax_speech_recognition_seq2seq_streaming_dev.py \
             --text_column_name text \
             --train_split_name train\
             --eval_split_name test\
-            --output_dir ../../scream_quintus_single_linear_1e5\
+            --output_dir ../../test\
             --overwrite_output_dir\
             --warmup_steps 100 \
             --do_train \
