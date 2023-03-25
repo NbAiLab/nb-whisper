@@ -11,22 +11,22 @@ python ../run_flax_speech_recognition_seq2seq_streaming_dev.py \
             --eval_split_name test\
             --output_dir ../../scream_quintus_single_linear_1e5\
             --overwrite_output_dir\
-            --warmup_steps 1000 \
+            --warmup_steps 100 \
             --do_train \
             --do_eval \
-            --num_train_steps 10000 \
+            --num_train_steps 1000 \
 	        --lr_scheduler_type linear \
-            --eval_steps 500 \
+            --eval_steps 1000 \
             --learning_rate 1e-5 \
-	        --preprocessing_num_workers 50 \
+	        --preprocessing_num_workers X \
             --per_device_train_batch_size 64 \
             --per_device_eval_batch_size 64 \
             --predict_with_generate \
-            --log_max_eval_predictions 100 \
-            --log_eval_predictions_fn "log_predictions.write_predictions" \
             --streaming True \
             --use_auth_token True \
             --dtype bfloat16 \
+            #--log_max_eval_predictions 100 \
+            #--log_eval_predictions_fn "log_predictions.write_predictions" \
             #--hub_private_repo True \
             #--hub_model_id NbAiLab/scream_quintus_single_linear_1e5 \
             #--push_to_hub
