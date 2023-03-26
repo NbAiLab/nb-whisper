@@ -1080,6 +1080,7 @@ def main():
         
         print("5")
         print(f"Batch length= {len(batch)}")
+        breakpoint()
         state, train_metric = p_train_step(state, batch)
         
         print("6")
