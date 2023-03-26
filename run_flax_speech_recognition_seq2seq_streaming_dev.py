@@ -1068,7 +1068,10 @@ def main():
         
         print("Updating state")
         print(f"Batch length= {len(batch)}")
-        breakpoint()
+        print(f"Batch input_features= {len(batch['input_features'])}")
+        print(f"Batch labels= {len(batch['labels'])}")
+        print(f"Batch 'decoder_input_ids'= {len(batch['decoder_input_ids'])}")
+        
         state, train_metric = p_train_step(state, batch)
         
         train_metrics.append(train_metric)
