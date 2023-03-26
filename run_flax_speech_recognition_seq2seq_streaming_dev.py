@@ -1074,9 +1074,12 @@ def main():
         
         # batch = shard(local_batch)
         print("4")
+        print(f"Batch data length= {len(batch.data)}")
+        
         batch = shard(batch.data)
         
         print("5")
+        print(f"Batch length= {len(batch)}")
         state, train_metric = p_train_step(state, batch)
         
         print("6")
