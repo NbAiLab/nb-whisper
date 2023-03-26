@@ -912,6 +912,7 @@ def main():
     # Define gradient update step fn
     def train_step(state, batch, label_smoothing_factor=0.0):
         print("1")
+        logger.info("***** step *****")
         dropout_rng, new_dropout_rng = jax.random.split(state.dropout_rng)
         print("2")
         def compute_loss(params):
