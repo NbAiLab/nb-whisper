@@ -426,6 +426,7 @@ def data_loader(
     batch_size: int,
     drop_last: bool=True,
     num_workers: int=0,
+    timeout: int=10,
 ) -> Generator:
     """
     Returns batches of size `batch_size` from `dataset`. If `drop_last` is set to `False`, the final batch may be incomplete,
@@ -433,6 +434,7 @@ def data_loader(
     """
     data_loader_iterator = iter(torch.utils.data.DataLoader(
         batch_size=batch_size,
+        timeout=timeout,
         dataset=dataset.with_format("torch"),
         num_workers=num_workers,
         collate_fn=collate_batch,
@@ -1024,7 +1026,7 @@ def main():
     
     # Should be divided?
     # train_loader = data_loader(train_dataset, train_batch_size, num_workers=6)
-    train_loader = data_loader(train_dataset, train_batch_size, num_workers=data_args.preprocessing_num_workers)
+    train_loader = data_loader(train_dataset, train_batch_size, timeout=10, num_workers=data_args.preprocessing_num_workers)
     
     # DEBUG DELETE
     def report_time(start_time, step_name):
@@ -1042,10 +1044,16 @@ def main():
         
         try:
             samples = next(train_loader)
+        except RuntimeError as e:
+            if "timed out" in str(e).lower():  # Check if the error message is related to a timeout
+                print(f"A timeout error occurred during batch: {e}. This might happen if the shards are of different length. Continuing with the next batch.")
+            else:
+                print(f"A RunTime error occurred during batch: {e}. Continuing with the next batch.")
+            continue 
         except StopIteration:
             epoch += 1
             train_dataset.set_epoch(epoch)
-            train_loader = data_loader(train_dataset, train_batch_size, num_workers=num_workers)
+            train_loader = data_loader(train_dataset, train_batch_size, timeout=10, num_workers=num_workers)
             samples = next(train_loader)
             logger.info(
                 f"Completed epoch ({epoch} | Loss: {train_metric['loss']}, Learning Rate:"
@@ -1076,7 +1084,7 @@ def main():
             eval_metrics = []
             eval_preds = []
             eval_labels = []
-            eval_loader = data_loader(eval_dataset, eval_batch_size, drop_last=False)
+            eval_loader = data_loader(eval_dataset, eval_batch_size, timeout=10, drop_last=False)
             if data_args.max_eval_samples:
                 max_eval_steps_iter = range(1 + data_args.max_eval_samples // eval_batch_size)
             else:
