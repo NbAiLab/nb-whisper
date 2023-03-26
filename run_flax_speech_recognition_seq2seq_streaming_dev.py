@@ -1046,9 +1046,9 @@ def main():
             samples = next(train_loader)
         except RuntimeError as e:
             if "timed out" in str(e).lower():  # Check if the error message is related to a timeout
-                print(f"A timeout error occurred during batch: {e}. This might happen if the shards are of different length. Continuing with the next batch.")
+                print(f"The following timeout error occurred at step {step}: {e}. This might happen if the shards are of different length. Continuing with the next batch.")
             else:
-                print(f"A RunTime error occurred during batch: {e}. Continuing with the next batch.")
+                print(f"The following RunTime error occurred at step {step}: {e}. Continuing with the next batch.")
             continue 
         except StopIteration:
             epoch += 1
