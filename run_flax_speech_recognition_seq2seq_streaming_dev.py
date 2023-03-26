@@ -1044,7 +1044,10 @@ def main():
         
         print("2")
         try:
+            print("2b")
             samples = next(train_loader)
+            print("2c")
+            
         except RuntimeError as e:
             if "timed out" in str(e).lower():  # Check if the error message is related to a timeout
                 print(f"The following timeout error occurred at step {step}: {e}. If early in the training this might happen because all workers are not ready. If it happens late in the training is might be caused by the shards being of different length. Continuing with the next batch.")
