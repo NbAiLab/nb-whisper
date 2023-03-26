@@ -426,7 +426,6 @@ def data_loader(
     batch_size: int,
     drop_last: bool=True,
     num_workers: int=0,
-    timeout: int=10,
 ) -> Generator:
     """
     Returns batches of size `batch_size` from `dataset`. If `drop_last` is set to `False`, the final batch may be incomplete,
@@ -434,7 +433,6 @@ def data_loader(
     """
     data_loader_iterator = iter(torch.utils.data.DataLoader(
         batch_size=batch_size,
-        timeout=timeout,
         dataset=dataset.with_format("torch"),
         num_workers=num_workers,
         collate_fn=collate_batch,
@@ -1026,7 +1024,7 @@ def main():
     
     # Should be divided?
     # train_loader = data_loader(train_dataset, train_batch_size, num_workers=6)
-    train_loader = data_loader(train_dataset, train_batch_size, timeout=120, num_workers=data_args.preprocessing_num_workers)
+    train_loader = data_loader(train_dataset, train_batch_size, num_workers=data_args.preprocessing_num_workers)
     
     # DEBUG DELETE
     def report_time(start_time, step_name):
@@ -1037,32 +1035,24 @@ def main():
     
     for step in tqdm(range(data_args.num_train_steps), desc="Training...", position=1, leave=False):
         # initialize the start time for reporting
-        print("1")
         # Skip initial steps if these are specified. 
         if step < data_args.init_train_steps:
             continue
         
-        print("2")
+ 
         try:
             samples = next(train_loader)
-            
-        except RuntimeError as e:
-            if "timed out" in str(e).lower():  # Check if the error message is related to a timeout
-                print(f"The following timeout error occurred at step {step}: {e}. If early in the training this might happen because all workers are not ready. If it happens late in the training is might be caused by the shards being of different length. Continuing with the next batch.")
-            else:
-                print(f"The following RunTime error occurred at step {step}: {e}. Continuing with the next batch.")
-            continue 
+
         except StopIteration:
             epoch += 1
             train_dataset.set_epoch(epoch)
-            train_loader = data_loader(train_dataset, train_batch_size, timeout=120, num_workers=num_workers)
+            train_loader = data_loader(train_dataset, train_batch_size, num_workers=num_workers)
             samples = next(train_loader)
             logger.info(
                 f"Completed epoch ({epoch} | Loss: {train_metric['loss']}, Learning Rate:"
                 f" {train_metric['learning_rate']})"
             )
 
-        print("3")
         batch = data_collator(samples)
 
         # local_batch = {
@@ -1073,28 +1063,24 @@ def main():
         # }
         
         # batch = shard(local_batch)
-        print("4")
-        print(f"Batch data length= {len(batch.data)}")
         
         batch = shard(batch.data)
         
-        print("5")
+        print("Updating state")
         print(f"Batch length= {len(batch)}")
         breakpoint()
         state, train_metric = p_train_step(state, batch)
         
-        print("6")
         train_metrics.append(train_metric)
         
         train_time += time.time() - train_start
         train_metric = unreplicate(train_metric)
-        print("7")
         # ======================== Evaluating ==============================
         if step % training_args.eval_steps == 0 and step > 0:
             eval_metrics = []
             eval_preds = []
             eval_labels = []
-            eval_loader = data_loader(eval_dataset, eval_batch_size, timeout=120, drop_last=False)
+            eval_loader = data_loader(eval_dataset, eval_batch_size, drop_last=False)
             if data_args.max_eval_samples:
                 max_eval_steps_iter = range(1 + data_args.max_eval_samples // eval_batch_size)
             else:
