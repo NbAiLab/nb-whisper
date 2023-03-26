@@ -1037,16 +1037,17 @@ def main():
     
     for step in tqdm(range(data_args.num_train_steps), desc="Training...", position=1, leave=False):
         # initialize the start time for reporting
-        
+        print("1")
         # Skip initial steps if these are specified. 
         if step < data_args.init_train_steps:
             continue
         
+        print("2")
         try:
             samples = next(train_loader)
         except RuntimeError as e:
             if "timed out" in str(e).lower():  # Check if the error message is related to a timeout
-                print(f"The following timeout error occurred at step {step}: {e}. This might happen if the shards are of different length. Continuing with the next batch.")
+                print(f"The following timeout error occurred at step {step}: {e}. If early in the training this might happen because all workers are not ready. If it happens late in the training is might be caused by the shards being of different length. Continuing with the next batch.")
             else:
                 print(f"The following RunTime error occurred at step {step}: {e}. Continuing with the next batch.")
             continue 
@@ -1060,6 +1061,7 @@ def main():
                 f" {train_metric['learning_rate']})"
             )
 
+        print("3")
         batch = data_collator(samples)
 
         # local_batch = {
@@ -1070,15 +1072,16 @@ def main():
         # }
         
         # batch = shard(local_batch)
-        
+        print("4")
         batch = shard(batch.data)
         state, train_metric = p_train_step(state, batch)
         
-        
+        print("5")
         train_metrics.append(train_metric)
         
         train_time += time.time() - train_start
         train_metric = unreplicate(train_metric)
+        print("6")
         # ======================== Evaluating ==============================
         if step % training_args.eval_steps == 0 and step > 0:
             eval_metrics = []
