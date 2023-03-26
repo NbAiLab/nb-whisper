@@ -1044,9 +1044,7 @@ def main():
         
         print("2")
         try:
-            print("2b")
             samples = next(train_loader)
-            print("2c")
             
         except RuntimeError as e:
             if "timed out" in str(e).lower():  # Check if the error message is related to a timeout
@@ -1077,14 +1075,16 @@ def main():
         # batch = shard(local_batch)
         print("4")
         batch = shard(batch.data)
-        state, train_metric = p_train_step(state, batch)
         
         print("5")
+        state, train_metric = p_train_step(state, batch)
+        
+        print("6")
         train_metrics.append(train_metric)
         
         train_time += time.time() - train_start
         train_metric = unreplicate(train_metric)
-        print("6")
+        print("7")
         # ======================== Evaluating ==============================
         if step % training_args.eval_steps == 0 and step > 0:
             eval_metrics = []
