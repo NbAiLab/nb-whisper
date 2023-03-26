@@ -1026,7 +1026,7 @@ def main():
     
     # Should be divided?
     # train_loader = data_loader(train_dataset, train_batch_size, num_workers=6)
-    train_loader = data_loader(train_dataset, train_batch_size, timeout=10, num_workers=data_args.preprocessing_num_workers)
+    train_loader = data_loader(train_dataset, train_batch_size, timeout=120, num_workers=data_args.preprocessing_num_workers)
     
     # DEBUG DELETE
     def report_time(start_time, step_name):
@@ -1053,7 +1053,7 @@ def main():
         except StopIteration:
             epoch += 1
             train_dataset.set_epoch(epoch)
-            train_loader = data_loader(train_dataset, train_batch_size, timeout=10, num_workers=num_workers)
+            train_loader = data_loader(train_dataset, train_batch_size, timeout=120, num_workers=num_workers)
             samples = next(train_loader)
             logger.info(
                 f"Completed epoch ({epoch} | Loss: {train_metric['loss']}, Learning Rate:"
@@ -1084,7 +1084,7 @@ def main():
             eval_metrics = []
             eval_preds = []
             eval_labels = []
-            eval_loader = data_loader(eval_dataset, eval_batch_size, timeout=10, drop_last=False)
+            eval_loader = data_loader(eval_dataset, eval_batch_size, timeout=120, drop_last=False)
             if data_args.max_eval_samples:
                 max_eval_steps_iter = range(1 + data_args.max_eval_samples // eval_batch_size)
             else:
