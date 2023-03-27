@@ -722,9 +722,9 @@ def main():
         for idx in range(len(label_ids)):
             label_ids[idx][label_ids[idx] == -100] = tokenizer.pad_token_id
 
-        pred_str = tokenizer.batch_decode(pred_ids, skip_special_tokens=True)
+        predictions = tokenizer.batch_decode(pred_ids, skip_special_tokens=True)
         # we do not want to group tokens when computing the metrics
-        label_str = tokenizer.batch_decode(label_ids, skip_special_tokens=True)
+        labels = tokenizer.batch_decode(label_ids, skip_special_tokens=True)
 
         if do_normalize_eval:
             pred_str = [normalizer(pred) for pred in pred_str]
@@ -734,12 +734,15 @@ def main():
                         for i in range(len(pred_str)) if len(label_str[i]) > 0]
             label_str = [label_str[i]
                          for i in range(len(label_str)) if len(label_str[i]) > 0]
+        else:
+            pred_str = predictions
+            label_str = labels
 
         wer = 100 * metric_wer.compute(predictions=pred_str, references=label_str)
         cer = 100 * metric_cer.compute(predictions=pred_str, references=label_str)
 
         if return_preds_labels:
-            return {"wer": wer, "cer": cer}, pred_str, label_str
+            return {"wer": wer, "cer": cer}, predictions, labels
         else:
             return {"wer": wer, "cer": cer}
 
