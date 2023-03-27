@@ -19,8 +19,8 @@ python ../run_flax_speech_recognition_seq2seq_streaming_dev.py \
             --eval_steps 1000 \
             --learning_rate 1e-5 \
 	        --preprocessing_num_workers 30 \
-            --per_device_train_batch_size 64 \
-            --per_device_eval_batch_size 64 \
+            --per_device_train_batch_size 32 \
+            --per_device_eval_batch_size 32 \
             --predict_with_generate \
             --log_max_eval_predictions 100 \
             --log_eval_predictions_fn "log_predictions.write_predictions" \
