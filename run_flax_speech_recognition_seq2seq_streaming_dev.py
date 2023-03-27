@@ -1027,7 +1027,8 @@ def main():
     
     # Should be divided?
     # train_loader = data_loader(train_dataset, train_batch_size, num_workers=6)
-    train_loader = data_loader(train_dataset, train_batch_size, num_workers=data_args.preprocessing_num_workers)
+    train_loader = data_loader(train_dataset, train_batch_size//num_of_hosts, num_workers=data_args.preprocessing_num_workers)
+    
     
     # DEBUG DELETE
     def report_time(start_time, step_name):
@@ -1049,7 +1050,7 @@ def main():
         except StopIteration:
             epoch += 1
             train_dataset.set_epoch(epoch)
-            train_loader = data_loader(train_dataset, train_batch_size, num_workers=num_workers)
+            train_loader = data_loader(train_dataset, train_batch_size//num_of_hosts, num_workers=num_workers)
             samples = next(train_loader)
             logger.info(
                 f"Completed epoch ({epoch} | Loss: {train_metric['loss']}, Learning Rate:"
@@ -1069,13 +1070,10 @@ def main():
         
         batch = shard(batch.data)
         
-        print("Updating state - step {step}")
-        print(f"Batch length= {len(batch)}")
-        print(f"Batch input_features= {len(batch['input_features'])}")
-        print(f"Batch labels= {len(batch['labels'])}")
-        print(f"Batch 'decoder_input_ids'= {len(batch['decoder_input_ids'])}")
-        if step == 219 or step==220:
-            breakpoint()
+        print(f"Updating state - step {step}")
+        print(f"Batch overall size= {len(batch)}")
+        print(f"Batch length= {len(batch['labels'][0])}")
+        
         
         state, train_metric = p_train_step(state, batch)
         
