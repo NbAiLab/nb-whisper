@@ -914,25 +914,24 @@ def main():
 
     # Define gradient update step fn
     def train_step(state, batch, label_smoothing_factor=0.0):
-        print("step1")
         
         dropout_rng, new_dropout_rng = jax.random.split(state.dropout_rng)
-        print("step2")
+
         def compute_loss(params):
             labels = batch.pop("labels")
             logits = state.apply_fn(
                 **batch, params=params, dropout_rng=dropout_rng, train=True)[0]
             loss, num_labels = loss_fn(logits, labels, label_smoothing_factor)
             return loss, num_labels
-        print("step3")
+
         grad_fn = jax.value_and_grad(compute_loss, has_aux=True)
         (loss, num_labels), grad = grad_fn(state.params)
         num_labels = jax.lax.psum(num_labels, "batch")
-        print("step4")
+
         # true loss = total loss / total samples
         loss = jax.lax.psum(loss, "batch")
         loss = jax.tree_util.tree_map(lambda x: x / num_labels, loss)
-        print("step5")
+
         # true grad = total grad / total samples
         grad = jax.lax.psum(grad, "batch")
         grad = jax.tree_util.tree_map(lambda x: x / num_labels, grad)
@@ -941,7 +940,7 @@ def main():
 
         metrics = {"loss": loss,
                    "learning_rate": linear_decay_lr_schedule_fn(state.step)}
-        print("step6")
+
         return new_state, metrics
 
     # Define eval fn
@@ -1060,22 +1059,7 @@ def main():
             )
 
         batch = data_collator(samples)
-
-        # local_batch = {
-        #     key: np.split(batch.data[key], num_of_hosts, axis=0)[
-        #         current_host_idx
-        #     ]
-        #     for key, value in batch.data.items()
-        # }
-        
-        # batch = shard(local_batch)
-        
         batch = shard(batch.data)
-        
-        print(f"Updating state - step {step}")
-        print(f"Batch overall size= {len(batch)}")
-        print(f"Batch length= {len(batch['labels'][0])}")
-        
         
         state, train_metric = p_train_step(state, batch)
         
