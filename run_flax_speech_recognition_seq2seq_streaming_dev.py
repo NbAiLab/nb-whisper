@@ -1069,12 +1069,12 @@ def main():
         
         batch = shard(batch.data)
         
-        print("Updating state")
+        print("Updating state - step {step}")
         print(f"Batch length= {len(batch)}")
         print(f"Batch input_features= {len(batch['input_features'])}")
         print(f"Batch labels= {len(batch['labels'])}")
         print(f"Batch 'decoder_input_ids'= {len(batch['decoder_input_ids'])}")
-        if step==219:
+        if step == 219 or step==220:
             breakpoint()
         
         state, train_metric = p_train_step(state, batch)
