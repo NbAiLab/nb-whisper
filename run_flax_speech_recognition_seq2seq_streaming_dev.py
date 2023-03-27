@@ -1001,6 +1001,8 @@ def main():
     logger.info(
         f"  Instantaneous batch size per device = {training_args.per_device_train_batch_size}")
     logger.info(
+        f"  Total train batch size per node (w. parallel & distributed) = {train_batch_size//num_of_hosts}")
+    logger.info(
         f"  Total train batch size (w. parallel & distributed) = {train_batch_size}")
     logger.info(f"  Total optimization steps = {data_args.num_train_steps-data_args.init_train_steps} {'(Starting at ' + str(data_args.init_train_steps) + ' and finishing at ' + str(data_args.num_train_steps) + ')' if data_args.init_train_steps > 0 else ''}")
 
@@ -1018,16 +1020,13 @@ def main():
 
     
     
-    #if train_dataset.n_shards < data_args.preprocessing_num_workers:
-    #    num_workers = train_dataset.n_shards
+    if train_dataset.n_shards < data_args.preprocessing_num_workers:
+        num_workers = train_dataset.n_shards
 
-    #logger.info(f"  Number of train dataset workers = {num_workers} {'(Capped by the number of dataset shards)' if train_dataset.n_shards < data_args.preprocessing_num_workers else ''} {'(ADVICE: In most cases you will speed up training considerably if you increase the value of --preprocessing_num_workers!)' if num_workers < 10 else ''}")
+    logger.info(f"  Number of train dataset workers = {num_workers} {'(Capped by the number of dataset shards)' if train_dataset.n_shards < data_args.preprocessing_num_workers else ''} {'(ADVICE: In most cases you will speed up training considerably if you increase the value of --preprocessing_num_workers!)' if num_workers < 10 else ''}")
  
     eval_dataset = vectorized_datasets["eval"]
-    
-    # Should be divided?
-    # train_loader = data_loader(train_dataset, train_batch_size, num_workers=6)
-    train_loader = data_loader(train_dataset, train_batch_size//num_of_hosts, num_workers=data_args.preprocessing_num_workers)
+    train_loader = data_loader(train_dataset, train_batch_size//num_of_hosts, num_workers=num_workers)
     
     
     # DEBUG DELETE
