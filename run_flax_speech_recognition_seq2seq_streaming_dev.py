@@ -727,8 +727,8 @@ def main():
         labels = tokenizer.batch_decode(label_ids, skip_special_tokens=True)
 
         if do_normalize_eval:
-            pred_str = [normalizer(pred) for pred in pred_str]
-            label_str = [normalizer(label) for label in label_str]
+            pred_str = [normalizer(pred) for pred in predictions]
+            label_str = [normalizer(label) for label in labels]
             # filtering step to only evaluate the samples that correspond to non-zero references:
             pred_str = [pred_str[i]
                         for i in range(len(pred_str)) if len(label_str[i]) > 0]
@@ -1084,11 +1084,6 @@ def main():
                 except StopIteration:
                     break
                 batch = data_collator(samples)
-                
-                # Javier - what are your thoughts on this?
-                # TODO - Should this be sharded as well??
-                # I think it works today, and that it will do everything in parallel. However, I think it will be slower than sharding it.
-                # I also think we will run out of memory if the set eval_batch size and train batch size the same here...
                 
                 labels = batch["labels"]
 
