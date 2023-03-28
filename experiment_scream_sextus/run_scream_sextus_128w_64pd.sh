@@ -9,7 +9,7 @@ python ../run_flax_speech_recognition_seq2seq_streaming_dev.py \
             --text_column_name text \
             --train_split_name train\
             --eval_split_name test\
-            --output_dir ../../scream_sextus_30w\
+            --output_dir ../../scream_sextus_50w\
             --overwrite_output_dir\
             --warmup_steps 200 \
             --do_train \
@@ -18,7 +18,7 @@ python ../run_flax_speech_recognition_seq2seq_streaming_dev.py \
 	        --lr_scheduler_type linear \
             --eval_steps 1000 \
             --learning_rate 1e-5 \
-	        --preprocessing_num_workers 30 \
+	        --preprocessing_num_workers 128 \
             --per_device_train_batch_size 64 \
             --per_device_eval_batch_size 64 \
             --predict_with_generate \
