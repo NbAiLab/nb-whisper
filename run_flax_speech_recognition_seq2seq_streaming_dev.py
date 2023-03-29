@@ -576,7 +576,7 @@ def main():
                 )
                 print("Trying....")
             except:
-                pass 
+                time.sleep(1)
 
         repo = Repository(training_args.output_dir,
                           clone_from=repo_name, token=training_args.hub_token)
