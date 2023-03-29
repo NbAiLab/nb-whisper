@@ -296,14 +296,14 @@ class DataTrainingArguments:
             )
         },
     )
-    run_name: Optional[str] = field(
-        default=None,
-        metadata={
-            "help": (
-                "Name of this run/experiment."
-            )
-        },
-    )
+    # run_name: Optional[str] = field(
+    #     default=None,
+    #     metadata={
+    #         "help": (
+    #             "Name of this run/experiment."
+    #         )
+    #     },
+    # )
     run_description: Optional[str] = field(
         default=None,
         metadata={
