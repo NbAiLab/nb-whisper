@@ -63,6 +63,7 @@ from transformers import (
 )
 
 from transformers.models.whisper.english_normalizer import BasicTextNormalizer
+from transformers.models.whisper.tokenization_whisper import TO_LANGUAGE_CODE
 from transformers.file_utils import get_full_repo_name
 from transformers.utils import check_min_version, send_example_telemetry
 from transformers.utils.versions import require_version
