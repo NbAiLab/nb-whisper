@@ -1067,7 +1067,7 @@ def main():
         if data_args.language is not None:
             language = data_args.language.lower()
             if language in TO_LANGUAGE_CODE:
-                language_code = TO_LANGUAGE_CODE[self.language]
+                language_code = TO_LANGUAGE_CODE[language]
             elif len(language) == 2:
                 language_code = language
         readme_metadata = f"""
