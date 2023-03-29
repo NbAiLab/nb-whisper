@@ -1081,7 +1081,10 @@ def main():
         pipeline_tag: automatic-speech-recognition
         license: apache-2.0
         ---"""
-        readme.write_text(f"""{'\n'.join(l.strip() for l in readme_metadata)}\n# {training_args.run_name or ''}\n{training_args.run_description}""")
+        newline_joined = '\n'.join(l.strip() for l in readme_metadata)
+        readme.write_text(f"{newline_joined}\n# {training_args.run_name or ''}\n{training_args.run_description}")
+
+        #readme.write_text(f"""{'\n'.join(l.strip() for l in readme_metadata)}\n# {training_args.run_name or ''}\n{training_args.run_description}""")
     
     # ======================== Training ================================
     train_start = time.time()
