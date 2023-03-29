@@ -574,6 +574,7 @@ def main():
         repo = Repository(training_args.output_dir,
                           clone_from=repo_name, token=training_args.hub_token)
 
+    
     # Set the model_name_or_path
     model_name_or_path = model_args.model_name_or_path
 
