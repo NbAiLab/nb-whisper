@@ -69,6 +69,7 @@ from transformers.utils import check_min_version, send_example_telemetry
 from transformers.utils.versions import require_version
 
 from flax.training import checkpoints
+import shutil
 
 # Will error if the minimal version of Transformers is not installed. Remove at your own risks.
 check_min_version("4.27.0.dev0")
@@ -539,17 +540,20 @@ def main():
     logger.info("Training/evaluation parameters %s", training_args)
 
     # Check the output dir is valid
-    if (
-        os.path.exists(training_args.output_dir)
-        and os.listdir(training_args.output_dir)
-        and training_args.do_train
-        and not training_args.overwrite_output_dir
-    ):
-        raise ValueError(
-            f"Output directory ({training_args.output_dir}) already exists and is not empty."
-            "Use `--overwrite_output_dir` to overcome."
-        )
-
+    if os.path.exists(training_args.output_dir):
+        if (
+            os.listdir(training_args.output_dir)
+            and training_args.do_train
+            and not training_args.overwrite_output_dir
+        ):
+            raise ValueError(
+                f"Output directory ({training_args.output_dir}) already exists and is not empty."
+                "Use `--overwrite_output_dir` to overcome."
+            )
+        elif training_args.overwrite_output_dir:
+            shutil.rmtree(training_args.output_dir)
+    
+    
     # Handle the repository creation
     if training_args.push_to_hub:
         if training_args.hub_model_id is None:
@@ -574,7 +578,9 @@ def main():
         repo = Repository(training_args.output_dir,
                           clone_from=repo_name, token=training_args.hub_token)
 
-    
+        # Now pull from the repo so that all nodes are synced with the same state
+        repo.git_pull()
+
     # Set the model_name_or_path
     model_name_or_path = model_args.model_name_or_path
 
