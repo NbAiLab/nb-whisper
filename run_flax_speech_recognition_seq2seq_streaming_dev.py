@@ -291,7 +291,39 @@ class DataTrainingArguments:
         default=None,
         metadata={
             "help": (
-                "Python path to function for logging evaluation predictions. It can be an external function like fn(summary_writer, train_metrics, eval_metrics, train_time, step, predictions, labels) ."
+                "Python path to function for logging evaluation predictions. It can be an external function like fn(summary_writer, train_metrics, eval_metrics, train_time, step, predictions, labels)."
+            )
+        },
+    )
+    run_name: Optional[str] = field(
+        default=None,
+        metadata={
+            "help": (
+                "Name of this run/experiment."
+            )
+        },
+    )
+    run_description: Optional[str] = field(
+        default=None,
+        metadata={
+            "help": (
+                "A longer description of the run/experiment."
+            )
+        },
+    )
+    wandb_entity: Optional[str] = field(
+        default=None,
+        metadata={
+            "help": (
+                "Weights & Biases username or entity (organization name)."
+            )
+        },
+    )
+    wandb_project: Optional[str] = field(
+        default=None,
+        metadata={
+            "help": (
+                "Weights & Biases project to log metrics to."
             )
         },
     )
@@ -794,6 +826,24 @@ def main():
     has_tensorboard = is_tensorboard_available()
     if has_tensorboard and jax.process_index() == 0:
         try:
+            import wandb
+
+            has_wandb = True
+        except ImportError:
+            has_wandb = False
+        try:
+            if has_wandb:
+                wandb.init(
+                    entity=training_args.wandb_entity,
+                    project=training_args.wandb_project,
+                    name=training_args.run_name,
+                    notes=training_args.run_description,
+                    save_code=True,
+                    sync_tensorboard=True,
+                )
+                wandb.config.update(training_args)
+                wandb.config.update(model_args)
+                wandb.config.update(data_args)
             from flax.metrics.tensorboard import SummaryWriter
 
             summary_writer = SummaryWriter(
@@ -983,7 +1033,6 @@ def main():
     num_of_hosts = jax.process_count()
     current_host_idx = jax.process_index()
     
-    
     logger.info("***** Running training *****")
     logger.info(
         f"  Dataset name = {data_args.dataset_name}")
@@ -1003,13 +1052,36 @@ def main():
     logger.info(
         f"  Instantaneous batch size per device = {training_args.per_device_train_batch_size}")
     logger.info(
-        f"  Total train batch size per node (w. parallel & distributed) = {train_batch_size//num_of_hosts}")
+        f"  Total train batch size per node (w. parallel & distributed) = {train_batch_size // num_of_hosts}")
     logger.info(
         f"  Total train batch size (w. parallel & distributed) = {train_batch_size}")
     logger.info(f"  Total optimization steps = {data_args.num_train_steps-data_args.init_train_steps} {'(Starting at ' + str(data_args.init_train_steps) + ' and finishing at ' + str(data_args.num_train_steps) + ')' if data_args.init_train_steps > 0 else ''}")
 
     train_time = 0
 
+    # Create README
+    readme = Path("README.md")
+    if not readme.exists():
+        language_code = 'multilingual'
+        if data_args.language is not None:
+            language = data_args.language.lower()
+            if language in TO_LANGUAGE_CODE:
+                language_code = TO_LANGUAGE_CODE[self.language]
+            elif len(language) == 2:
+                language_code = language
+        readme_metadata = f"""
+        ---
+        language: 
+        - {language_code}
+        tags:
+        - audio
+        - automatic-speech-recognition
+        - hf-asr-leaderboard
+        pipeline_tag: automatic-speech-recognition
+        license: apache-2.0
+        ---"""
+        readme.write_text(f"""{'\n'.join(l.strip() for l in readme_metadata)}\n# {training_args.run_name or ''}\n{training_args.run_description}""")
+    
     # ======================== Training ================================
     train_start = time.time()
 
@@ -1017,10 +1089,8 @@ def main():
     epoch = 0
     train_dataset = vectorized_datasets["train"].shuffle(seed=training_args.seed, buffer_size=data_args.shuffle_buffer_size)
     
-    #Split by node
-    train_dataset = split_dataset_by_node(train_dataset, rank=current_host_idx, world_size=num_of_hosts)
-
-    
+    # Split by node
+    train_dataset = split_dataset_by_node(train_dataset, rank=current_host_idx, world_size=num_of_hosts)   
     
     if train_dataset.n_shards < data_args.preprocessing_num_workers:
         num_workers = train_dataset.n_shards
@@ -1028,7 +1098,7 @@ def main():
     logger.info(f"  Number of train dataset workers = {num_workers} {'(Capped by the number of dataset shards)' if train_dataset.n_shards < data_args.preprocessing_num_workers else ''} {'(ADVICE: In most cases you will speed up training considerably if you increase the value of --preprocessing_num_workers!)' if num_workers < 10 else ''}")
  
     eval_dataset = vectorized_datasets["eval"]
-    train_loader = data_loader(train_dataset, train_batch_size//num_of_hosts, num_workers=num_workers)
+    train_loader = data_loader(train_dataset, train_batch_size // num_of_hosts, num_workers=num_workers)
     
     
     # DEBUG DELETE
