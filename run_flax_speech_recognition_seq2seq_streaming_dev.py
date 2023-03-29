@@ -574,6 +574,7 @@ def main():
                 repo_url = create_repo(
                     repo_name, exist_ok=True, token=training_args.hub_token, private=training_args.hub_private_repo
                 )
+                print("Trying....")
             except:
                 pass 
 
