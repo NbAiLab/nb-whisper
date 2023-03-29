@@ -28,5 +28,5 @@ python ../run_flax_speech_recognition_seq2seq_streaming_dev.py \
             --use_auth_token True \
             --dtype bfloat16 \
             --hub_private_repo True \
-            --hub_model_id NbAiLab/scream_submittest_64w_32pdi_v2 \
+            --hub_model_id NbAiLab/scream_submittest_64w_32pd_v2 \
             --push_to_hub
