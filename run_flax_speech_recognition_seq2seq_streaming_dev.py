@@ -567,17 +567,16 @@ def main():
             )
         else:
             repo_name = training_args.hub_model_id
-           
-        try:
-            create_repo(
-                repo_name, exist_ok=True, token=training_args.hub_token, private=training_args.hub_private_repo
-            )
-        except:
-            time.sleep(5)
-            logger.info(
-                f"This node was not able to create the repo. Since another node probably succeeded, we will wait 5 seconds to be sure it is ready."
-            )   
-        
+         
+        repo_url = None  
+        while not repo_url:
+            try:
+                repo_url = create_repo(
+                    repo_name, exist_ok=True, token=training_args.hub_token, private=training_args.hub_private_repo
+                )
+            except:
+                pass 
+
         repo = Repository(training_args.output_dir,
                           clone_from=repo_name, token=training_args.hub_token)
 
