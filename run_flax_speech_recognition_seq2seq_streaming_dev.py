@@ -570,11 +570,11 @@ def main():
          
         repo_url = None  
         while not repo_url:
+            # Workaround for an internal HuggingFace error if the repo is being created by another worker
             try:
                 repo_url = create_repo(
                     repo_name, exist_ok=True, token=training_args.hub_token, private=training_args.hub_private_repo
                 )
-                print("Trying....")
             except:
                 time.sleep(1)
 
@@ -1069,7 +1069,7 @@ def main():
     train_time = 0
 
     # Create README
-    readme = Path("README.md")
+    readme = Path(training_args.output_dir) / "README.md"
     if not readme.exists():
         language_code = 'multilingual'
         if data_args.language is not None:
