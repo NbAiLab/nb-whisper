@@ -836,12 +836,13 @@ def main():
     if has_tensorboard and jax.process_index() == 0:
         try:
             import wandb
-
             has_wandb = True
         except ImportError:
             has_wandb = False
+            
+            
         try:
-            if has_wandb:
+            if has_wandb and data_args.wandb_entity is not None and data_args.wandb_project is not None:
                 wandb.init(
                     entity=data_args.wandb_entity,
                     project=data_args.wandb_project,
