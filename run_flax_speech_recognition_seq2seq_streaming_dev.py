@@ -296,14 +296,7 @@ class DataTrainingArguments:
             )
         },
     )
-    # run_name: Optional[str] = field(
-    #     default=None,
-    #     metadata={
-    #         "help": (
-    #             "Name of this run/experiment."
-    #         )
-    #     },
-    # )
+
     run_description: Optional[str] = field(
         default=None,
         metadata={
@@ -843,8 +836,8 @@ def main():
         try:
             if has_wandb:
                 wandb.init(
-                    entity=training_args.wandb_entity,
-                    project=training_args.wandb_project,
+                    entity=data_args.wandb_entity,
+                    project=data_args.wandb_project,
                     name=training_args.run_name,
                     notes=data_args.run_description,
                     save_code=True,
