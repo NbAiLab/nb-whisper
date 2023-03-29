@@ -4,7 +4,9 @@ export TCMALLOC_VERBOSE=0
 export TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD=10000000000
 python ../run_flax_speech_recognition_seq2seq_streaming_dev.py \
             --model_name_or_path openai/whisper-tiny \
-            --dataset_name NbAiLab/NCC_speech_nrk_v5 \
+            --run_name "My submit test" \
+	    --run_description "The description goes here" \
+	    --dataset_name NbAiLab/NCC_speech_nrk_v5 \
 	    --language Norwegian \
             --text_column_name text \
             --train_split_name train \
