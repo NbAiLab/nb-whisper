@@ -838,7 +838,7 @@ def main():
                     entity=training_args.wandb_entity,
                     project=training_args.wandb_project,
                     name=training_args.run_name,
-                    notes=training_args.run_description,
+                    notes=data_args.run_description,
                     save_code=True,
                     sync_tensorboard=True,
                 )
@@ -1082,7 +1082,7 @@ def main():
         license: apache-2.0
         ---"""
         newline_joined = '\n'.join(l.strip() for l in readme_metadata)
-        readme.write_text(f"{newline_joined}\n# {training_args.run_name or ''}\n{training_args.run_description}")
+        readme.write_text(f"{newline_joined}\n# {training_args.run_name or ''}\n{data_args.run_description}")
 
         #readme.write_text(f"""{'\n'.join(l.strip() for l in readme_metadata)}\n# {training_args.run_name or ''}\n{training_args.run_description}""")
     
