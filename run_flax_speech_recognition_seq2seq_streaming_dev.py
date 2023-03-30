@@ -19,10 +19,13 @@ Fine-tuning the Flax library models for sequence to sequence speech recognition.
 # You can also adapt this script on your own sequence to sequence task. Pointers for this are left as comments.
 
 import itertools
+import json
 import logging
 import os
-import sys
+import shutil
 import socket
+import sys
+import tempfile
 import time
 from dataclasses import field
 from datetime import datetime
@@ -31,8 +34,6 @@ from importlib import import_module
 from pathlib import Path
 from typing import Any, Callable, Dict, Generator, List, Optional, Union
 
-import datasets
-from datasets.distributed import split_dataset_by_node
 import flax
 import jax
 import jax.numpy as jnp
@@ -40,17 +41,20 @@ import numpy as np
 import optax
 import pandas as pd
 import torch
-from datasets import Dataset, DatasetDict, IterableDatasetDict, interleave_datasets, load_dataset
-from torch.utils.data import IterableDataset
+from jax.experimental.compilation_cache import compilation_cache; compilation_cache.initialize_cache(tempfile.gettempdir())
 from flax import jax_utils, traverse_util
 from flax.jax_utils import pad_shard_unpad, unreplicate
 from flax.training import train_state
 from flax.training.common_utils import get_metrics, onehot, shard, shard_prng_key
-from huggingface_hub import Repository, create_repo
+from torch.utils.data import IterableDataset
 from tqdm import tqdm
 
+import datasets
 import evaluate
 import transformers
+from datasets import Dataset, DatasetDict, IterableDatasetDict, interleave_datasets, load_dataset
+from datasets.distributed import split_dataset_by_node
+from huggingface_hub import Repository, create_repo
 from transformers import (
     AutoConfig,
     AutoFeatureExtractor,
@@ -61,7 +65,7 @@ from transformers import (
     Seq2SeqTrainingArguments,
     is_tensorboard_available,
 )
-
+from transformers.modelcard import TrainingSummary
 from transformers.models.whisper.english_normalizer import BasicTextNormalizer
 from transformers.models.whisper.tokenization_whisper import TO_LANGUAGE_CODE
 from transformers.file_utils import get_full_repo_name
@@ -69,7 +73,6 @@ from transformers.utils import check_min_version, send_example_telemetry
 from transformers.utils.versions import require_version
 
 from flax.training import checkpoints
-import shutil
 
 # Will error if the minimal version of Transformers is not installed. Remove at your own risks.
 check_min_version("4.27.0.dev0")
@@ -265,8 +268,6 @@ class DataTrainingArguments:
     )
     num_train_steps: int = field(default=50000, metadata={
                                  "help": "The number of training steps."})
-    init_train_steps: Optional[int] = field(default=0, metadata={
-                                 "help": "The number of training steps where the scheduler should start."})
     shuffle_buffer_size: Optional[int] = field(
         default=500,
         metadata={
@@ -297,7 +298,6 @@ class DataTrainingArguments:
             )
         },
     )
-
     run_description: Optional[str] = field(
         default=None,
         metadata={
@@ -476,7 +476,7 @@ class TrainState(train_state.TrainState):
 
 
 def create_learning_rate_fn(
-    num_train_steps: int, num_warmup_steps: int, learning_rate: float, start_step: int = 0, warmup_init_value: float=0.0, decay_end_value: float=0.0,
+    num_train_steps: int, num_warmup_steps: int, learning_rate: float, start_step: int=0, warmup_init_value: float=0.0, decay_end_value: float=0.0,
 ) -> Callable[[int], jnp.array]:
     """Returns a linear warmup, linear_decay learning rate function."""
     warmup_fn = optax.linear_schedule(
@@ -529,7 +529,11 @@ def main():
     # logger.setLevel(logging.INFO if jax.process_index()
     #                == 0 else logging.ERROR)
     
-    if jax.process_index() == 0:
+    # Number of hosts
+    num_of_hosts = jax.process_count()
+    current_host_idx = jax.process_index()
+
+    if current_host_idx == 0:
         datasets.utils.logging.set_verbosity_warning()
         transformers.utils.logging.set_verbosity_info()
     else:
@@ -538,6 +542,12 @@ def main():
     
     logger.setLevel(logging.INFO)
     logger.info("Training/evaluation parameters %s", training_args)
+
+    if num_of_hosts and not training_args.overwrite_output_dir and training_args.resume_from_checkpoint:
+        logger.error(
+            f"If you are on a TPU Pod or a multinode setup, you need to set --overwrite_output_dir to be able to resume from a pushed checkpoint."
+        )
+        sys.exit(1)
 
     # Check the output dir is valid
     if os.path.exists(training_args.output_dir):
@@ -552,13 +562,13 @@ def main():
             )
         elif training_args.overwrite_output_dir:
             shutil.rmtree(training_args.output_dir)
-    
-    
+      
     # Handle the repository creation
+    output_dir = Path(training_args.output_dir)
     if training_args.push_to_hub:
         if training_args.hub_model_id is None:
             repo_name = get_full_repo_name(
-                Path(training_args.output_dir).absolute().name,
+                output_dir.absolute().name,
                 token=training_args.hub_token,
                 organization=training_args.push_to_hub_organization,
             )
@@ -578,22 +588,22 @@ def main():
         repo = Repository(training_args.output_dir,
                           clone_from=repo_name, token=training_args.hub_token)
 
-        # Now pull from the repo so that all nodes are synced with the same state
-        repo.git_pull()
-
     # Set the model_name_or_path
     model_name_or_path = model_args.model_name_or_path
 
     # Try to detect last checkpoint and continue if possible
-    if os.path.exists(os.path.join(training_args.output_dir, "flax_model.msgpack")):
-        logger.info(
-            f"Checkpoint detected, resuming training at {training_args.output_dir}."
-        )
-        model_name_or_path = os.path.join(training_args.output_dir)
-    else:
-        logger.info(
-            f"No valid checkpoint found in {training_args.output_dir}. Starting from {model_args.model_name_or_path}."
-        )
+    training_state = {"step": 0, "eval_lines": []}
+    if training_args.resume_from_checkpoint:
+        if (output_dir / "flax_model.msgpack").exists() and (output_dir / "training_state.bin").exists():
+            training_state = json.loads((output_dir / "training_state.bin").read_text())
+            model_name_or_path = os.path.join(training_args.output_dir)
+            logger.info(
+                f"Checkpoint detected, resuming training from {training_args.output_dir} at step {training_state['step']}."
+            )
+        else:
+            logger.info(
+                f"No valid checkpoint found in {training_args.output_dir}. Starting from {model_name_or_path}."
+            )
     
     
     # 3. Load dataset
@@ -787,6 +797,31 @@ def main():
         else:
             return {"wer": wer, "cer": cer}
 
+    def update_training_state(training_state, train_metrics, eval_metrics, step):
+        state = {"step": step}
+        eval_lines = training_state["eval_lines"]
+       
+        train_metrics = get_metrics(train_metrics)
+        train_metrics_dict = {}
+        for metric_name, values in train_metrics.items():
+            tag = f"train_{metric_name}"
+            for i, value in enumerate(values):
+                safe_value = float(value.tolist() if isinstance(value, jnp.ndarray) else value)
+                train_metrics_dict[step - len(values) + i + 1] = {tag: safe_value}
+
+        eval_metrics_dict = {}
+        for metric_name, value in eval_metrics.items():
+            tag = f"eval_{metric_name}"
+            safe_value = float(value.tolist() if isinstance(value, jnp.ndarray) else value)
+            eval_metrics_dict.update({
+                "step": step,
+                tag: safe_value,
+            })
+            if step in train_metrics_dict:
+                eval_metrics_dict.update(train_metrics_dict[step])
+        eval_lines.append(eval_metrics_dict)
+        return {**state, "eval_lines": eval_lines}
+
     def write_metric(summary_writer, train_metrics, eval_metrics, train_time, step, predictions=None, labels=None):
         summary_writer.scalar("train_time", train_time, step)
 
@@ -833,16 +868,19 @@ def main():
 
     # Enable tensorboard only on the master node
     has_tensorboard = is_tensorboard_available()
-    if has_tensorboard and jax.process_index() == 0:
+    if has_tensorboard and current_host_idx == 0:
         try:
             import wandb
+
             has_wandb = True
         except ImportError:
             has_wandb = False
-            
-            
+            if data_args.wandb_entity is not None or data_args.wandb_project is not None:
+                logger.warning(
+                    f"Unable to display metrics through Weights & Biases because some packages are not installed: {ie}"
+                )
         try:
-            if has_wandb and data_args.wandb_entity is not None and data_args.wandb_project is not None:
+            if has_wandb:
                 wandb.init(
                     entity=data_args.wandb_entity,
                     project=data_args.wandb_project,
@@ -857,11 +895,11 @@ def main():
             from flax.metrics.tensorboard import SummaryWriter
 
             summary_writer = SummaryWriter(
-                log_dir=Path(training_args.output_dir) / "runs" / f"{datetime.now():%b%d_%H-%M-%S}_{socket.gethostname()}")
+                log_dir=output_dir / "runs" / f"{datetime.now():%b%d_%H-%M-%S}_{socket.gethostname()}")
         except ImportError as ie:
             has_tensorboard = False
             logger.warning(
-                f"Unable to display metrics through TensorBoard because some package are not installed: {ie}"
+                f"Unable to display metrics through TensorBoard because some packages are not installed: {ie}"
             )
     else:
         logger.warning(
@@ -872,7 +910,6 @@ def main():
     # Initialize our training
     rng = jax.random.PRNGKey(training_args.seed)
     rng, dropout_rng = jax.random.split(rng)
-    # rng, input_rng = jax.random.split(rng)
 
     # Store some constant
     #num_epochs = int(training_args.num_train_epochs)
@@ -901,15 +938,15 @@ def main():
         data_args.num_train_steps,
         training_args.warmup_steps,
         training_args.learning_rate,
-        start_step=data_args.init_train_steps,
+        start_step=training_state["step"],
         warmup_init_value=warmup_init_value,
         decay_end_value=decay_end_value
     )
 
-    # If init_train_steps is set, we will advance the scheduler
+    # If training_state["step"] is set, we will advance the scheduler
     # Advance the learning rate schedule to ini train steps
  
-    #linear_decay_lr_schedule_fn(step=data_args.init_train_steps)
+    #linear_decay_lr_schedule_fn(step=training_state["step"])
     
     # We use Optax's "masking" functionality to not apply weight decay
     # to bias and LayerNorm scale parameters. decay_mask_fn returns a
@@ -1039,10 +1076,7 @@ def main():
     # Replicate the train state on each device
     state = state.replicate()
     
-    # Number of hosts
-    num_of_hosts = jax.process_count()
-    current_host_idx = jax.process_index()
-    
+    # Logging
     logger.info("***** Running training *****")
     logger.info(
         f"  Dataset name = {data_args.dataset_name}")
@@ -1065,35 +1099,39 @@ def main():
         f"  Total train batch size per node (w. parallel & distributed) = {train_batch_size // num_of_hosts}")
     logger.info(
         f"  Total train batch size (w. parallel & distributed) = {train_batch_size}")
-    logger.info(f"  Total optimization steps = {data_args.num_train_steps-data_args.init_train_steps} {'(Starting at ' + str(data_args.init_train_steps) + ' and finishing at ' + str(data_args.num_train_steps) + ')' if data_args.init_train_steps > 0 else ''}")
+    logger.info(f"  Total optimization steps = {data_args.num_train_steps-training_state['step']}")
+    if training_state['step'] > 0:
+        logger.info(f"    Starting at {str(training_state['step'])} and finishing at {str(data_args.num_train_steps)}")
 
     train_time = 0
 
-    # Create README
-    readme = Path(training_args.output_dir) / "README.md"
+    # Training summary
+    language_code = 'multilingual'
+    if data_args.language is not None:
+        language = data_args.language.lower()
+        if language in TO_LANGUAGE_CODE:
+            language_code = TO_LANGUAGE_CODE[language]
+        elif len(language) == 2:
+            language_code = language
+    training_summary = {
+        "model_name": repo_name.split("/")[-1],
+        "language": language_code,
+        "tags": ["audio", "asr", "automatic-speech-recognition", "hf-asr-leaderboard"],
+        "license": "apache-2.0",
+        "finetuned_from": model_args.model_name_or_path,
+        "tasks": ["asr"],
+        "dataset": data_args.dataset_name,
+        "dataset_args": {"name": data_args.dataset_config_name},
+        "source": "flax",
+        "eval_lines": [],
+        "eval_results": {},
+        "hyperparameters": training_args.to_sanitized_dict(),
+    }
+    
+    # Create README if it does not exist
+    readme = output_dir / "README.md"
     if not readme.exists():
-        language_code = 'multilingual'
-        if data_args.language is not None:
-            language = data_args.language.lower()
-            if language in TO_LANGUAGE_CODE:
-                language_code = TO_LANGUAGE_CODE[language]
-            elif len(language) == 2:
-                language_code = language
-        readme_metadata = f"""
-        ---
-        language: 
-        - {language_code}
-        tags:
-        - audio
-        - automatic-speech-recognition
-        - hf-asr-leaderboard
-        pipeline_tag: automatic-speech-recognition
-        license: apache-2.0
-        ---"""
-        newline_joined = '\n'.join(l.strip() for l in readme_metadata)
-        readme.write_text(f"{newline_joined}\n# {training_args.run_name or ''}\n{data_args.run_description}")
-
-        #readme.write_text(f"""{'\n'.join(l.strip() for l in readme_metadata)}\n# {training_args.run_name or ''}\n{training_args.run_description}""")
+        readme.write_text(TrainingSummary(**training_summary).to_model_card())
     
     # ======================== Training ================================
     train_start = time.time()
@@ -1113,28 +1151,41 @@ def main():
     eval_dataset = vectorized_datasets["eval"]
     train_loader = data_loader(train_dataset, train_batch_size // num_of_hosts, num_workers=num_workers)
     
-    
     # DEBUG DELETE
     def report_time(start_time, step_name):
         elapsed_time = time.time() - start_time
         print(f"{step_name} elapsed time: {elapsed_time:.2f} seconds")
         return time.time()
-        
-    
+
+    if not training_args.ignore_data_skip and training_state["step"] > 0:
+        logger.info(
+            f"  Will skip the first {training_state['step']} steps. If this takes a lot of time,"
+            " you can add the `--ignore_data_skip` flag to your launch command, but you will resume the"
+            " training on data already seen by your model."
+        )
+        for step in tqdm(range(training_state["step"]), desc=f"Skipping data for {training_state['step']} steps...", position=1, leave=False):
+            try:
+                samples = next(train_loader)
+            except StopIteration:
+                epoch += 1
+                train_dataset.set_epoch(epoch)
+                train_loader = data_loader(train_dataset, train_batch_size // num_of_hosts, num_workers=num_workers)
+                samples = next(train_loader)
+            batch = data_collator(samples)
+            # batch = shard(batch.data)
+
     for step in tqdm(range(data_args.num_train_steps), desc="Training...", position=1, leave=False):
         # initialize the start time for reporting
         # Skip initial steps if these are specified. 
-        if step < data_args.init_train_steps:
+        if step < training_state["step"]:
             continue
         
- 
         try:
             samples = next(train_loader)
-
         except StopIteration:
             epoch += 1
             train_dataset.set_epoch(epoch)
-            train_loader = data_loader(train_dataset, train_batch_size//num_of_hosts, num_workers=num_workers)
+            train_loader = data_loader(train_dataset, train_batch_size // num_of_hosts, num_workers=num_workers)
             samples = next(train_loader)
             logger.info(
                 f"Completed epoch ({epoch} | Loss: {train_metric['loss']}, Learning Rate:"
@@ -1151,7 +1202,7 @@ def main():
         train_time += time.time() - train_start
         train_metric = unreplicate(train_metric)
         # ======================== Evaluating ==============================
-        if step % training_args.eval_steps == 0 and step > 0:
+        if step >= 0 and (step % training_args.eval_steps == 0 or step == data_args.num_train_steps):
             eval_metrics = []
             eval_preds = []
             eval_labels = []
@@ -1202,7 +1253,7 @@ def main():
             logger.info(desc)
 
             # Save metrics
-            if has_tensorboard and jax.process_index() == 0:
+            if has_tensorboard and current_host_idx == 0:
                 log_max_predictions = data_args.log_max_eval_predictions if data_args.log_max_eval_predictions else 0
                 write_metric(
                     summary_writer,
@@ -1213,13 +1264,24 @@ def main():
                     predictions=pred_str[:log_max_predictions],
                     labels=label_str[:log_max_predictions]
                 )
+                training_state = update_training_state(
+                    training_state,
+                    train_metrics,
+                    eval_metrics,
+                    step
+                )
 
-            # save checkpoint after each epoch and push checkpoint to the hub
-            if jax.process_index()  == 0:
+            # Save checkpoint after each epoch and push checkpoint to the hub
+            if current_host_idx  == 0:
                 params = jax.device_get(
                     jax.tree_util.tree_map(lambda x: x[0], state.params))
                 model.save_pretrained(training_args.output_dir, params=params)
                 tokenizer.save_pretrained(training_args.output_dir)
+                training_summary.update({"eval_lines": training_state["eval_lines"]})
+                if step == data_args.num_train_steps:
+                    training_summary["eval_results"] = training_summary["eval_lines"][-1]
+                readme.write_text(TrainingSummary(**training_summary).to_model_card())
+                (output_dir / "training_state.bin").write_text(json.dumps(training_state))
                 if training_args.push_to_hub:
                     repo.push_to_hub(
                         commit_message=f"Saving weights and logs of step {step} - epoch {epoch}", blocking=False)
