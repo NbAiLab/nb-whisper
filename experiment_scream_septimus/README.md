@@ -1,11 +1,11 @@
 # SCREAM 
 ## Septimus Experiments
 
-These are the sevent series of experiments on the new Norwegian Whisper Model ("Scream") based on the NCC-S corpus serie. This experiments tries to scale the work on the TPU pods. In addition it for the first time looks into the effect of adding the NPSC corpus to the training. 
+These experiments constitute the seventh series of trials on the new Norwegian Whisper Model ("Scream"), based on the NCC-S corpus series. The objective of these experiments is to explore the scalability of the model on TPU pods, while also examining the impact of adding the NPSC corpus to the training for the first time.
 
-The Tiny models here are trained on a TPU Pod v4-32 with a batch size of 512, while the Large models are trained on a TPU Pod v4-64 with a batch size of 160. The purpose of the Tiny models is to investigate the diffrence between using the nrk_v5 corpus compared to using all_v5 that also contains the first verison of NPSC+ and NST. 
+The Tiny models are trained on a TPU Pod v4-32 with a batch size of 512, while the Large models are trained on a TPU Pod v4-64 with a batch size of 160. The Tiny models aim to compare the use of the nrk_v5 corpus to using all_v5 corpus. The all_v5 corpus includes the first version of NPSC+ corpus and the NST corpus in addition the the NRK subtitles.
 
-The purpose of the Large model experiments are to investigate the effect on scaling, in addition to trying to get an idea of what is the best learning rate. The learning rates 2e6 and 8e6 are used. All models are using linear decay.
+The Large model experiments aim to investigate the impact of scaling and determine the optimal learning rate, using 2e6 and 8e6. All models use linear decay.
 
 
 ## Experiments
