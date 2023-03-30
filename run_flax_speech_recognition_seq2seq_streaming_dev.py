@@ -36,7 +36,7 @@ from typing import Any, Callable, Dict, Generator, List, Optional, Union
 
 import flax
 import jax
-import jax.numpy as jnp
+import jax.numpy as jnp 
 import numpy as np
 import optax
 import pandas as pd
@@ -1203,7 +1203,7 @@ def main():
         train_time += time.time() - train_start
         train_metric = unreplicate(train_metric)
         # ======================== Evaluating ==============================
-        if step >= 0 and (step % training_args.eval_steps == 0 or step == data_args.num_train_steps):
+        if step >= 0 and (step % training_args.eval_steps == 0 or step == (data_args.num_train_steps - 1)):
             eval_metrics = []
             eval_preds = []
             eval_labels = []
@@ -1279,7 +1279,7 @@ def main():
                 model.save_pretrained(training_args.output_dir, params=params)
                 tokenizer.save_pretrained(training_args.output_dir)
                 training_summary.update({"eval_lines": training_state["eval_lines"]})
-                if step == data_args.num_train_steps:
+                if step == data_args.num_train_steps - 1:
                     training_summary["eval_results"] = training_summary["eval_lines"][-1]
                 readme.write_text(TrainingSummary(**training_summary).to_model_card())
                 (output_dir / "training_state.bin").write_text(json.dumps(training_state))
