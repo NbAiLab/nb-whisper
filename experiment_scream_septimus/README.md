@@ -23,10 +23,10 @@ In addition a set of smaller tests are run on the tpu v4-8. The purpose is looki
 
 |        | Experiment |
 |--------|----------|
-| Linear 1e5  | [Experiment 4](https://huggingface.co/NbAiLab/scream_tiny_sept_1e5_constant)        | 
-| Linear 2e5  | [Experiment 5](https://huggingface.co/NbAiLab/scream_tiny_sept_2e5_linear)        | 
-| Linear 3e5  | [Experiment 6](https://huggingface.co/NbAiLab/scream_tiny_sept_3e5_linear)        | 
-| Constant 1e5  | [Experiment 7](https://huggingface.co/NbAiLab/scream_tiny_sept_1e5_constant)        | 
+| Linear 1e5  | [Experiment 5](https://huggingface.co/NbAiLab/scream_tiny_sept_1e5_constant)        | 
+| Linear 2e5  | [Experiment 6](https://huggingface.co/NbAiLab/scream_tiny_sept_2e5_linear)        | 
+| Linear 3e5  | [Experiment 7](https://huggingface.co/NbAiLab/scream_tiny_sept_3e5_linear)        | 
+| Constant 1e5  | [Experiment 8](https://huggingface.co/NbAiLab/scream_tiny_sept_1e5_constant)        | 
 
 
 
