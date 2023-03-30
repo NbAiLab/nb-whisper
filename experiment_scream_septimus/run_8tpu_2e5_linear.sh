@@ -33,5 +33,5 @@ python ../run_flax_speech_recognition_seq2seq_streaming_dev.py \
     --dtype bfloat16 \
     --hub_private_repo True \
     --hub_model_id NbAiLab/scream_tiny_sept_2e5_linear \
-    --resume_from_checkpoint \
+    --resume_from_checkpoint True \
     --push_to_hub
