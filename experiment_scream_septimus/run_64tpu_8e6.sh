@@ -2,10 +2,12 @@ export TOKENIZERS_PARALELLISM=false
 export CMALLOC_VERBOSE=0
 export TCMALLOC_VERBOSE=0
 export TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD=10000000000
-python ../run_flax_speech_recognition_seq2seq_streaming_dev.py \
+python ../run_flax_speech_recognition_seq2seq_streaming.py \
         --model_name_or_path openai/whisper-large-v2 \
         --run_name "ScreamTiny - exp_sept_tpu64_8e6" \
         --run_description "A Large Scream model with 4*4*8=160 seq length. Trained with linear decay only on the all_v5 corpus. This version is trained with a learning rate of 8e6." \
+        --wandb_entity "nbailab" \
+        --wandb_project "Scream - septimus" \
         --dataset_name NbAiLab/NCC_speech_all_v5 \
         --language Norwegian \
         --text_column_name text \
