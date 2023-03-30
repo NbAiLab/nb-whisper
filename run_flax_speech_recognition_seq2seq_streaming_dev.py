@@ -881,6 +881,7 @@ def main():
                 )
         try:
             if has_wandb:
+                wandb.tensorboard.patch(root_logdir=output_dir / "runs")
                 wandb.init(
                     entity=data_args.wandb_entity,
                     project=data_args.wandb_project,
