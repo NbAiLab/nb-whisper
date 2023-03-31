@@ -1135,9 +1135,7 @@ def main():
             "total_optimization_steps": data_args.num_train_steps - training_state['step'],
             "starting_optimization_step": training_state['step'] if training_state['step'] > 0 else None,
             "finishing_optimization_step": data_args.num_train_steps,
-            },
-        "other_reported_items": {
-            "num_train_dataset_workers": f"{num_workers} {'(Capped by the number of dataset shards)' if train_dataset.n_shards < data_args.preprocessing_num_workers else ''} {'(ADVICE: In most cases you will speed up training considerably if you increase the value of --preprocessing_num_workers!)' if num_workers < 10 else ''}",
+            "num_train_dataset_workers": f"{num_workers}",
             "total_num_training_examples": data_args.num_train_steps * train_batch_size,
         }    
     }
