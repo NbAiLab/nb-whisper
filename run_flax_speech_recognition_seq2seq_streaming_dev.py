@@ -1126,8 +1126,15 @@ def main():
         "source": "flax",
         "eval_lines": [],
         "eval_results": {},
-        "hyperparameters": training_args.to_sanitized_dict(),
+        "hyperparameters": {"learning_rate": training_args.learning_rate,
+            "lr_scheduler_type": training_args.lr_scheduler_type,
+            "per_device_train_batch_size": training_args.per_device_train_batch_size,
+            "total_train_batch_size_per_node": train_batch_size // num_of_hosts,
+            "total_train_batch_size": train_batch_size,
+            "total_optimization_steps": data_args.num_train_steps - training_state['step'],
+        }       
     }
+    #"hyperparameters": training_args.to_sanitized_dict(),
     
     # Create README if it does not exist
     readme = output_dir / "README.md"
