@@ -41,7 +41,7 @@ import numpy as np
 import optax
 import pandas as pd
 import torch
-from jax.experimental.compilation_cache import compilation_cache; compilation_cache.initialize_cache(tempfile.gettempdir())
+# from jax.experimental.compilation_cache import compilation_cache; compilation_cache.initialize_cache(tempfile.gettempdir())
 from flax import jax_utils, traverse_util
 from flax.jax_utils import pad_shard_unpad, unreplicate
 from flax.training import train_state
@@ -494,7 +494,7 @@ def create_learning_rate_fn(
 
 
 def main():
-    # 1. Parse input arguments
+    # Parse input arguments
     # See all possible arguments in src/transformers/training_args.py
     # or by passing the --help flag to this script.
     # We now keep distinct sets of args, for a cleaner separation of concerns.
@@ -514,7 +514,7 @@ def main():
     send_example_telemetry("run_speech_recognition_seq2seq",
                            model_args, data_args, framework="flax")
 
-    # 2. Setup logging
+    # Setup logging
     # Make one log on every process with the configuration for debugging.
     logging.basicConfig(
         format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
@@ -543,6 +543,10 @@ def main():
     logger.setLevel(logging.INFO)
     logger.info("Training/evaluation parameters %s", training_args)
 
+    if num_of_hosts and not training_args.push_to_hub:
+        logger.warning(
+            f"If you are on a TPU Pod or a multinode setup, you need to set --push_to_hub to be able to save checkpoints to the hub."
+        )
     if num_of_hosts and not training_args.overwrite_output_dir and training_args.resume_from_checkpoint:
         logger.error(
             f"If you are on a TPU Pod or a multinode setup, you need to set --overwrite_output_dir to be able to resume from a pushed checkpoint."
@@ -557,10 +561,11 @@ def main():
             and not training_args.overwrite_output_dir
         ):
             raise ValueError(
-                f"Output directory ({training_args.output_dir}) already exists and is not empty."
+                f"Output directory ({training_args.output_dir}) already exists and is not empty. "
                 "Use `--overwrite_output_dir` to overcome."
             )
         elif training_args.overwrite_output_dir:
+            logger.warning(f"Removing path {training_args.output_dir}")
             shutil.rmtree(training_args.output_dir)
       
     # Handle the repository creation
@@ -606,7 +611,7 @@ def main():
             )
     
     
-    # 3. Load dataset
+    # Load dataset
     raw_datasets = IterableDatasetDict() if data_args.streaming else DatasetDict()
 
     if training_args.do_train:
@@ -651,7 +656,7 @@ def main():
             f"{', '.join(raw_datasets_features)}."
         )
 
-    # 5. Load pretrained model, tokenizer, and feature extractor
+    # Load pretrained model, tokenizer, and feature extractor
     config = AutoConfig.from_pretrained(
         model_args.config_name if model_args.config_name else model_name_or_path,
         cache_dir=model_args.cache_dir,
@@ -689,7 +694,7 @@ def main():
         raise ValueError(
             "Make sure that `config.decoder_start_token_id` is correctly defined")
 
-    # 6. Resample speech dataset: `datasets` takes care of automatically loading and resampling the audio,
+    # Resample speech dataset: `datasets` takes care of automatically loading and resampling the audio,
     # so we just need to set the correct target sampling rate.
     dataset_sampling_rate = next(
         iter(raw_datasets.values())).features[data_args.audio_column_name].sampling_rate
@@ -700,7 +705,7 @@ def main():
                 sampling_rate=feature_extractor.sampling_rate)
         )
 
-    # 7. Preprocessing the datasets.
+    # Preprocessing the datasets.
     # We need to read the audio files as arrays and tokenize the targets.
     max_input_length = int(
         data_args.max_duration_in_seconds * feature_extractor.sampling_rate)
@@ -725,15 +730,15 @@ def main():
             language=data_args.language, task=data_args.task)
 
     def prepare_dataset(batch):
-        # process audio
+        # Process audio
         sample = batch[audio_column_name]
         inputs = feature_extractor(
             sample["array"], sampling_rate=sample["sampling_rate"])
-        # process audio length
+        # Process audio length
         batch[model_input_name] = inputs.get(model_input_name)[0]
         batch["input_length"] = len(sample["array"])
 
-        # process targets
+        # Process targets
         input_str = batch[text_column_name].lower(
         ) if do_lower_case else batch[text_column_name]
         if do_remove_punctuation:
@@ -747,7 +752,7 @@ def main():
             remove_columns=raw_datasets_features,
         )
 
-    # filter training data with inputs longer than max_input_length
+    # Filter training data with inputs longer than max_input_length
     def is_audio_in_length_range(length):
         return min_input_length < length < max_input_length
 
@@ -763,24 +768,24 @@ def main():
             input_columns=["input_length"],
         )
 
-    # 8. Load Metric and write stats
+    # Load metrics and write stats
     metric_wer = evaluate.load("wer")
     metric_cer = evaluate.load("cer")
     do_normalize_eval = data_args.do_normalize_eval
 
     def compute_metrics(pred_ids, label_ids, return_preds_labels=False):
-        # replace padded labels by the padding token
+        # Replace padded labels by the padding token
         for idx in range(len(label_ids)):
             label_ids[idx][label_ids[idx] == -100] = tokenizer.pad_token_id
 
         predictions = tokenizer.batch_decode(pred_ids, skip_special_tokens=True)
-        # we do not want to group tokens when computing the metrics
+        # We do not want to group tokens when computing the metrics
         labels = tokenizer.batch_decode(label_ids, skip_special_tokens=True)
 
         if do_normalize_eval:
             pred_str = [normalizer(pred) for pred in predictions]
             label_str = [normalizer(label) for label in labels]
-            # filtering step to only evaluate the samples that correspond to non-zero references:
+            # Filtering step to only evaluate the samples that correspond to non-zero references:
             pred_str = [pred_str[i]
                         for i in range(len(pred_str)) if len(label_str[i]) > 0]
             label_str = [label_str[i]
@@ -798,6 +803,7 @@ def main():
             return {"wer": wer, "cer": cer}
 
     def update_training_state(training_state, train_metrics, eval_metrics, step):
+        safe_value = lambda x: float(x.tolist() if isinstance(x, jnp.ndarray) else x)
         state = {"step": step}
         eval_lines = training_state["eval_lines"]
        
@@ -806,16 +812,14 @@ def main():
         for metric_name, values in train_metrics.items():
             tag = f"train_{metric_name}"
             for i, value in enumerate(values):
-                safe_value = float(value.tolist() if isinstance(value, jnp.ndarray) else value)
-                train_metrics_dict[step - len(values) + i + 1] = {tag: safe_value}
+                train_metrics_dict[step - len(values) + i + 1] = {tag: safe_value(value)}
 
         eval_metrics_dict = {}
         for metric_name, value in eval_metrics.items():
             tag = f"eval_{metric_name}"
-            safe_value = float(value.tolist() if isinstance(value, jnp.ndarray) else value)
             eval_metrics_dict.update({
                 "step": step,
-                tag: safe_value,
+                tag: safe_value(value),
             })
             if step in train_metrics_dict:
                 eval_metrics_dict.update(train_metrics_dict[step])
@@ -833,6 +837,7 @@ def main():
 
         for metric_name, value in eval_metrics.items():
             summary_writer.scalar(f"eval_{metric_name}", value, step)
+        
         # Log evaluation predictions
         if predictions and labels:
             df = pd.DataFrame({
@@ -844,12 +849,13 @@ def main():
             markdown_table = df.to_markdown(index=False)
             eval_metrics_table = pd.DataFrame.from_dict([{"step": step, **eval_metrics}]).to_markdown(index=False)
             summary_writer.text("eval_predictions", eval_metrics_table + "\n\n" + markdown_table, step)
+            # External logging function
             if data_args.log_eval_predictions_fn:
                 module, fname = data_args.log_eval_predictions_fn.rsplit('.', 1)
                 fn = getattr(import_module(module), fname)
                 fn(summary_writer, train_metrics, eval_metrics, train_time, step, predictions=predictions, labels=labels, training_args=training_args)
 
-    # 9. Save feature extractor, tokenizer and config
+    # Save feature extractor, tokenizer and config
     feature_extractor.save_pretrained(training_args.output_dir)
     tokenizer.save_pretrained(training_args.output_dir)
     config.save_pretrained(training_args.output_dir)
@@ -870,6 +876,7 @@ def main():
     has_tensorboard = is_tensorboard_available()
     if has_tensorboard and current_host_idx == 0:
         try:
+            # TODO: Decouple wandb from tensorboard
             import wandb
 
             has_wandb = True
@@ -913,7 +920,6 @@ def main():
     rng, dropout_rng = jax.random.split(rng)
 
     # Store some constant
-    #num_epochs = int(training_args.num_train_epochs)
     train_batch_size = int(
         training_args.per_device_train_batch_size) * jax.device_count()
     eval_batch_size = int(
@@ -943,11 +949,6 @@ def main():
         warmup_init_value=warmup_init_value,
         decay_end_value=decay_end_value
     )
-
-    # If training_state["step"] is set, we will advance the scheduler
-    # Advance the learning rate schedule to ini train steps
- 
-    #linear_decay_lr_schedule_fn(step=training_state["step"])
     
     # We use Optax's "masking" functionality to not apply weight decay
     # to bias and LayerNorm scale parameters. decay_mask_fn returns a
@@ -955,7 +956,7 @@ def main():
     # The mask is True for parameters that should be decayed.
     def decay_mask_fn(params):
         flat_params = traverse_util.flatten_dict(params)
-        # find out all LayerNorm parameters
+        # Find out all LayerNorm parameters
         layer_norm_candidates = ["layernorm", "layer_norm", "ln"]
         layer_norm_named_params = set(
             [
@@ -968,9 +969,8 @@ def main():
         flat_mask = {path: (path[-1] != "bias" and path[-2:]
                             not in layer_norm_named_params) for path in flat_params}
         return traverse_util.unflatten_dict(flat_mask)
-
     
-    # create adam optimizer
+    # Create adam optimizer
     adamw = optax.adamw(
         learning_rate=linear_decay_lr_schedule_fn,
         b1=training_args.adam_beta1,
@@ -984,7 +984,7 @@ def main():
     state = TrainState.create(
         apply_fn=model.__call__, params=model.params, tx=adamw, dropout_rng=dropout_rng)
 
-    # label smoothed cross entropy
+    # Label smoothed cross entropy
     def loss_fn(logits, labels, label_smoothing_factor=0.0):
         """
         The label smoothing implementation is adapted from Flax's official example:
@@ -1003,7 +1003,7 @@ def main():
         loss = optax.softmax_cross_entropy(logits, soft_labels)
         loss = loss - normalizing_constant
 
-        # ignore padded tokens from loss, i.e. where labels are not set to -100
+        # Ignore padded tokens from loss, i.e. where labels are not set to -100
         padding_mask = labels >= 0
         loss = loss * padding_mask
         loss = loss.sum()
@@ -1026,11 +1026,11 @@ def main():
         (loss, num_labels), grad = grad_fn(state.params)
         num_labels = jax.lax.psum(num_labels, "batch")
 
-        # true loss = total loss / total samples
+        # True loss = total loss / total samples
         loss = jax.lax.psum(loss, "batch")
         loss = jax.tree_util.tree_map(lambda x: x / num_labels, loss)
 
-        # true grad = total grad / total samples
+        # True grad = total grad / total samples
         grad = jax.lax.psum(grad, "batch")
         grad = jax.tree_util.tree_map(lambda x: x / num_labels, grad)
         new_state = state.apply_gradients(
@@ -1049,7 +1049,7 @@ def main():
         loss, num_labels = loss_fn(logits, labels, label_smoothing_factor)
         num_labels = jax.lax.psum(num_labels, "batch")
 
-        # true loss = total loss / total samples
+        # True loss = total loss / total samples
         loss = jax.lax.psum(loss, "batch")
         loss = jax.tree_util.tree_map(lambda x: x / num_labels, loss)
 
@@ -1100,14 +1100,14 @@ def main():
         f"  Total train batch size per node (w. parallel & distributed) = {train_batch_size // num_of_hosts}")
     logger.info(
         f"  Total train batch size (w. parallel & distributed) = {train_batch_size}")
-    logger.info(f"  Total optimization steps = {data_args.num_train_steps-training_state['step']}")
+    logger.info(f"  Total optimization steps = {data_args.num_train_steps - training_state['step']}")
     if training_state['step'] > 0:
-        logger.info(f"    Starting at {str(training_state['step'])} and finishing at {str(data_args.num_train_steps)}")
+        logger.info(f"  ↪ Starting at {str(training_state['step'])} and finishing at {str(data_args.num_train_steps)}")
 
     train_time = 0
 
     # Training summary
-    language_code = 'multilingual'
+    language_code = None  # Maybe 'multilingual'?
     if data_args.language is not None:
         language = data_args.language.lower()
         if language in TO_LANGUAGE_CODE:
@@ -1125,7 +1125,7 @@ def main():
         "dataset_args": {"name": data_args.dataset_config_name},
         "source": "flax",
         "eval_lines": [],
-        "eval_results": {},
+        "eval_results": None,
         "hyperparameters": {
             "learning_rate": training_args.learning_rate,
             "lr_scheduler_type": training_args.lr_scheduler_type,
@@ -1137,9 +1137,10 @@ def main():
             "finishing_optimization_step": data_args.num_train_steps,
             "num_train_dataset_workers": f"{num_workers}",
             "total_num_training_examples": data_args.num_train_steps * train_batch_size,
-        }    
+        },
+        # TODO: Adapt https://github.com/huggingface/transformers/blob/main/src/transformers/modelcard.py#L855
+        # "hyperparameters": training_args.to_sanitized_dict()
     }
-    #"hyperparameters": training_args.to_sanitized_dict(),
     
     # Create README if it does not exist
     readme = output_dir / "README.md"
@@ -1164,12 +1165,6 @@ def main():
     eval_dataset = vectorized_datasets["eval"]
     train_loader = data_loader(train_dataset, train_batch_size // num_of_hosts, num_workers=num_workers)
     
-    # DEBUG DELETE
-    def report_time(start_time, step_name):
-        elapsed_time = time.time() - start_time
-        print(f"{step_name} elapsed time: {elapsed_time:.2f} seconds")
-        return time.time()
-
     if not training_args.ignore_data_skip and training_state["step"] > 0:
         logger.info(
             f"  Will skip the first {training_state['step']} steps. If this takes a lot of time,"
@@ -1188,11 +1183,11 @@ def main():
             # batch = shard(batch.data)
 
     for step in tqdm(range(data_args.num_train_steps), desc="Training...", position=1, leave=False):
-        # initialize the start time for reporting
         # Skip initial steps if these are specified. 
         if step < training_state["step"]:
             continue
         
+        # =========================== Training ===========================
         try:
             samples = next(train_loader)
         except StopIteration:
@@ -1214,8 +1209,10 @@ def main():
         
         train_time += time.time() - train_start
         train_metric = unreplicate(train_metric)
-        # ======================== Evaluating ==============================
-        if step >= 0 and (step % training_args.eval_steps == 0 or step == (data_args.num_train_steps - 1)):
+
+        # ========================== Evaluating ==========================
+        # Evaluate at each eval_steps, and at the end of training at num_train_steps
+        if step % training_args.eval_steps == 0 or step == data_args.num_train_steps - 1:
             eval_metrics = []
             eval_preds = []
             eval_labels = []
@@ -1239,7 +1236,7 @@ def main():
                 )
                 eval_metrics.append(metrics)
 
-                # generation
+                # Generation
                 if training_args.predict_with_generate:
                     generated_ids = pad_shard_unpad(
                         p_generate_step)(state.params, batch.data)
@@ -1247,23 +1244,31 @@ def main():
                         generated_ids.reshape(-1, gen_kwargs["max_length"])))
                     eval_labels.extend(labels)
 
-            # normalize eval metrics
+            # Normalize eval metrics
             eval_metrics = get_metrics(eval_metrics)
             eval_metrics = jax.tree_util.tree_map(jnp.mean, eval_metrics)
 
-            # compute metrics
+            # Compute metrics
             metric_desc = ""
             if training_args.predict_with_generate:
                 metric_values, pred_str, label_str = compute_metrics(
                     eval_preds, eval_labels, return_preds_labels=True
                 )
                 eval_metrics.update(metric_values)
-                metric_desc = " ".join(
-                    [f"Eval {key}: {value} |" for key, value in metric_values.items()])
+                metric_desc = " | ".join(
+                    [f"Eval {key}: {value}" for key, value in metric_values.items()])
 
             # Print metrics
-            desc = f"Epoch... ({epoch} | Eval Loss: {eval_metrics['loss']} | {metric_desc})"
+            desc = f"Step: {step} | Epoch: {epoch} (Eval Loss: {eval_metrics['loss']} | {metric_desc})"
             logger.info(desc)
+
+            # Update training state
+            training_state = update_training_state(
+                training_state,
+                train_metrics,
+                eval_metrics,
+                step,
+            )
 
             # Save metrics
             if has_tensorboard and current_host_idx == 0:
@@ -1277,24 +1282,21 @@ def main():
                     predictions=pred_str[:log_max_predictions],
                     labels=label_str[:log_max_predictions]
                 )
-                training_state = update_training_state(
-                    training_state,
-                    train_metrics,
-                    eval_metrics,
-                    step
-                )
 
-            # Save checkpoint after each epoch and push checkpoint to the hub
+            # Save checkpoint at each eval_steps and push checkpoint to the hub
             if current_host_idx  == 0:
                 params = jax.device_get(
                     jax.tree_util.tree_map(lambda x: x[0], state.params))
                 model.save_pretrained(training_args.output_dir, params=params)
                 tokenizer.save_pretrained(training_args.output_dir)
-                training_summary.update({"eval_lines": training_state["eval_lines"]})
+                # Report eval results if training is done
                 if step == data_args.num_train_steps - 1:
-                    training_summary["eval_results"] = training_summary["eval_lines"][-1]
-                readme.write_text(TrainingSummary(**training_summary).to_model_card())
+                    training_summary["eval_results"] = training_state["eval_lines"][-1]
+                else:
+                    training_summary.update({"eval_lines": training_state["eval_lines"]})
                 (output_dir / "training_state.bin").write_text(json.dumps(training_state))
+                # Write model card
+                readme.write_text(TrainingSummary(**training_summary).to_model_card())
                 if training_args.push_to_hub:
                     repo.push_to_hub(
                         commit_message=f"Saving weights and logs of step {step} - epoch {epoch}", blocking=False)
