@@ -1212,9 +1212,9 @@ def main():
 
         # ========================== Evaluating ==========================
         # Evaluate at each eval_steps, and at the end of training at num_train_steps
-        if step % training_args.eval_steps == 0 or step == data_args.num_train_steps - 1:
+        if step > 0 and (step % training_args.eval_steps == 0 or step == data_args.num_train_steps - 1):
             logger.info(
-                f"Starting evaluation at step {step} of num_training_step {data_args.num_train_steps} steps. Eval_steps: {training_args.eval_steps}"
+                f"Starting evaluation at step {step} of num_training_step {data_args.num_train_steps} steps. Planned evaluation every {training_args.eval_steps} steps." 
             )
             eval_metrics = []
             eval_preds = []
