@@ -4,7 +4,7 @@ export TCMALLOC_VERBOSE=0
 export TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD=10000000000
 python ../run_flax_speech_recognition_seq2seq_streaming.py \
         --model_name_or_path openai/whisper-tiny \
-        --run_name "ScreamTiny - exp_sept_tpu32_all" \
+        --run_name "ScreamTiny - exp_sept_tpu32_all_1024bs" \
         --run_description "A Tiny Whisper Scream model with 32*4*4=512 seq length. Trained with linear decay on the all_v5-corpus." \
         --wandb_entity "nbailab" \
         --wandb_project "Scream - septimus" \
@@ -13,7 +13,7 @@ python ../run_flax_speech_recognition_seq2seq_streaming.py \
         --text_column_name text \
         --train_split_name train \
         --eval_split_name validation \
-        --output_dir ../../scream_tiny_sept_all\
+        --output_dir ../../scream_tiny_sept_all_1024bs\
         --overwrite_output_dir\
         --warmup_steps 5000 \
         --do_train \
