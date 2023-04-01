@@ -15,15 +15,15 @@ python ../run_flax_speech_recognition_seq2seq_streaming.py \
         --eval_split_name validation \
         --output_dir ../../scream_tiny_sept_all\
         --overwrite_output_dir\
-        --warmup_steps 10000 \
+        --warmup_steps 5000 \
         --do_train \
         --do_eval \
-        --num_train_steps 250000 \
+        --num_train_steps 125000 \
         --lr_scheduler_type linear \
-        --eval_steps 5000 \
-        --learning_rate 2e-5 \
+        --eval_steps 2500 \
+        --learning_rate 2.828e-5 \
         --preprocessing_num_workers 64 \
-        --per_device_train_batch_size 32 \
+        --per_device_train_batch_size 64 \
         --per_device_eval_batch_size 32 \
         --predict_with_generate \
         --log_max_eval_predictions 100 \
