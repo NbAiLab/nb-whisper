@@ -21,7 +21,7 @@ python ../run_flax_speech_recognition_seq2seq_streaming.py \
         --num_train_steps 100000 \
         --lr_scheduler_type linear \
         --eval_steps 2500 \
-        --learning_rate 2e-6 \
+        --learning_rate 8e-7 \
         --preprocessing_num_workers 32 \
         --per_device_train_batch_size 5 \
         --per_device_eval_batch_size 5 \
