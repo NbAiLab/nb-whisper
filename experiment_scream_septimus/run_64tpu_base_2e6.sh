@@ -8,7 +8,7 @@ python ../run_flax_speech_recognition_seq2seq_streaming_dev.py \
         --run_description "A Large Scream model with 8*4*8=256 seq length. Trained with linear decay only on the all_v5 corpus. This version is trained with a learning rate of 2e6." \
         --wandb_entity "nbailab" \
         --wandb_project "Scream - septimus" \
-        --dataset_name NbAiLab/NCC_speech_nrk_v5 \
+        --dataset_name NbAiLab/NCC_speech_all_v5 \
         --language Norwegian \
         --text_column_name text \
         --train_split_name train \
@@ -34,4 +34,5 @@ python ../run_flax_speech_recognition_seq2seq_streaming_dev.py \
         --hub_private_repo True \
         --hub_model_id NbAiLab/scream_base_test \
         --resume_from_checkpoint True \
+	--ignore_data_skip \
         --push_to_hub
