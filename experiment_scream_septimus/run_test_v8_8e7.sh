@@ -34,4 +34,5 @@ python ../run_flax_speech_recognition_seq2seq_streaming.py \
         --hub_private_repo True \
         --hub_model_id NbAiLab/scream_large_testC \
         --resume_from_checkpoint True \
-        --push_to_hub
+        --ignore_data_skip \
+	--push_to_hub
