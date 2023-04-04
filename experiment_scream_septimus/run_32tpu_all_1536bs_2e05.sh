@@ -4,8 +4,8 @@ export TCMALLOC_VERBOSE=0
 export TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD=10000000000
 python ../run_flax_speech_recognition_seq2seq_streaming.py \
         --model_name_or_path openai/whisper-tiny \
-        --run_name "ScreamTiny - exp_sept_tpu32_all_2048bs_6e05" \
-        --run_description "A Tiny Whisper Scream model with 128*4*4=2048 seq length. Trained with linear decay on the all_v5-corpus." \
+        --run_name "ScreamTiny - exp_sept_tpu32_all_1536bs_2e05" \
+        --run_description "A Tiny Whisper Scream model with 96*4*4=1536 seq length. Trained with linear decay on the all_v5-corpus." \
         --wandb_entity "nbailab" \
         --wandb_project "Scream - septimus" \
         --dataset_name NbAiLab/NCC_speech_all_v5 \
@@ -13,7 +13,7 @@ python ../run_flax_speech_recognition_seq2seq_streaming.py \
         --text_column_name text \
         --train_split_name train \
         --eval_split_name validation \
-        --output_dir ../../scream_tiny_sept_all_2048bs_6e05\
+        --output_dir ../../scream_tiny_sept_all_1536bs_2e05\
         --overwrite_output_dir\
         --warmup_steps 5000 \
         --do_train \
@@ -21,9 +21,9 @@ python ../run_flax_speech_recognition_seq2seq_streaming.py \
         --num_train_steps 50000 \
         --lr_scheduler_type linear \
         --eval_steps 2500 \
-        --learning_rate 6e-5 \
+        --learning_rate 2e-5 \
         --preprocessing_num_workers 64 \
-        --per_device_train_batch_size 128 \
+        --per_device_train_batch_size 96 \
         --per_device_eval_batch_size 32 \
         --predict_with_generate \
         --log_max_eval_predictions 100 \
@@ -32,6 +32,6 @@ python ../run_flax_speech_recognition_seq2seq_streaming.py \
         --use_auth_token True \
         --dtype bfloat16 \
         --hub_private_repo True \
-        --hub_model_id NbAiLab/scream_tiny_sept_all_2048bs_6e05 \
+        --hub_model_id NbAiLab/scream_tiny_sept_all_1536bs_2e05 \
         --resume_from_checkpoint True \
         --push_to_hub
