@@ -4,8 +4,8 @@ export TCMALLOC_VERBOSE=0
 export TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD=10000000000
 python ../run_flax_speech_recognition_seq2seq_streaming.py \
         --model_name_or_path openai/whisper-large-v2 \
-        --run_name "ScreamSmall - exp_sept_bs128_2e6" \
-        --run_description "A Small Scream model with 5*4*2=40 seq length. Trained with linear decay only on the all_v5 corpus. This version is trained with a learning rate of 2e6." \
+        --run_name "ScreamLarge - exp_sept_bs128_2e6" \
+        --run_description "A Large Scream model with 5*4*2=40 seq length. Trained with linear decay only on the all_v5 corpus. This version is trained with a learning rate of 2e6." \
         --wandb_entity "nbailab" \
         --wandb_project "Scream - septimus" \
         --dataset_name NbAiLab/NCC_speech_all_v5 \
@@ -23,8 +23,8 @@ python ../run_flax_speech_recognition_seq2seq_streaming.py \
         --eval_steps 2500 \
         --learning_rate 2e-6 \
         --preprocessing_num_workers 16 \
-        --per_device_train_batch_size 8 \
-        --per_device_eval_batch_size 8 \
+        --per_device_train_batch_size 5 \
+        --per_device_eval_batch_size 5 \
         --predict_with_generate \
         --log_max_eval_predictions 100 \
         --log_eval_predictions_fn "log_predictions.write_predictions" \
