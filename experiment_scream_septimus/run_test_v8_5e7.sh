@@ -4,7 +4,7 @@ export TCMALLOC_VERBOSE=0
 export TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD=10000000000
 python ../run_flax_speech_recognition_seq2seq_streaming.py \
         --model_name_or_path openai/whisper-large-v2 \
-        --run_name "ScreamLarge - exp_testC" \
+        --run_name "ScreamLarge - exp_BS20_5e7" \
         --run_description "A Large Scream model. Trained with linear decay only on the all_v5 corpus. This version is trained with a learning rate of 2e6." \
         --wandb_entity "nbailab" \
         --wandb_project "Scream - septimus" \
@@ -13,7 +13,7 @@ python ../run_flax_speech_recognition_seq2seq_streaming.py \
         --text_column_name text \
         --train_split_name train \
         --eval_split_name validation \
-        --output_dir ../../scream_large_testC\
+        --output_dir ../../scream_large_BS20_5e7\
         --overwrite_output_dir\
         --warmup_steps 5000 \
         --do_train \
@@ -21,7 +21,7 @@ python ../run_flax_speech_recognition_seq2seq_streaming.py \
         --num_train_steps 100000 \
         --lr_scheduler_type linear \
         --eval_steps 2500 \
-        --learning_rate 8e-7 \
+        --learning_rate 5e-7 \
         --preprocessing_num_workers 32 \
         --per_device_train_batch_size 5 \
         --per_device_eval_batch_size 5 \
@@ -32,7 +32,7 @@ python ../run_flax_speech_recognition_seq2seq_streaming.py \
         --use_auth_token True \
         --dtype bfloat16 \
         --hub_private_repo True \
-        --hub_model_id NbAiLab/scream_large_testC \
+        --hub_model_id NbAiLab/scream_large_BS20_5e7 \
         --resume_from_checkpoint True \
         --ignore_data_skip \
 	--push_to_hub
