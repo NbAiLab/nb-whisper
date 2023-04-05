@@ -1,0 +1,1 @@
+{"global_step": 10000, "_timestamp": 1680632291.769318, "train_time": 7691189.5, "train_learning_rate": 4.7368422428917256e-07, "train_loss": 0.4750345051288605, "eval_loss": 1.0078142881393433, "eval_wer": 12.545676231384277, "eval_cer": 5.099521160125732, "_runtime": 4271.141777038574, "_step": 4999, "_wandb": {"runtime": 6237}}
