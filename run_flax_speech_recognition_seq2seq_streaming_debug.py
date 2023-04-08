@@ -1064,9 +1064,12 @@ def main():
     print(f"Model args num_beams: {model_args.num_beams}")
     print(f"Model config num_beams: {model.config.num_beams}") 
     print(f"gen_kwargss: {gen_kwargs}")
-    breakpoint()
      
     def generate_step(params, batch):
+        print(f"params: {params}")
+        print(f"batch: {batch}")
+        breakpoint()
+        
         model.params = params
         output_ids = model.generate(batch[model_input_name], attention_mask=batch.get(
             "attention_mask"), **gen_kwargs)
