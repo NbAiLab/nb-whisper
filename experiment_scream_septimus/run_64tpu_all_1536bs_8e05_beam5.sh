@@ -2,7 +2,7 @@ export TOKENIZERS_PARALELLISM=false
 export CMALLOC_VERBOSE=0
 export TCMALLOC_VERBOSE=0
 export TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD=10000000000
-python ../run_flax_speech_recognition_seq2seq_streaming.py \
+python ../run_flax_speech_recognition_seq2seq_streaming_debug.py \
         --model_name_or_path openai/whisper-tiny \
         --run_name "ScreamTiny - exp_sept_tpu64_all_1536bs_8e05_beam5" \
         --run_description "A Tiny Whisper Scream model with 96*4*4=1536 seq length. Trained with linear decay on the all_v5-corpus." \
