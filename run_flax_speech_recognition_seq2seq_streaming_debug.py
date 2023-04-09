@@ -1063,16 +1063,18 @@ def main():
     print(f"Num_beams: {num_beams}")
     print(f"Model args num_beams: {model_args.num_beams}")
     print(f"Model config num_beams: {model.config.num_beams}") 
-    print(f"gen_kwargss: {gen_kwargs}")
+    print(f"gen_kwargs: {gen_kwargs}")
      
     def generate_step(params, batch):
-        print(f"params: {params}")
-        print(f"batch: {batch}")
-        breakpoint()
-        
         model.params = params
-        output_ids = model.generate(batch[model_input_name], attention_mask=batch.get(
-            "attention_mask"), **gen_kwargs)
+        
+        attention_mask = batch.get("attention_mask")
+        
+        if attention_mask is not None:
+            output_ids = model.generate(batch[model_input_name], attention_mask=attention_mask, **gen_kwargs)
+        else:
+            output_ids = model.generate(batch[model_input_name], **gen_kwargs)
+        
         return output_ids.sequences
 
     # Create parallel version of the train and eval step
