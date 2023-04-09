@@ -1069,7 +1069,7 @@ def main():
     def generate_step(params, batch):
         model.params = params
         
-        #attention_mask = batch.get("attention_mask")
+        attention_mask = batch.get("attention_mask")
         
         #if attention_mask is not None:
         output_ids = model.generate(batch[model_input_name], attention_mask=attention_mask, **gen_kwargs)
