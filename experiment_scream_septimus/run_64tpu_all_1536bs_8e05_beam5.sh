@@ -4,7 +4,7 @@ export TCMALLOC_VERBOSE=0
 export TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD=10000000000
 python ../run_flax_speech_recognition_seq2seq_streaming_debug.py \
         --model_name_or_path openai/whisper-tiny \
-        --run_name "ScreamTiny - exp_sept_tpu64_all_1536bs_8e05_beam5" \
+        --run_name "ScreamTiny - exp_sept_tpu64_all_1536bs_8e05_beam5_v2" \
         --run_description "A Tiny Whisper Scream model with 96*4*4=1536 seq length. Trained with linear decay on the all_v5-corpus." \
         --wandb_entity "nbailab" \
         --wandb_project "Scream - septimus" \
@@ -13,7 +13,7 @@ python ../run_flax_speech_recognition_seq2seq_streaming_debug.py \
         --text_column_name text \
         --train_split_name train \
         --eval_split_name validation \
-        --output_dir ../../scream_tiny_sept_all_1536bs_8e05_64_beam5\
+        --output_dir ../../scream_tiny_sept_all_1536bs_8e05_64_beam5_v2\
         --overwrite_output_dir\
         --warmup_steps 5000 \
         --do_train \
@@ -32,7 +32,7 @@ python ../run_flax_speech_recognition_seq2seq_streaming_debug.py \
         --use_auth_token True \
         --dtype bfloat16 \
         --hub_private_repo True \
-        --hub_model_id NbAiLab/scream_tiny_sept_all_1536bs_8e05_64_beam5 \
+        --hub_model_id NbAiLab/scream_tiny_sept_all_1536bs_8e05_64_beam5_v2 \
         --resume_from_checkpoint True \
         --num_beams 5 \
 	--push_to_hub
