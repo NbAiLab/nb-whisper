@@ -418,7 +418,8 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
 
         batch["labels"] = labels
         batch["decoder_input_ids"] = decoder_input_ids
-
+        batch["attention_mask"] = labels_batch.attention_mask  # Add attention_mask to the batch
+        
         return batch
 
 
@@ -1068,12 +1069,12 @@ def main():
     def generate_step(params, batch):
         model.params = params
         
-        attention_mask = batch.get("attention_mask")
+        #attention_mask = batch.get("attention_mask")
         
-        if attention_mask is not None:
-            output_ids = model.generate(batch[model_input_name], attention_mask=attention_mask, **gen_kwargs)
-        else:
-            output_ids = model.generate(batch[model_input_name], **gen_kwargs)
+        #if attention_mask is not None:
+        output_ids = model.generate(batch[model_input_name], attention_mask=attention_mask, **gen_kwargs)
+        #else:
+        #    output_ids = model.generate(batch[model_input_name], **gen_kwargs)
         
         return output_ids.sequences
 
