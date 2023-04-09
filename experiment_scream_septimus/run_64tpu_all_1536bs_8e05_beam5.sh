@@ -34,5 +34,6 @@ python ../run_flax_speech_recognition_seq2seq_streaming_debug.py \
         --hub_private_repo True \
         --hub_model_id NbAiLab/scream_tiny_sept_all_1536bs_8e05_64_beam5_v2 \
         --resume_from_checkpoint True \
+        --ignore_data_skip \
         --num_beams 5 \
 	--push_to_hub
