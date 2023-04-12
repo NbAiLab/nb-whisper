@@ -208,7 +208,7 @@ class DataTrainingArguments:
             "help": "Filter audio files that are shorter than `min_duration_in_seconds` seconds"},
     )
     max_label_length: float = field(
-        default=256,
+        default=128,
         metadata={
             "help": "Truncate transcriptions that are longer `max_eval_length` tokens."},
     )
@@ -1256,6 +1256,7 @@ def main():
             labels = tokenizer.batch_decode(batch['labels'][0][0], skip_special_tokens=True)
             print(labels)
         except:
+            breakpoint()
             print("Error in the code")
         #print_structure(state_structure)
         #print("---------------\n")
