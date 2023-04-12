@@ -1192,35 +1192,6 @@ def main():
                 samples = next(train_loader)
             batch = data_collator(samples)
             # batch = shard(batch.data)
-
-    def print_structure(obj, name="state", indent=0):
-        if hasattr(obj, "__dict__"):
-            print(" " * indent + f"{name} ({type(obj).__name__}):")
-            for k, v in obj.__dict__.items():
-                print_structure(v, f"{name}.{k}", indent=indent + 2)
-        elif isinstance(obj, dict):
-            print(" " * indent + name + " (dict) {")
-            for key, value in obj.items():
-                print_structure(value, f"{name}[{repr(key)}]", indent=indent + 2)
-            print(" " * indent + "}")
-        elif isinstance(obj, (list, tuple)):
-            print(" " * indent + name + " (list) [")
-            for idx, value in enumerate(obj):
-                print_structure(value, f"{name}[{idx}]", indent=indent + 2)
-            print(" " * indent + "]")
-        else:
-            print(" " * indent + f"{name}: {type(obj)}")
-
-
-    def print_state_structure(state):
-        print("State structure:")
-        for k, v in state.__dict__.items():
-            if hasattr(v, 'shape'):
-                print(f"  {k}: type={type(v)}, shape={v.shape}, length={len(v)}")
-            else:
-                print(f"  {k}: type={type(v)}, length={len(v)}" if hasattr(v, '__len__') else f"  {k}: type={type(v)}")
-
-
     
     
     for step in tqdm(range(data_args.num_train_steps), desc="Training...", position=1, leave=False):
@@ -1241,39 +1212,9 @@ def main():
                 f" {train_metric['learning_rate']})"
             )
         
-        
         batch = data_collator(samples)
-        
-        
         batch = shard(batch.data)
-        
-        #state_structure = jax.tree_map(lambda x: None, state)
-        #print("---------------\nBefore updating state:")
-        #print(f"Number of sequences per device: {len(batch['labels'][0])}")
-        print("-----")
-        print(f"Lengths of input_features: {[len(seq[0]) for seq in batch['labels']]}")
-        
-        print(f"Example sequence label: {batch['labels'][0][0]} ...")
-        
-        try:
-            my_labels = tokenizer.batch_decode(np.where(batch['labels'][0][0] == -100, 0, batch['labels'][0][0]), skip_special_tokens=True)
-            print(my_labels)
-        except:
-            print("Error in the code")
-            breakpoint()
-            
-        #print_structure(state_structure)
-        #print("---------------\n")
-        #print_state_structure(state)
-        
         state, train_metric = p_train_step(state, batch)
-        
-        #state_structure = jax.tree_map(lambda x: None, state)
-        #print("After updating state:")
-        #print_structure(state_structure)
-        #print("---------------\n")
-        #print_state_structure(state)
-        
         train_metrics.append(train_metric)
                 
         train_time += time.time() - train_start
