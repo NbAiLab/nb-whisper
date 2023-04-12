@@ -1,9 +1,0 @@
-diff --git a/experiment_scream_octavus/wandb/latest-run b/experiment_scream_octavus/wandb/latest-run
-index edc62a5..ea49409 120000
---- a/experiment_scream_octavus/wandb/latest-run
-+++ b/experiment_scream_octavus/wandb/latest-run
-@@ -1 +1 @@
--run-20230412_180533-qc6ey75b
-\ No newline at end of file
-+run-20230412_184204-rzre7sa4
-\ No newline at end of file
