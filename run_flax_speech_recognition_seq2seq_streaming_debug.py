@@ -1247,9 +1247,12 @@ def main():
         #state_structure = jax.tree_map(lambda x: None, state)
         #print("---------------\nBefore updating state:")
         #print(f"Number of sequences per device: {len(batch['labels'][0])}")
-        breakpoint()
-        print(f"Lengths of label sequences: {[len(seq[0]) for seq in batch['labels']]}")
-        
+        print("----------------")
+        print(f"Lengths of labels: {[len(seq[0]) for seq in batch['labels']]}")
+        print(f"Lengths of input_features: {[len(seq[0]) for seq in batch['input_features']]}")
+        print(f"Lengths of attention_mask: {[len(seq[0]) for seq in batch['attention_mask']]}")
+        print(f"Lengths of decoder_input_ids: {[len(seq[0]) for seq in batch['decoder_input_ids']]}")
+
         #print(f"Example sequence label: {batch['labels'][0][0][:10]} ...")
         #print_structure(state_structure)
         #print("---------------\n")
