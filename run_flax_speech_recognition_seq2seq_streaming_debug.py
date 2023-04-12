@@ -870,7 +870,7 @@ def main():
         processor=processor,
         decoder_start_token_id=model.config.decoder_start_token_id,
         input_padding="longest",
-        target_padding="max_length",
+        target_padding="longest",
         max_target_length=max_label_length,
         pad_input_to_multiple_of=pad_input_to_multiple_of,
         pad_target_to_multiple_of=pad_target_to_multiple_of if pad_target_to_multiple_of else max_label_length,
