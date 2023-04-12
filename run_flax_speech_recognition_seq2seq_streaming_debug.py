@@ -732,7 +732,9 @@ def main():
         # We only need to set the task id when the language is specified (i.e. in a multilingual setting)
         tokenizer.set_prefix_tokens(
             language=data_args.language, task=data_args.task)
-
+    breakpoint()
+    
+    
     def prepare_dataset(batch):
         # Process audio
         sample = batch[audio_column_name]
