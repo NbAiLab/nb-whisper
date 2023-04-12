@@ -2,7 +2,7 @@ export TOKENIZERS_PARALELLISM=false
 export CMALLOC_VERBOSE=0
 export TCMALLOC_VERBOSE=0
 export TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD=10000000000
-python ../run_flax_speech_recognition_seq2seq_streaming.py \
+python ../run_flax_speech_recognition_seq2seq_streaming_debug.py \
     --model_name_or_path openai/whisper-large-v2 \
     --run_name "ScreamLarge - debug_beam5_long" \
     --run_description "A Large Whisper Scream model with 5 batch size. Trained with 5e-6 and linear decay on the all_v5-corpus." \
@@ -23,8 +23,8 @@ python ../run_flax_speech_recognition_seq2seq_streaming.py \
     --eval_steps 10000 \
     --learning_rate 5e-6 \
     --preprocessing_num_workers 32 \
-    --per_device_train_batch_size 2 \
-    --per_device_eval_batch_size 2 \
+    --per_device_train_batch_size 5 \
+    --per_device_eval_batch_size 5 \
     --predict_with_generate \
     --log_max_eval_predictions 100 \
     --log_eval_predictions_fn "log_predictions.write_predictions" \
