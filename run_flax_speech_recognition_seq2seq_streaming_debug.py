@@ -1191,23 +1191,31 @@ def main():
             # batch = shard(batch.data)
 
     def print_structure(obj, name="state", indent=0):
-        if isinstance(obj, dict):
+        if hasattr(obj, "__dict__"):
+            print(" " * indent + f"{name} ({type(obj).__name__}):")
+            for k, v in obj.__dict__.items():
+                print_structure(v, f"{name}.{k}", indent=indent + 2)
+        elif isinstance(obj, dict):
             print(" " * indent + name + " (dict) {")
             for key, value in obj.items():
-                print_structure(value, f"{key}", indent=indent+2)
+                print_structure(value, f"{name}[{repr(key)}]", indent=indent + 2)
             print(" " * indent + "}")
         elif isinstance(obj, (list, tuple)):
             print(" " * indent + name + " (list) [")
             for idx, value in enumerate(obj):
-                print_structure(value, f"{idx}", indent=indent+2)
+                print_structure(value, f"{name}[{idx}]", indent=indent + 2)
             print(" " * indent + "]")
         else:
             print(" " * indent + f"{name}: {type(obj)}")
 
+
     def print_state_structure(state):
         print("State structure:")
-        for k, v in state.items():
-            print(f"  {k}: type={type(v)}, shape={v.shape}, length={len(v)}")
+        for k, v in state.__dict__.items():
+            if hasattr(v, 'shape'):
+                print(f"  {k}: type={type(v)}, shape={v.shape}, length={len(v)}")
+            else:
+                print(f"  {k}: type={type(v)}, length={len(v)}" if hasattr(v, '__len__') else f"  {k}: type={type(v)}")
 
 
     
@@ -1235,18 +1243,20 @@ def main():
         
         
         batch = shard(batch.data)
-        breakpoint()
+        
         state_structure = jax.tree_map(lambda x: None, state)
-        print("---------------\nBefore:")
+        print("---------------\nBefore updating state:")
+        print(f"Number of sequences per device: {len(batch['labels'][0])}")
+        print(f"Length of sequence: {len(batch['labels'][0][0])}")
+        print(f"Example sequence label: {batch['labels'][0][0][:10]} ...")
         print_structure(state_structure)
         print("---------------\n")
         print_state_structure(state)
-      
         
-
         state, train_metric = p_train_step(state, batch)
+        
         state_structure = jax.tree_map(lambda x: None, state)
-        print("After:")
+        print("After updating state:")
         print_structure(state_structure)
         print("---------------\n")
         print_state_structure(state)
