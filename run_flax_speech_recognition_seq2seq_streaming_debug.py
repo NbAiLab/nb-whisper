@@ -1245,26 +1245,26 @@ def main():
         batch = shard(batch.data)
         
         #state_structure = jax.tree_map(lambda x: None, state)
-        print("---------------\nBefore updating state:")
+        #print("---------------\nBefore updating state:")
         #print(f"Number of sequences per device: {len(batch['labels'][0])}")
-        #print("----------------")
-        #print(f"Lengths of labels: {[len(seq[0]) for seq in batch['labels']]}")
-        #print(f"Lengths of input_features: {[len(seq[0]) for seq in batch['input_features']]}")
-        #print(f"Lengths of attention_mask: {[len(seq[0]) for seq in batch['attention_mask']]}")
-        #print(f"Lengths of decoder_input_ids: {[len(seq[0]) for seq in batch['decoder_input_ids']]}")
+        print("-----")
+        print(f"Lengths of input_features: {[len(seq[0]) for seq in batch['labels']]}")
+        print(f"Lengths of input_features: {[len(seq[1]) for seq in batch['labels']]}")
+        print(f"Lengths of input_features: {[len(seq[2]) for seq in batch['labels']]}")
+        print(f"Lengths of input_features: {[len(seq[3]) for seq in batch['labels']]}")
 
         #print(f"Example sequence label: {batch['labels'][0][0][:10]} ...")
         #print_structure(state_structure)
         #print("---------------\n")
-        print_state_structure(state)
+        #print_state_structure(state)
         
         state, train_metric = p_train_step(state, batch)
         
         #state_structure = jax.tree_map(lambda x: None, state)
-        print("After updating state:")
+        #print("After updating state:")
         #print_structure(state_structure)
         #print("---------------\n")
-        print_state_structure(state)
+        #print_state_structure(state)
         
         train_metrics.append(train_metric)
                 
