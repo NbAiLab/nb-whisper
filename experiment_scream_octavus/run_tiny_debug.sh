@@ -30,11 +30,9 @@ python ../run_flax_speech_recognition_seq2seq_streaming_debug.py \
     --log_eval_predictions_fn "log_predictions.write_predictions" \
     --streaming True \
     --use_auth_token True \
-    --dtype bfloat16
-    
-# \
-#    --hub_private_repo True \
-#    --hub_model_id NbAiLab/scream_tiny_octavus_debug \
-#    --resume_from_checkpoint True \
-#    --ignore_data_skip True \
-#    --push_to_hub
+    --dtype bfloat16 \
+    --hub_private_repo True \
+    --hub_model_id NbAiLab/scream_tiny_octavus_debug \
+    --resume_from_checkpoint True \
+    --ignore_data_skip True \
+    --push_to_hub
