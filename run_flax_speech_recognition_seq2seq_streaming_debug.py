@@ -408,8 +408,10 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
             if (labels[:, 0] == self.decoder_start_token_id).all().item():
                 labels = labels[:, 1:]
                 labels_batch.attention_mask = labels_batch.attention_mask[:, 1:]
+            breakpoint()
         except:
             breakpoint()
+        
             
         decoder_input_ids = shift_tokens_right(
             labels, self.decoder_start_token_id)
@@ -1256,7 +1258,6 @@ def main():
         print(f"Example sequence label: {batch['labels'][0][0]} ...")
         
         try:
-            
             my_labels = tokenizer.batch_decode(np.where(batch['labels'][0][0] == -100, 0, batch['labels'][0][0]), skip_special_tokens=True)
             print(my_labels)
         except:
