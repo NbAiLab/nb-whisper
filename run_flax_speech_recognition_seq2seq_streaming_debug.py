@@ -1190,15 +1190,24 @@ def main():
             batch = data_collator(samples)
             # batch = shard(batch.data)
 
-    def print_structure(obj, name="state"):
+    def print_structure(obj, name="state", indent=0):
         if isinstance(obj, dict):
+            print(" " * indent + name + " (dict) {")
             for key, value in obj.items():
-                print_structure(value, f"{name}[{repr(key)}]")
+                print_structure(value, f"{key}", indent=indent+2)
+            print(" " * indent + "}")
         elif isinstance(obj, (list, tuple)):
+            print(" " * indent + name + " (list) [")
             for idx, value in enumerate(obj):
-                print_structure(value, f"{name}[{idx}]")
+                print_structure(value, f"{idx}", indent=indent+2)
+            print(" " * indent + "]")
         else:
-            print(f"{name}: {type(obj)}")
+            print(" " * indent + f"{name}: {type(obj)}")
+
+    def print_state_structure(state):
+        print("State structure:")
+        for k, v in state.items():
+            print(f"  {k}: type={type(v)}, shape={v.shape}, length={len(v)}")
 
 
     
@@ -1226,16 +1235,21 @@ def main():
         
         
         batch = shard(batch.data)
-        
+        breakpoint()
         state_structure = jax.tree_map(lambda x: None, state)
         print("---------------\nBefore:")
         print_structure(state_structure)
+        print("---------------\n")
+        print_state_structure(state)
+      
         
 
         state, train_metric = p_train_step(state, batch)
         state_structure = jax.tree_map(lambda x: None, state)
         print("After:")
         print_structure(state_structure)
+        print("---------------\n")
+        print_state_structure(state)
         
         train_metrics.append(train_metric)
                 
