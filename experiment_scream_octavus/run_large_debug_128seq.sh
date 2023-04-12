@@ -23,8 +23,8 @@ python ../run_flax_speech_recognition_seq2seq_streaming_debug.py \
     --eval_steps 10000 \
     --learning_rate 5e-6 \
     --preprocessing_num_workers 32 \
-    --per_device_train_batch_size 2 \
-    --per_device_eval_batch_size 1 \
+    --per_device_train_batch_size 3 \
+    --per_device_eval_batch_size 3 \
     --predict_with_generate \
     --log_max_eval_predictions 100 \
     --log_eval_predictions_fn "log_predictions.write_predictions" \
@@ -34,7 +34,6 @@ python ../run_flax_speech_recognition_seq2seq_streaming_debug.py \
     --hub_private_repo True \
     --hub_model_id NbAiLab/scream_large_oct_debug_128seq \
     --resume_from_checkpoint True \
-    --num_beams 5 \
     --ignore_data_skip \
     --max_label_length 128 \
     --push_to_hub
