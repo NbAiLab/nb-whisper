@@ -389,7 +389,6 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
             input_features,
             max_length=self.max_input_length,
             padding=self.input_padding,
-            truncation=True,
             pad_to_multiple_of=self.pad_input_to_multiple_of,
             return_tensors="np",
         )
@@ -678,6 +677,7 @@ def main():
         cache_dir=model_args.cache_dir,
         use_fast=model_args.use_fast_tokenizer,
         revision=model_args.model_revision,
+        truncation=True,
         use_auth_token=True if model_args.use_auth_token else None,
     )
 
