@@ -403,13 +403,12 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
 
         # if bos token is appended in previous tokenization step,
         # cut bos token here as it's append later anyways
-        try:
-            labels = labels_batch["input_ids"]
-            if (labels[:, 0] == self.decoder_start_token_id).all().item():
-                labels = labels[:, 1:]
-                labels_batch.attention_mask = labels_batch.attention_mask[:, 1:]
-        except:
-            breakpoint()
+        labels = labels_batch["input_ids"]
+        
+        if (labels[:, 0] == self.decoder_start_token_id).all().item():
+            labels = labels[:, 1:]
+            labels_batch.attention_mask = labels_batch.attention_mask[:, 1:]
+
             
         decoder_input_ids = shift_tokens_right(
             labels, self.decoder_start_token_id)
@@ -1256,10 +1255,9 @@ def main():
         print(f"Example sequence label: {batch['labels'][0][0]} ...")
         
         try:
-            labels = tokenizer.batch_decode(batch['labels'][0][0], skip_special_tokens=True)
-            print(labels)
+            my_labels = tokenizer.batch_decode(batch['labels'][0][0], skip_special_tokens=True)
+            print(my_labels)
         except:
-            breakpoint()
             print("Error in the code")
         #print_structure(state_structure)
         #print("---------------\n")
