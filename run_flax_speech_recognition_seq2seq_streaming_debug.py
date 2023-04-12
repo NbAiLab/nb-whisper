@@ -732,7 +732,6 @@ def main():
         # We only need to set the task id when the language is specified (i.e. in a multilingual setting)
         tokenizer.set_prefix_tokens(
             language=data_args.language, task=data_args.task)
-    breakpoint()
     
     
     def prepare_dataset(batch):
@@ -866,7 +865,7 @@ def main():
     tokenizer.save_pretrained(training_args.output_dir)
     config.save_pretrained(training_args.output_dir)
 
-    processor = AutoProcessor.from_pretrained(training_args.output_dir)
+    processor = AutoProcessor.from_pretrained(training_args.output_dir, truncation=True, max_length=max_label_length)
 
     data_collator = FlaxDataCollatorSpeechSeq2SeqWithPadding(
         processor=processor,
