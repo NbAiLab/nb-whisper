@@ -4,7 +4,7 @@ export TCMALLOC_VERBOSE=0
 export TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD=10000000000
 python ../run_flax_speech_recognition_seq2seq_streaming_debug.py \
     --model_name_or_path openai/whisper-base \
-    --run_name "ScreamTiny - debug" \
+    --run_name "ScreamBase - debug" \
     --run_description "A Base Whisper Scream model - Debug delete." \
     --wandb_entity "nbailab" \
     --wandb_project "Scream - octavus" \
