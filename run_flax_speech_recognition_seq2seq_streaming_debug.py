@@ -208,7 +208,7 @@ class DataTrainingArguments:
             "help": "Filter audio files that are shorter than `min_duration_in_seconds` seconds"},
     )
     max_label_length: float = field(
-        default=240,
+        default=256,
         metadata={
             "help": "Truncate transcriptions that are longer `max_label_length` tokens."},
     )
@@ -677,7 +677,6 @@ def main():
         cache_dir=model_args.cache_dir,
         use_fast=model_args.use_fast_tokenizer,
         revision=model_args.model_revision,
-        truncation=True,
         use_auth_token=True if model_args.use_auth_token else None,
     )
 
@@ -748,7 +747,7 @@ def main():
         ) if do_lower_case else batch[text_column_name]
         if do_remove_punctuation:
             input_str = normalizer(input_str).strip()
-        batch["labels"] = tokenizer(input_str).input_ids
+        batch["labels"] = tokenizer(input_str,truncation=True, max_length=max_label_length).input_ids
         return batch
 
     with training_args.main_process_first(desc="dataset map pre-processing"):
@@ -865,7 +864,7 @@ def main():
     tokenizer.save_pretrained(training_args.output_dir)
     config.save_pretrained(training_args.output_dir)
 
-    processor = AutoProcessor.from_pretrained(training_args.output_dir, truncation=True, max_length=max_label_length)
+    processor = AutoProcessor.from_pretrained(training_args.output_dir)
 
     data_collator = FlaxDataCollatorSpeechSeq2SeqWithPadding(
         processor=processor,
