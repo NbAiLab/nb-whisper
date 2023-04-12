@@ -1061,10 +1061,6 @@ def main():
     num_beams = model_args.num_beams if model_args.num_beams is not None else model.config.num_beams
     gen_kwargs = {"max_length": max_label_length, "num_beams": num_beams}
 
-    print(f"Num_beams: {num_beams}")
-    print(f"Model args num_beams: {model_args.num_beams}")
-    print(f"Model config num_beams: {model.config.num_beams}") 
-    print(f"gen_kwargs: {gen_kwargs}")
      
     def generate_step(params, batch):
         model.params = params
@@ -1212,26 +1208,18 @@ def main():
                 f" {train_metric['learning_rate']})"
             )
         
-        print("A")
         
         batch = data_collator(samples)
         
-        print("B")
         
         batch = shard(batch.data)
         
-        print("C")
         print(f"Before: {state}")
         state, train_metric = p_train_step(state, batch)
         print(f"after: {state}")
         
-        
-        print("D")
-        
         train_metrics.append(train_metric)
-        
-        print("E")
-        
+                
         train_time += time.time() - train_start
         train_metric = unreplicate(train_metric)
 
