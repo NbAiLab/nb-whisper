@@ -408,7 +408,7 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
             if (labels[:, 0] == self.decoder_start_token_id).all().item():
                 labels = labels[:, 1:]
                 labels_batch.attention_mask = labels_batch.attention_mask[:, 1:]
-            breakpoint()
+            print("XXXXXXX")
         except:
             breakpoint()
         
