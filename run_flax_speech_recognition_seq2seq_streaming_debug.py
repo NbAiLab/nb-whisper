@@ -1190,6 +1190,19 @@ def main():
             batch = data_collator(samples)
             # batch = shard(batch.data)
 
+    def print_structure(obj, name="state"):
+        if isinstance(obj, dict):
+            for key, value in obj.items():
+                print_structure(value, f"{name}[{repr(key)}]")
+        elif isinstance(obj, (list, tuple)):
+            for idx, value in enumerate(obj):
+                print_structure(value, f"{name}[{idx}]")
+        else:
+            print(f"{name}: {type(obj)}")
+
+
+    
+    
     for step in tqdm(range(data_args.num_train_steps), desc="Training...", position=1, leave=False):
         # Skip initial steps if these are specified. 
         if step < training_state["step"]:
@@ -1214,9 +1227,15 @@ def main():
         
         batch = shard(batch.data)
         
-        print(f"Before: {state}")
+        state_structure = jax.tree_map(lambda x: None, state)
+        print("---------------\nBefore:")
+        print_structure(state_structure)
+        
+
         state, train_metric = p_train_step(state, batch)
-        print(f"after: {state}")
+        state_structure = jax.tree_map(lambda x: None, state)
+        print("After:")
+        print_structure(state_structure)
         
         train_metrics.append(train_metric)
                 
