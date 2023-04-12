@@ -1259,6 +1259,7 @@ def main():
             print(my_labels)
         except:
             print("Error in the code")
+            breakpoint()
         #print_structure(state_structure)
         #print("---------------\n")
         #print_state_structure(state)
