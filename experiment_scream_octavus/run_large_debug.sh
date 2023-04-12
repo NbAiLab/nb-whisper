@@ -34,6 +34,5 @@ python ../run_flax_speech_recognition_seq2seq_streaming_debug.py \
     --hub_private_repo True \
     --hub_model_id NbAiLab/scream_large_oct_debug \
     --resume_from_checkpoint True \
-    --num_beams 5 \
     --ignore_data_skip \
     --push_to_hub
