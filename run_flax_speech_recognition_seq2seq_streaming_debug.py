@@ -1221,8 +1221,10 @@ def main():
         batch = shard(batch.data)
         
         print("C")
-        
+        print(f"Before: {state}")
         state, train_metric = p_train_step(state, batch)
+        print(f"after: {state}")
+        
         
         print("D")
         
