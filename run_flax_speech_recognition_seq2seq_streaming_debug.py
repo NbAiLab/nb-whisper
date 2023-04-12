@@ -1249,17 +1249,17 @@ def main():
         print(f"Number of sequences per device: {len(batch['labels'][0])}")
         print(f"Length of sequence: {len(batch['labels'][0][0])}")
         print(f"Example sequence label: {batch['labels'][0][0][:10]} ...")
-        print_structure(state_structure)
-        print("---------------\n")
-        print_state_structure(state)
+        #print_structure(state_structure)
+        #print("---------------\n")
+        #print_state_structure(state)
         
         state, train_metric = p_train_step(state, batch)
         
-        state_structure = jax.tree_map(lambda x: None, state)
-        print("After updating state:")
-        print_structure(state_structure)
-        print("---------------\n")
-        print_state_structure(state)
+        #state_structure = jax.tree_map(lambda x: None, state)
+        #print("After updating state:")
+        #print_structure(state_structure)
+        #print("---------------\n")
+        #print_state_structure(state)
         
         train_metrics.append(train_metric)
                 
