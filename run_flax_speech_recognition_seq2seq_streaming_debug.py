@@ -1211,13 +1211,24 @@ def main():
                 f"Completed epoch ({epoch} | Loss: {train_metric['loss']}, Learning Rate:"
                 f" {train_metric['learning_rate']})"
             )
-
+        
+        print("A")
+        
         batch = data_collator(samples)
+        
+        print("B")
+        
         batch = shard(batch.data)
+        
+        print("C")
         
         state, train_metric = p_train_step(state, batch)
         
+        print("D")
+        
         train_metrics.append(train_metric)
+        
+        print("E")
         
         train_time += time.time() - train_start
         train_metric = unreplicate(train_metric)
