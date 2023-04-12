@@ -1245,10 +1245,11 @@ def main():
         batch = shard(batch.data)
         
         state_structure = jax.tree_map(lambda x: None, state)
-        print("---------------\nBefore updating state:")
-        print(f"Number of sequences per device: {len(batch['labels'][0])}")
-        print(f"Length of sequence: {len(batch['labels'][0][0])}")
-        print(f"Example sequence label: {batch['labels'][0][0][:10]} ...")
+        #print("---------------\nBefore updating state:")
+        #print(f"Number of sequences per device: {len(batch['labels'][0])}")
+        print(f"Lengths of sequences: {[len(seq[0]) for seq in batch['labels']]}")
+        
+        #print(f"Example sequence label: {batch['labels'][0][0][:10]} ...")
         #print_structure(state_structure)
         #print("---------------\n")
         #print_state_structure(state)
