@@ -867,7 +867,7 @@ def main():
         processor=processor,
         decoder_start_token_id=model.config.decoder_start_token_id,
         input_padding="longest",
-        target_padding="longest",
+        target_padding="max_length",
         max_target_length=max_label_length,
         pad_input_to_multiple_of=pad_input_to_multiple_of,
         pad_target_to_multiple_of=pad_target_to_multiple_of if pad_target_to_multiple_of else max_label_length,
@@ -1249,11 +1249,8 @@ def main():
         #print(f"Number of sequences per device: {len(batch['labels'][0])}")
         print("-----")
         print(f"Lengths of input_features: {[len(seq[0]) for seq in batch['labels']]}")
-        print(f"Lengths of input_features: {[len(seq[1]) for seq in batch['labels']]}")
-        print(f"Lengths of input_features: {[len(seq[2]) for seq in batch['labels']]}")
-        print(f"Lengths of input_features: {[len(seq[3]) for seq in batch['labels']]}")
-
-        #print(f"Example sequence label: {batch['labels'][0][0][:10]} ...")
+        
+        print(f"Example sequence label: {batch['labels'][0][0]} ...")
         #print_structure(state_structure)
         #print("---------------\n")
         #print_state_structure(state)
