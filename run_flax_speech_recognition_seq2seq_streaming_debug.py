@@ -1256,11 +1256,13 @@ def main():
         print(f"Example sequence label: {batch['labels'][0][0]} ...")
         
         try:
-            my_labels = tokenizer.batch_decode(batch['labels'][0][0], skip_special_tokens=True)
+            
+            my_labels = tokenizer.batch_decode(np.where(batch['labels'][0][0] == -100, 0, batch['labels'][0][0]), skip_special_tokens=True)
             print(my_labels)
         except:
             print("Error in the code")
             breakpoint()
+            
         #print_structure(state_structure)
         #print("---------------\n")
         #print_state_structure(state)
