@@ -207,7 +207,7 @@ class DataTrainingArguments:
         metadata={
             "help": "Filter audio files that are shorter than `min_duration_in_seconds` seconds"},
     )
-    max_label_length: float = field(
+    max_label_length: Optional[int] = field(
         default=256,
         metadata={
             "help": "Truncate transcriptions that are longer `max_label_length` tokens."},
