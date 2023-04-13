@@ -74,6 +74,7 @@ from transformers.utils.versions import require_version
 
 from flax.training import checkpoints
 
+import tensorflow as tf
 
 
 # Will error if the minimal version of Transformers is not installed. Remove at your own risks.
