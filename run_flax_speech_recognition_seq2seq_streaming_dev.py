@@ -1157,6 +1157,7 @@ def main():
             "finishing_optimization_step": data_args.num_train_steps,
             "num_train_dataset_workers": f"{num_workers}",
             "total_num_training_examples": data_args.num_train_steps * train_batch_size,
+            "steps_per_epoch": "<1",
             "num_beams": model_args.num_beams,
         },
         # TODO: Adapt https://github.com/huggingface/transformers/blob/main/src/transformers/modelcard.py#L855
