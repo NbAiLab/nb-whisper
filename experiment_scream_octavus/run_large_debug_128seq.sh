@@ -4,7 +4,7 @@ export TCMALLOC_VERBOSE=0
 export TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD=10000000000
 python ../run_flax_speech_recognition_seq2seq_streaming_debug.py \
     --model_name_or_path openai/whisper-large-v2 \
-    --run_name "ScreamLarge - debug_beam5_long" \
+    --run_name "ScreamLarge - debug_long_4dbs" \
     --run_description "A Large Whisper Scream model with 5 batch size. Trained with 5e-6 and linear decay on the all_v5-corpus." \
     --wandb_entity "nbailab" \
     --wandb_project "Scream - septimus" \
@@ -13,7 +13,7 @@ python ../run_flax_speech_recognition_seq2seq_streaming_debug.py \
     --text_column_name text \
     --train_split_name train\
     --eval_split_name validation\
-    --output_dir ../../scream_large_oct_debug_128seq\
+    --output_dir ../../scream_large_oct_debug_128seq_4dbs\
     --overwrite_output_dir\
     --warmup_steps 10000 \
     --do_train \
@@ -23,8 +23,8 @@ python ../run_flax_speech_recognition_seq2seq_streaming_debug.py \
     --eval_steps 10000 \
     --learning_rate 5e-6 \
     --preprocessing_num_workers 32 \
-    --per_device_train_batch_size 3 \
-    --per_device_eval_batch_size 3 \
+    --per_device_train_batch_size 4 \
+    --per_device_eval_batch_size 4 \
     --predict_with_generate \
     --log_max_eval_predictions 100 \
     --log_eval_predictions_fn "log_predictions.write_predictions" \
@@ -32,7 +32,7 @@ python ../run_flax_speech_recognition_seq2seq_streaming_debug.py \
     --use_auth_token True \
     --dtype bfloat16 \
     --hub_private_repo True \
-    --hub_model_id NbAiLab/scream_large_oct_debug_128seq \
+    --hub_model_id NbAiLab/scream_large_oct_debug_128seq_4dbs \
     --resume_from_checkpoint True \
     --ignore_data_skip \
     --max_label_length 128 \
