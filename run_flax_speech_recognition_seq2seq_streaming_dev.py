@@ -1105,7 +1105,7 @@ def main():
         f"  Scheduler = {training_args.lr_scheduler_type}")
     logger.info(
         f"  Num examples = {data_args.num_train_steps * train_batch_size}")
-    if model_args.num_beams > 1:
+    if model_args.num_beams:
         logger.info(
         f"  Num beams evaluation = {model_args.num_beams}")
     if num_of_hosts > 1:
@@ -1223,6 +1223,9 @@ def main():
                 f" {train_metric['learning_rate']})"
             )
             steps_per_epoch = step // epoch
+            logger.info(
+                f"{steps_per_epoch} steps per epoch. "
+            )
             
         
         batch = data_collator(samples)
