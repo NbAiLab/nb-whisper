@@ -18,11 +18,15 @@ Fine-tuning the Flax library models for sequence to sequence speech recognition.
 """
 # You can also adapt this script on your own sequence to sequence task. Pointers for this are left as comments.
 
+# Prevent some warnings from printing on the screen
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+
 import itertools
 import json
 import logging
-import os
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+
 import shutil
 import socket
 import sys
@@ -84,9 +88,7 @@ check_min_version("4.27.0.dev0")
 require_version("datasets>=1.18.2",
                 "To fix: pip install -r examples/flax/speech-recogintion/requirements.txt")
 
-# Prevent some warnings from printing on the screen
-os.environ["TOKENIZERS_PARALLELISM"] = "false"
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+
 
 logger = logging.getLogger(__name__)
 
