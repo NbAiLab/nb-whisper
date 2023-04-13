@@ -688,7 +688,10 @@ def main():
         revision=model_args.model_revision,
         use_auth_token=True if model_args.use_auth_token else None,
     )
+    
 
+    
+    
     logger.info(
         f"Successfully loaded the model '{model_name_or_path}'."
     )
