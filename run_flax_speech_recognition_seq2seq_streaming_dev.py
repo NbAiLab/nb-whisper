@@ -914,7 +914,7 @@ def main():
                 f"Unable to display metrics through TensorBoard because some packages are not installed: {ie}"
             )
     else:
-        if current_host_idx == 0
+        if current_host_idx == 0:
             logger.warning(
                 "Unable to display metrics through TensorBoard because the package is not installed: "
                 "Please run pip install tensorboard to enable."
