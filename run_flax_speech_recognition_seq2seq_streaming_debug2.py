@@ -74,11 +74,6 @@ from transformers.utils.versions import require_version
 
 from flax.training import checkpoints
 
-import tensorflow as tf
-
-# Suppress TensorRT warning messages
-TRT_LOGGER = tf.compat.v1.logging.get_abastract_logginf_factory().create_logger(tf.compat.v1.logging.INFO)
-TRT_LOGGER.set_verbosity(TRT_LOGGER.ERROR)
 
 
 # Will error if the minimal version of Transformers is not installed. Remove at your own risks.
