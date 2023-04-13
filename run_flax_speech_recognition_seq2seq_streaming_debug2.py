@@ -1253,7 +1253,8 @@ def main():
                 batch = data_collator(samples)
                 
                 labels = batch["labels"]
-
+                breakpoint()
+                
                 metrics = pad_shard_unpad(p_eval_step, static_return=True)(
                     state.params, batch.data, min_device_batch=training_args.per_device_eval_batch_size
                 )
