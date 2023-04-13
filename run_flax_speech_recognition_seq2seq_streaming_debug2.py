@@ -82,7 +82,9 @@ check_min_version("4.27.0.dev0")
 require_version("datasets>=1.18.2",
                 "To fix: pip install -r examples/flax/speech-recogintion/requirements.txt")
 
+# Prevent some warnings from printing on the screen
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 logger = logging.getLogger(__name__)
 
