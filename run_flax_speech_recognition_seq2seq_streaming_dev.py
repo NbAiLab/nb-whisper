@@ -830,7 +830,7 @@ def main():
         eval_lines.append(eval_metrics_dict)
         return {**state, "eval_lines": eval_lines}
 
-    def write_metric(summary_writer, train_metrics, eval_metrics, train_time, step, predictions=None, labels=None):
+    def write_metric(summary_writer, train_metrics, eval_metrics, train_time, step, steps_per_epoch, predictions=None, labels=None):
         summary_writer.scalar("train_time", train_time, step)
 
         train_metrics = get_metrics(train_metrics)
@@ -1091,6 +1091,11 @@ def main():
     # Logging
     logger.info("***** Running training *****")
     logger.info(
+        f"  Original model = {model_args.model_name_or_path}")
+    if training_args.push_to_hub:
+        logger.info(
+        f"  Hub model id = {training_args.hub_model_id}")
+    logger.info(
         f"  Dataset name = {data_args.dataset_name}")
     logger.info(
         f"  Dataset config name = {data_args.dataset_config_name}")
@@ -1100,6 +1105,9 @@ def main():
         f"  Scheduler = {training_args.lr_scheduler_type}")
     logger.info(
         f"  Num examples = {data_args.num_train_steps * train_batch_size}")
+    if model_args.num_beams > 1:
+        logger.info(
+        f"  Num beams evaluation = {model_args.num_beams}")
     if num_of_hosts > 1:
         logger.info(
             f"  Number of hosts = {num_of_hosts}")
@@ -1148,6 +1156,7 @@ def main():
             "finishing_optimization_step": data_args.num_train_steps,
             "num_train_dataset_workers": f"{num_workers}",
             "total_num_training_examples": data_args.num_train_steps * train_batch_size,
+            "num_beams": model_args.num_beams,
         },
         # TODO: Adapt https://github.com/huggingface/transformers/blob/main/src/transformers/modelcard.py#L855
         # "hyperparameters": training_args.to_sanitized_dict()
@@ -1195,6 +1204,8 @@ def main():
     
     
     for step in tqdm(range(data_args.num_train_steps), desc="Training...", position=1, leave=False):
+        steps_per_epoch = 0
+        
         # Skip initial steps if these are specified. 
         if step < training_state["step"]:
             continue
@@ -1211,6 +1222,8 @@ def main():
                 f"Completed epoch ({epoch} | Loss: {train_metric['loss']}, Learning Rate:"
                 f" {train_metric['learning_rate']})"
             )
+            steps_per_epoch = step // epoch
+            
         
         batch = data_collator(samples)
         batch = shard(batch.data)
