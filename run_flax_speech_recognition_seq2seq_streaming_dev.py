@@ -830,7 +830,7 @@ def main():
         eval_lines.append(eval_metrics_dict)
         return {**state, "eval_lines": eval_lines}
 
-    def write_metric(summary_writer, train_metrics, eval_metrics, train_time, step, steps_per_epoch, predictions=None, labels=None):
+    def write_metric(summary_writer, train_metrics, eval_metrics, train_time, step, predictions=None, labels=None):
         summary_writer.scalar("train_time", train_time, step)
 
         train_metrics = get_metrics(train_metrics)
@@ -914,10 +914,11 @@ def main():
                 f"Unable to display metrics through TensorBoard because some packages are not installed: {ie}"
             )
     else:
-        logger.warning(
-            "Unable to display metrics through TensorBoard because the package is not installed: "
-            "Please run pip install tensorboard to enable."
-        )
+        if current_host_idx == 0
+            logger.warning(
+                "Unable to display metrics through TensorBoard because the package is not installed: "
+                "Please run pip install tensorboard to enable."
+            )
 
     # Initialize our training
     rng = jax.random.PRNGKey(training_args.seed)
@@ -1204,7 +1205,6 @@ def main():
     
     
     for step in tqdm(range(data_args.num_train_steps), desc="Training...", position=1, leave=False):
-        steps_per_epoch = 0
         
         # Skip initial steps if these are specified. 
         if step < training_state["step"]:
@@ -1222,11 +1222,7 @@ def main():
                 f"Completed epoch ({epoch} | Loss: {train_metric['loss']}, Learning Rate:"
                 f" {train_metric['learning_rate']})"
             )
-            steps_per_epoch = step // epoch
-            logger.info(
-                f"{steps_per_epoch} steps per epoch. "
-            )
-            
+            training_summary["hyperparameters"]["steps_per_epoch"] = step // epoch
         
         batch = data_collator(samples)
         batch = shard(batch.data)
