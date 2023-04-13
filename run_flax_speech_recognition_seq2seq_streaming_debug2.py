@@ -22,6 +22,7 @@ import itertools
 import json
 import logging
 import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 import shutil
 import socket
 import sys
