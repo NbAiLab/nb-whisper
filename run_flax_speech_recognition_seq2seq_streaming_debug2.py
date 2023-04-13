@@ -74,6 +74,13 @@ from transformers.utils.versions import require_version
 
 from flax.training import checkpoints
 
+import tensorflow as tf
+
+# Suppress TensorRT warning messages
+TRT_LOGGER = tf.compat.v1.logging.get_abastract_logginf_factory().create_logger(tf.compat.v1.logging.INFO)
+TRT_LOGGER.set_verbosity(TRT_LOGGER.ERROR)
+
+
 # Will error if the minimal version of Transformers is not installed. Remove at your own risks.
 check_min_version("4.27.0.dev0")
 
@@ -688,7 +695,10 @@ def main():
         revision=model_args.model_revision,
         use_auth_token=True if model_args.use_auth_token else None,
     )
+    
 
+    
+    
     logger.info(
         f"Successfully loaded the model '{model_name_or_path}'."
     )
@@ -914,11 +924,10 @@ def main():
                 f"Unable to display metrics through TensorBoard because some packages are not installed: {ie}"
             )
     else:
-        if current_host_idx == 0:
-            logger.warning(
-                "Unable to display metrics through TensorBoard because the package is not installed: "
-                "Please run pip install tensorboard to enable."
-            )
+        logger.warning(
+            "Unable to display metrics through TensorBoard because the package is not installed: "
+            "Please run pip install tensorboard to enable."
+        )
 
     # Initialize our training
     rng = jax.random.PRNGKey(training_args.seed)
@@ -1092,11 +1101,6 @@ def main():
     # Logging
     logger.info("***** Running training *****")
     logger.info(
-        f"  Original model = {model_args.model_name_or_path}")
-    if training_args.push_to_hub:
-        logger.info(
-        f"  Hub model id = {training_args.hub_model_id}")
-    logger.info(
         f"  Dataset name = {data_args.dataset_name}")
     logger.info(
         f"  Dataset config name = {data_args.dataset_config_name}")
@@ -1106,9 +1110,6 @@ def main():
         f"  Scheduler = {training_args.lr_scheduler_type}")
     logger.info(
         f"  Num examples = {data_args.num_train_steps * train_batch_size}")
-    if model_args.num_beams:
-        logger.info(
-        f"  Num beams evaluation = {model_args.num_beams}")
     if num_of_hosts > 1:
         logger.info(
             f"  Number of hosts = {num_of_hosts}")
@@ -1157,8 +1158,6 @@ def main():
             "finishing_optimization_step": data_args.num_train_steps,
             "num_train_dataset_workers": f"{num_workers}",
             "total_num_training_examples": data_args.num_train_steps * train_batch_size,
-            "steps_per_epoch": "To be computed",
-            "num_beams": model_args.num_beams,
         },
         # TODO: Adapt https://github.com/huggingface/transformers/blob/main/src/transformers/modelcard.py#L855
         # "hyperparameters": training_args.to_sanitized_dict()
@@ -1206,7 +1205,6 @@ def main():
     
     
     for step in tqdm(range(data_args.num_train_steps), desc="Training...", position=1, leave=False):
-        
         # Skip initial steps if these are specified. 
         if step < training_state["step"]:
             continue
@@ -1223,7 +1221,6 @@ def main():
                 f"Completed epoch ({epoch} | Loss: {train_metric['loss']}, Learning Rate:"
                 f" {train_metric['learning_rate']})"
             )
-            training_summary["hyperparameters"]["steps_per_epoch"] = step // epoch
         
         batch = data_collator(samples)
         batch = shard(batch.data)
