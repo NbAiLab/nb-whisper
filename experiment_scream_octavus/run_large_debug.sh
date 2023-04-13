@@ -36,4 +36,4 @@ python ../run_flax_speech_recognition_seq2seq_streaming_debug2.py \
     --resume_from_checkpoint True \
     --ignore_data_skip True \
     --max_label_length 100 \
-    --push_to_hubcp run_la  
+    --push_to_hub
