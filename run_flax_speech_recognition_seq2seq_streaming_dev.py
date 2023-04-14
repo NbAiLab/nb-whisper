@@ -976,7 +976,7 @@ def main():
         return traverse_util.unflatten_dict(flat_mask)
     
     # Create adam optimizer
-    adamw = optax.adamw(
+    optimizer = optax.adamw(
         learning_rate=linear_decay_lr_schedule_fn,
         b1=training_args.adam_beta1,
         b2=training_args.adam_beta2,
@@ -984,10 +984,14 @@ def main():
         weight_decay=training_args.weight_decay,
         mask=decay_mask_fn,
     )
+    if training_args.gradient_accumulation_steps > 1:
+        optimizer = optax.MultiSteps(
+            optimizer, training_args.gradient_accumulation_steps
+        )
 
     # Setup train state
     state = TrainState.create(
-        apply_fn=model.__call__, params=model.params, tx=adamw, dropout_rng=dropout_rng)
+        apply_fn=model.__call__, params=model.params, tx=optimizer, dropout_rng=dropout_rng)
 
     # Label smoothed cross entropy
     def loss_fn(logits, labels, label_smoothing_factor=0.0):
