@@ -144,7 +144,21 @@ class ModelArguments:
             )
         },
     )
-
+    dropout: Optional[float] = field(
+        default=None, metadata={"help": "The dropout ratio for the dropout layer probabilities."}
+    )
+    attention_dropout: Optional[float] = field(
+        default=None, metadata={"help": "The dropout ratio for the attention probabilities."}
+    )
+    activation_dropout: Optional[float] = field(
+        default=None, metadata={"help": "The dropout ratio for activations inside the fully connected layer."}
+    )
+    encoder_dropout: Optional[float] = field(
+        default=None, metadata={"help": "The dropout ratio for the encoder layer dropout probabilities."}
+    )
+    decoder_dropout: Optional[float] = field(
+        default=None, metadata={"help": "The dropout ratio for the decoder layer dropout probabilities."}
+    )
 
 @flax.struct.dataclass
 class DataTrainingArguments:
@@ -666,6 +680,13 @@ def main():
         revision=model_args.model_revision,
         use_auth_token=True if model_args.use_auth_token else None,
     )
+    config.update({
+        "dropout": model_args.dropout or config.get("dropout", 0.0),
+        "attention_dropout": model_args.attention_dropout or config.get("attention_dropout", 0.0),
+        "activation_dropout": model_args.activation_dropout or config.get("activation_dropout", 0.0),
+        "decoder_layerdrop": model_args.decoder_dropout or config.get("decoder_dropout", 0.0),
+        "encoder_layerdrop": model_args.encoder_dropout or config.get("encoder_dropout", 0.0),
+    })
     feature_extractor = AutoFeatureExtractor.from_pretrained(
         model_args.feature_extractor_name if model_args.feature_extractor_name else model_name_or_path,
         cache_dir=model_args.cache_dir,
