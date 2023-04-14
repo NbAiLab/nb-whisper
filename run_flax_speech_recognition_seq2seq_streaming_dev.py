@@ -768,7 +768,7 @@ def main():
         ) if do_lower_case else batch[text_column_name]
         if do_remove_punctuation:
             input_str = normalizer(input_str).strip()
-        batch["labels"] = tokenizer(input_str,truncation=True, max_length=max_label_length).input_ids
+        batch["labels"] = tokenizer(input_str, truncation=True, max_length=max_label_length).input_ids
         return batch
 
     with training_args.main_process_first(desc="dataset map pre-processing"):
