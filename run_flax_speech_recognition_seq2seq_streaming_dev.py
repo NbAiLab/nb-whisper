@@ -1199,20 +1199,21 @@ def main():
 
     train_metrics = []
     epoch = 0
-    train_dataset = vectorized_datasets["train"].shuffle(seed=training_args.seed, buffer_size=data_args.shuffle_buffer_size)
+    if training_args.do_train:
+        train_dataset = vectorized_datasets["train"].shuffle(seed=training_args.seed, buffer_size=data_args.shuffle_buffer_size)
+        # Split by node
+        train_dataset = split_dataset_by_node(train_dataset, rank=current_host_idx, world_size=num_of_hosts)   
     
-    # Split by node
-    train_dataset = split_dataset_by_node(train_dataset, rank=current_host_idx, world_size=num_of_hosts)   
-    
-    if train_dataset.n_shards < data_args.preprocessing_num_workers:
-        num_workers = train_dataset.n_shards
+        if train_dataset.n_shards < data_args.preprocessing_num_workers:
+            num_workers = train_dataset.n_shards
 
-    logger.info(f"  Number of train dataset workers = {num_workers} {'(Capped by the number of dataset shards)' if train_dataset.n_shards < data_args.preprocessing_num_workers else ''} {'(ADVICE: In most cases you will speed up training considerably if you increase the value of --preprocessing_num_workers!)' if num_workers < 10 else ''}")
- 
-    eval_dataset = vectorized_datasets["eval"]
-    train_loader = data_loader(train_dataset, train_batch_size // num_of_hosts, num_workers=num_workers)
+        logger.info(f"  Number of train dataset workers = {num_workers} {'(Capped by the number of dataset shards)' if train_dataset.n_shards < data_args.preprocessing_num_workers else ''} {'(ADVICE: In most cases you will speed up training considerably if you increase the value of --preprocessing_num_workers!)' if num_workers < 10 else ''}")
+        train_loader = data_loader(train_dataset, train_batch_size // num_of_hosts, num_workers=num_workers)
+
+    if training_args.do_eval:
+        eval_dataset = vectorized_datasets["eval"]
     
-    if not training_args.ignore_data_skip and training_state["step"] > 0:
+    if training_args.do_train not training_args.ignore_data_skip and training_state["step"] > 0:
         logger.info(
             f"  Will skip the first {training_state['step']} steps. If this takes a lot of time,"
             " you can add the `--ignore_data_skip` flag to your launch command, but you will resume the"
@@ -1237,30 +1238,31 @@ def main():
             continue
         
         # =========================== Training ===========================
-        try:
-            samples = next(train_loader)
-        except StopIteration:
-            epoch += 1
-            train_dataset.set_epoch(epoch)
-            train_loader = data_loader(train_dataset, train_batch_size // num_of_hosts, num_workers=num_workers)
-            samples = next(train_loader)
-            logger.info(
-                f"Completed epoch ({epoch} | Loss: {train_metric['loss']}, Learning Rate:"
-                f" {train_metric['learning_rate']})"
-            )
-            training_summary["hyperparameters"]["steps_per_epoch"] = step // epoch
-        
-        batch = data_collator(samples)
-        batch = shard(batch.data)
-        state, train_metric = p_train_step(state, batch)
-        train_metrics.append(train_metric)
-                
-        train_time += time.time() - train_start
-        train_metric = unreplicate(train_metric)
+        if training_args.do_train:
+            try:
+                samples = next(train_loader)
+            except StopIteration:
+                epoch += 1
+                train_dataset.set_epoch(epoch)
+                train_loader = data_loader(train_dataset, train_batch_size // num_of_hosts, num_workers=num_workers)
+                samples = next(train_loader)
+                logger.info(
+                    f"Completed epoch ({epoch} | Loss: {train_metric['loss']}, Learning Rate:"
+                    f" {train_metric['learning_rate']})"
+                )
+                training_summary["hyperparameters"]["steps_per_epoch"] = step // epoch
+
+            batch = data_collator(samples)
+            batch = shard(batch.data)
+            state, train_metric = p_train_step(state, batch)
+            train_metrics.append(train_metric)
+
+            train_time += time.time() - train_start
+            train_metric = unreplicate(train_metric)
 
         # ========================== Evaluating ==========================
         # Evaluate at each eval_steps, and at the end of training at num_train_steps
-        if step % training_args.eval_steps == 0 or step == data_args.num_train_steps - 1:
+        if training_args.do_eval and (step % training_args.eval_steps == 0 or step == data_args.num_train_steps - 1):
             logger.info(
                 f"Starting evaluation at step {step} of num_training_step {data_args.num_train_steps} steps. Planned evaluation every {training_args.eval_steps} steps." 
             )
