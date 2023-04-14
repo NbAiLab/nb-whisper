@@ -679,14 +679,19 @@ def main():
         cache_dir=model_args.cache_dir,
         revision=model_args.model_revision,
         use_auth_token=True if model_args.use_auth_token else None,
+        dropout = model_args.dropout,
+        attention_dropout = model_args.attention_dropout,
+        activation_dropout = model_args.activation_dropout,
+        decoder_layerdrop = model_args.decoder_dropout,
+        encoder_layerdrop = model_args.encoder_dropout,
     )
-    config.update({
-        "dropout": model_args.dropout or config.get("dropout", 0.0),
-        "attention_dropout": model_args.attention_dropout or config.get("attention_dropout", 0.0),
-        "activation_dropout": model_args.activation_dropout or config.get("activation_dropout", 0.0),
-        "decoder_layerdrop": model_args.decoder_dropout or config.get("decoder_dropout", 0.0),
-        "encoder_layerdrop": model_args.encoder_dropout or config.get("encoder_dropout", 0.0),
-    })
+    # config.update({
+    #     "dropout": model_args.dropout or config.get("dropout", 0.0),
+    #     "attention_dropout": model_args.attention_dropout or config.get("attention_dropout", 0.0),
+    #     "activation_dropout": model_args.activation_dropout or config.get("activation_dropout", 0.0),
+    #     "decoder_layerdrop": model_args.decoder_dropout or config.get("decoder_dropout", 0.0),
+    #     "encoder_layerdrop": model_args.encoder_dropout or config.get("encoder_dropout", 0.0),
+    # })
     feature_extractor = AutoFeatureExtractor.from_pretrained(
         model_args.feature_extractor_name if model_args.feature_extractor_name else model_name_or_path,
         cache_dir=model_args.cache_dir,
