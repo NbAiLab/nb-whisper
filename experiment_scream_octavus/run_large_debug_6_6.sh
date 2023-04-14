@@ -8,12 +8,12 @@ python ../run_flax_speech_recognition_seq2seq_streaming_debug2.py \
     --run_description "A Large Whisper Scream model - Debug delete." \
     --wandb_entity "nbailab" \
     --wandb_project "Scream - octavus" \
-    --dataset_name NbAiLab/NCC_speech_all_v5_6_6 \
+    --dataset_name NbAiLab/NCC_speech_all_v5 \
     --language Norwegian \
     --text_column_name text \
     --train_split_name train\
     --eval_split_name validation\
-    --output_dir ../../scream_large_octavus_debug\
+    --output_dir ../../scream_large_octavus_debug_6_6\
     --overwrite_output_dir\
     --warmup_steps 500 \
     --do_train \
