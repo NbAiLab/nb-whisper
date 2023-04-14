@@ -1213,7 +1213,7 @@ def main():
     if training_args.do_eval:
         eval_dataset = vectorized_datasets["eval"]
     
-    if training_args.do_train not training_args.ignore_data_skip and training_state["step"] > 0:
+    if training_args.do_train and not training_args.ignore_data_skip and training_state["step"] > 0:
         logger.info(
             f"  Will skip the first {training_state['step']} steps. If this takes a lot of time,"
             " you can add the `--ignore_data_skip` flag to your launch command, but you will resume the"
