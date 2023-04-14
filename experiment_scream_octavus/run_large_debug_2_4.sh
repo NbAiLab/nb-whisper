@@ -13,7 +13,7 @@ python ../run_flax_speech_recognition_seq2seq_streaming_debug2.py \
     --text_column_name text \
     --train_split_name train\
     --eval_split_name validation\
-    --output_dir ../../scream_large_octavus_debug\
+    --output_dir ../../scream_large_octavus_debug_2_4\
     --overwrite_output_dir\
     --warmup_steps 500 \
     --do_train \
@@ -32,7 +32,7 @@ python ../run_flax_speech_recognition_seq2seq_streaming_debug2.py \
     --use_auth_token True \
     --dtype bfloat16 \
     --hub_private_repo True \
-    --hub_model_id NbAiLab/scream_large_octavus_debug \
+    --hub_model_id NbAiLab/scream_large_octavus_debug_2_4 \
     --resume_from_checkpoint True \
     --ignore_data_skip True \
     --push_to_hub
