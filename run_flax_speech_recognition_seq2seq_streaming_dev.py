@@ -679,15 +679,23 @@ def main():
         cache_dir=model_args.cache_dir,
         revision=model_args.model_revision,
         use_auth_token=True if model_args.use_auth_token else None,
-        dropout = model_args.dropout,
-        attention_dropout = model_args.attention_dropout,
-        activation_dropout = model_args.activation_dropout,
-        decoder_layerdrop = model_args.decoder_dropout,
-        encoder_layerdrop = model_args.encoder_dropout,
     )
-
-    breakpoint()
-    # TODO - Javier - did not have time to debug what went wrong here, but the following lines were not working
+    
+    attributes = [
+        ("dropout", model_args.dropout),
+        ("attention_dropout", model_args.attention_dropout),
+        ("activation_dropout", model_args.activation_dropout),
+        ("decoder_layerdrop", model_args.decoder_dropout),
+        ("encoder_layerdrop", model_args.encoder_dropout),
+    ]
+    
+    for attr, value in attributes:
+        if value is not None:
+            setattr(config, attr, value)
+        
+    # Update config with arguments. Use values set by model_args if they are not None, otherwise use values from config
+    
+    # TODO: Javier. This does not work because .get is not available here. Check my rewrite above and see if it does the same as you wanted.
     # config.update({
     #     "dropout": model_args.dropout or config.get("dropout", 0.0),
     #     "attention_dropout": model_args.attention_dropout or config.get("attention_dropout", 0.0),
@@ -695,6 +703,7 @@ def main():
     #     "decoder_layerdrop": model_args.decoder_dropout or config.get("decoder_dropout", 0.0),
     #     "encoder_layerdrop": model_args.encoder_dropout or config.get("encoder_dropout", 0.0),
     # })
+    
     feature_extractor = AutoFeatureExtractor.from_pretrained(
         model_args.feature_extractor_name if model_args.feature_extractor_name else model_name_or_path,
         cache_dir=model_args.cache_dir,
