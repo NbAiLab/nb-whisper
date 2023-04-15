@@ -4,8 +4,8 @@ export TCMALLOC_VERBOSE=0
 export TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD=10000000000
 python ../run_flax_speech_recognition_seq2seq_streaming_dev.py \
     --model_name_or_path openai/whisper-large-v2 \
-    --run_name "Scream - non_large_5e05_beam5" \
-    --run_description "A Large Whisper Scream model with 5 batch size. Trained with 3e-6 and linear decay on the all_v5-corpus." \
+    --run_name "Scream - non_large_5e05" \
+    --run_description "A Large Whisper Scream model with 5 batch size. Trained with 5e-6 and linear decay on the all_v5-corpus." \
     --wandb_entity "nbailab" \
     --wandb_project "Scream - septimus" \
     --dataset_name NbAiLab/NCC_speech_all_v5 \
@@ -13,7 +13,7 @@ python ../run_flax_speech_recognition_seq2seq_streaming_dev.py \
     --text_column_name text \
     --train_split_name train\
     --eval_split_name validation\
-    --output_dir ../../scream_non_large_5e05_beam5\
+    --output_dir ../../scream_non_large_5e05\
     --overwrite_output_dir\
     --warmup_steps 2000 \
     --do_train \
@@ -32,7 +32,7 @@ python ../run_flax_speech_recognition_seq2seq_streaming_dev.py \
     --use_auth_token True \
     --dtype bfloat16 \
     --hub_private_repo True \
-    --hub_model_id NbAiLab/scream_non_large_5e05_beam5 \
+    --hub_model_id NbAiLab/scream_non_large_5e05 \
     --resume_from_checkpoint True \
     --ignore_data_skip \
     --push_to_hub
