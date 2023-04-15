@@ -685,6 +685,8 @@ def main():
         decoder_layerdrop = model_args.decoder_dropout,
         encoder_layerdrop = model_args.encoder_dropout,
     )
+
+    breakpoint()
     # TODO - Javier - did not have time to debug what went wrong here, but the following lines were not working
     # config.update({
     #     "dropout": model_args.dropout or config.get("dropout", 0.0),
