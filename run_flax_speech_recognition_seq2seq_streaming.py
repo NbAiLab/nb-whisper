@@ -27,7 +27,7 @@ Fine-tuning the Flax library models for sequence to sequence speech recognition.
 
 import os
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = 2
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
 import itertools
 import json
