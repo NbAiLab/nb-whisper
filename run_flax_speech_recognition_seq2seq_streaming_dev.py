@@ -1166,18 +1166,18 @@ def main():
     if training_state['step'] > 0:
         logger.info(f"  ↪ Starting at {training_state['step'],:} and finishing at {data_args.num_train_steps,:}")
 
-    if training_args.dropout or training_args.attention_dropout or training_args.activation_dropout or training_args.encoder_dropout or training_args.decoder_dropout:
+    if model_args.dropout or model_args.attention_dropout or model_args.activation_dropout or model_args.encoder_dropout or model_args.decoder_dropout:
         logger.info("  Dropout = True")
-        if training_args.dropout:
-            logger.info(f"  ↪ Dropout probability = {training_args.dropout}")
-        if training_args.attention_dropout:
-            logger.info(f"  ↪ Attention dropout probability = {training_args.attention_dropout}")
-        if training_args.activation_dropout:
-            logger.info(f"  ↪ Activation dropout probability = {training_args.activation_dropout}")
-        if training_args.encoder_dropout:
-            logger.info(f"  ↪ Encoder dropout probability = {training_args.encoder_dropout}")
-        if training_args.decoder_dropout:
-            logger.info(f"  ↪ Decoder dropout probability = {training_args.decoder_dropout}")
+        if model_args.dropout:
+            logger.info(f"  ↪ Dropout probability = {model_args.dropout}")
+        if model_args.attention_dropout:
+            logger.info(f"  ↪ Attention dropout probability = {model_args.attention_dropout}")
+        if model_args.activation_dropout:
+            logger.info(f"  ↪ Activation dropout probability = {model_args.activation_dropout}")
+        if model_args.encoder_dropout:
+            logger.info(f"  ↪ Encoder dropout probability = {model_args.encoder_dropout}")
+        if model_args.decoder_dropout:
+            logger.info(f"  ↪ Decoder dropout probability = {model_args.decoder_dropout}")
 
 
 
@@ -1209,7 +1209,7 @@ def main():
             "per_device_train_batch_size": training_args.per_device_train_batch_size,
             "total_train_batch_size_per_node": train_batch_size // num_of_hosts,
             "total_train_batch_size": train_batch_size,
-            "total_optimization_steps": data_args.num_train_steps - training_state['step'],
+            "total_optimization_steps": f("{(data_args.num_train_steps - training_state['step']):,}",
             "starting_optimization_step": f"{training_state['step']:,}" if training_state['step'] > 0 else None,
             "finishing_optimization_step": data_args.num_train_steps,
             "num_train_dataset_workers": f"{num_workers}",
@@ -1226,18 +1226,18 @@ def main():
         training_summary["hyperparameters"]["gradient_accumulation_steps"] = f"{training_args.gradient_accumulation_steps:,}"
         training_summary["hyperparameters"]["effective_total_train_batch_size"] = f"{train_batch_size * training_args.gradient_accumulation_steps:,}"
     
-    if training_args.dropout or training_args.attention_dropout or training_args.activation_dropout or training_args.encoder_dropout or training_args.decoder_dropout:
+    if model_args.dropout or model_args.attention_dropout or model_args.activation_dropout or model_args.encoder_dropout or model_args.decoder_dropout:
         training_summary["hyperparameters"]["dropout"] = True
-        if training_args.dropout:
-            training_summary["hyperparameters"]["dropout_probability"] = training_args.dropout
-        if training_args.attention_dropout:
-            training_summary["hyperparameters"]["attention_dropout_probability"] = training_args.attention_dropout
-        if training_args.activation_dropout:
-            training_summary["hyperparameters"]["activation_dropout_probability"] = training_args.activation_dropout
-        if training_args.encoder_dropout:
-            training_summary["hyperparameters"]["encoder_dropout_probability"] = training_args.encoder_dropout
-        if training_args.decoder_dropout:
-            training_summary["hyperparameters"]["decoder_dropout_probability"] = training_args.decoder_dropout
+        if model_args.dropout:
+            training_summary["hyperparameters"]["dropout_probability"] = model_args.dropout
+        if model_args.attention_dropout:
+            training_summary["hyperparameters"]["attention_dropout_probability"] = model_args.attention_dropout
+        if model_args.activation_dropout:
+            training_summary["hyperparameters"]["activation_dropout_probability"] = model_args.activation_dropout
+        if model_args.encoder_dropout:
+            training_summary["hyperparameters"]["encoder_dropout_probability"] = model_args.encoder_dropout
+        if model_args.decoder_dropout:
+            training_summary["hyperparameters"]["decoder_dropout_probability"] = model_args.decoder_dropout
 
     # Create README if it does not exist
     readme = output_dir / "README.md"
