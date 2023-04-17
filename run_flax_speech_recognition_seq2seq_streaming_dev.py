@@ -1143,7 +1143,7 @@ def main():
     logger.info(
         f"  Scheduler = {training_args.lr_scheduler_type}")
     logger.info(
-        f"  Num examples = {data_args.num_train_steps * train_batch_size,:}")
+        f"  Num examples = {data_args.num_train_steps * train_batch_size:,}")
     if model_args.num_beams:
         logger.info(
         f"  Num beams evaluation = {model_args.num_beams}")
@@ -1162,7 +1162,7 @@ def main():
         logger.info(
             f"  Gradient accumulation steps = {training_args.gradient_accumulation_steps}")
         logger.info(f"  ↪ Effective total batch size = {train_batch_size * training_args.gradient_accumulation_steps:,}")
-    logger.info(f"  Total optimization steps = {data_args.num_train_steps - training_state['step']}")
+    logger.info(f"  Total optimization steps = {data_args.num_train_steps - training_state['step']:,}")
     if training_state['step'] > 0:
         logger.info(f"  ↪ Starting at {training_state['step'],:} and finishing at {data_args.num_train_steps,:}")
 
