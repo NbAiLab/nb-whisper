@@ -36,5 +36,5 @@ python ../run_flax_speech_recognition_seq2seq_streaming.py \
     --resume_from_checkpoint True \
     --ignore_data_skip \
     --dropout 0.1 \
-    --gradient@accumulagradient_accumulation_steps 2 \
+    --gradient_accumulation_steps 2 \
     --push_to_hub
