@@ -3,9 +3,9 @@ export CMALLOC_VERBOSE=0
 export TCMALLOC_VERBOSE=0
 export TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD=10000000000
 export TF_CPP_MIN_LOG_LEVEL=2
-python ../run_flax_speech_recognition_seq2seq_streaming_dev.py \
+python ../run_flax_speech_recognition_seq2seq_streaming.py \
         --model_name_or_path openai/whisper-small \
-        --run_name "Scream - non_small_64pod_1e4_beam5_dropout" \
+        --run_name "Scream - small_maxtest" \
         --run_description "A Small Scream model. Trained with linear decay only on the all_v5 corpus. This version is trained with a learning rate of 6e6." \
         --wandb_entity "nbailab" \
         --wandb_project "Scream - septimus" \
@@ -14,7 +14,7 @@ python ../run_flax_speech_recognition_seq2seq_streaming_dev.py \
         --text_column_name text \
         --train_split_name train \
         --eval_split_name validation \
-        --output_dir ../../scream_non_small_64pod_1e4_beam5_dropout\
+        --output_dir ../../scream_small_maxtest\
         --overwrite_output_dir\
         --warmup_steps 5000 \
         --do_train \
@@ -22,7 +22,7 @@ python ../run_flax_speech_recognition_seq2seq_streaming_dev.py \
         --num_train_steps 50000 \
         --lr_scheduler_type linear \
         --eval_steps 2500 \
-        --learning_rate 1e-4 \
+        --learning_rate 8e-6 \
         --preprocessing_num_workers 32 \
         --per_device_train_batch_size 24 \
         --per_device_eval_batch_size 4 \
@@ -33,9 +33,11 @@ python ../run_flax_speech_recognition_seq2seq_streaming_dev.py \
         --use_auth_token True \
         --dtype bfloat16 \
         --hub_private_repo True \
-        --hub_model_id NbAiLab/small_non_64pod_1e4_beam5_dropout \
+        --hub_model_id NbAiLab/scream_small_maxtest \
         --resume_from_checkpoint True \
         --num_beams 5 \
         --ignore_data_skip \
-        --dropout 0.1 \
+        --decoder_dropout 0.1 \
+        --encoder_dropout 0.1 \
+        --gradient_accumulation_steps 4 \
         --push_to_hub

@@ -2,6 +2,7 @@ export TOKENIZERS_PARALELLISM=false
 export CMALLOC_VERBOSE=0
 export TCMALLOC_VERBOSE=0
 export TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD=10000000000
+export TF_CPP_MIN_LOG_LEVEL
 python ../run_flax_speech_recognition_seq2seq_streaming_dev.py \
         --model_name_or_path openai/whisper-small \
         --run_name "Scream - non_small_64pod_1e4_beam5" \

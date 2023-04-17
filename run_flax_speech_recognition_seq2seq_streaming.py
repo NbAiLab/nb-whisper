@@ -1,6 +1,13 @@
 #!/usr/bin/env python
 # coding=utf-8
-# Copyright 2023 The HuggingFace Inc. team. All rights reserved.
+# Original code Copyright 2023 The HuggingFace Inc. team. All rights reserved.
+# Additions and modifications Copyright 2023 National Library of Norway. All rights reserved.
+#
+# This code is based on the original script developed by HuggingFace Inc.
+# Substantial additions and modifications have been made by the AiLab at the
+# National Library of Norway, with contributions from Per Egil Kummervold
+# and Javier de la Rosa, including TPU Pod support, Dataset Streaming, 
+# performance enhancements, and support for new features.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -10,7 +17,7 @@
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR COND    ITIONS OF ANY KIND, either express or implied.
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
@@ -18,10 +25,10 @@ Fine-tuning the Flax library models for sequence to sequence speech recognition.
 """
 # You can also adapt this script on your own sequence to sequence task. Pointers for this are left as comments.
 
+import os
 import itertools
 import json
 import logging
-import os
 import shutil
 import socket
 import sys
@@ -78,9 +85,8 @@ from flax.training import checkpoints
 check_min_version("4.27.0.dev0")
 
 require_version("datasets>=1.18.2",
-                "To fix: pip install -r examples/flax/speech-recogintion/requirements.txt")
+                "To fix: pip install datasets>=1.18.2")
 
-os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 logger = logging.getLogger(__name__)
 
@@ -144,7 +150,21 @@ class ModelArguments:
             )
         },
     )
-
+    dropout: Optional[float] = field(
+        default=None, metadata={"help": "The dropout ratio for the dropout layer probabilities."}
+    )
+    attention_dropout: Optional[float] = field(
+        default=None, metadata={"help": "The dropout ratio for the attention probabilities."}
+    )
+    activation_dropout: Optional[float] = field(
+        default=None, metadata={"help": "The dropout ratio for activations inside the fully connected layer."}
+    )
+    encoder_dropout: Optional[float] = field(
+        default=None, metadata={"help": "The dropout ratio for the encoder layer dropout probabilities."}
+    )
+    decoder_dropout: Optional[float] = field(
+        default=None, metadata={"help": "The dropout ratio for the decoder layer dropout probabilities."}
+    )
 
 @flax.struct.dataclass
 class DataTrainingArguments:
@@ -207,10 +227,10 @@ class DataTrainingArguments:
         metadata={
             "help": "Filter audio files that are shorter than `min_duration_in_seconds` seconds"},
     )
-    max_label_length: float = field(
-        default=128,
+    max_label_length: Optional[int] = field(
+        default=256,
         metadata={
-            "help": "Truncate transcriptions that are longer `max_eval_length` tokens."},
+            "help": "Truncate transcriptions that are longer `max_label_length` tokens."},
     )
     pad_input_to_multiple_of: Optional[int] = field(
         default=None,
@@ -407,7 +427,9 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
         if (labels[:, 0] == self.decoder_start_token_id).all().item():
             labels = labels[:, 1:]
             labels_batch.attention_mask = labels_batch.attention_mask[:, 1:]
-
+        
+        
+            
         decoder_input_ids = shift_tokens_right(
             labels, self.decoder_start_token_id)
 
@@ -419,7 +441,7 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
         batch["labels"] = labels
         batch["decoder_input_ids"] = decoder_input_ids
         batch["attention_mask"] = labels_batch.attention_mask  # Add attention_mask to the batch
-
+        
         return batch
 
 
@@ -522,14 +544,7 @@ def main():
         datefmt="%m/%d/%Y %H:%M:%S",
         handlers=[logging.StreamHandler(sys.stdout)],
     )
-    # Set the verbosity to info of the Transformers logger.
-    # We only want one process per machine to log things on the screen.
 
-    # logger.setLevel(logging.INFO if jax.local_devices()[0].id%jax.local_device_count() == 0 else logging.ERROR)
-
-    # logger.setLevel(logging.INFO if jax.process_index()
-    #                == 0 else logging.ERROR)
-    
     # Number of hosts
     num_of_hosts = jax.process_count()
     current_host_idx = jax.process_index()
@@ -664,6 +679,16 @@ def main():
         revision=model_args.model_revision,
         use_auth_token=True if model_args.use_auth_token else None,
     )
+       
+    # Update config with arguments. Use values set by model_args if they are not None, otherwise use values from config
+    config.update({
+        "dropout": model_args.dropout or getattr(config, "dropout", 0.0),
+        "attention_dropout": model_args.attention_dropout or getattr(config, "attention_dropout", 0.0),
+        "activation_dropout": model_args.activation_dropout or getattr(config, "activation_dropout", 0.0),
+        "decoder_layerdrop": model_args.decoder_dropout or getattr(config, "decoder_dropout", 0.0),
+        "encoder_layerdrop": model_args.encoder_dropout or getattr(config, "encoder_dropout", 0.0),
+    })
+    
     feature_extractor = AutoFeatureExtractor.from_pretrained(
         model_args.feature_extractor_name if model_args.feature_extractor_name else model_name_or_path,
         cache_dir=model_args.cache_dir,
@@ -729,7 +754,8 @@ def main():
         # We only need to set the task id when the language is specified (i.e. in a multilingual setting)
         tokenizer.set_prefix_tokens(
             language=data_args.language, task=data_args.task)
-
+    
+    
     def prepare_dataset(batch):
         # Process audio
         sample = batch[audio_column_name]
@@ -744,7 +770,7 @@ def main():
         ) if do_lower_case else batch[text_column_name]
         if do_remove_punctuation:
             input_str = normalizer(input_str).strip()
-        batch["labels"] = tokenizer(input_str).input_ids
+        batch["labels"] = tokenizer(input_str, truncation=True, max_length=max_label_length).input_ids
         return batch
 
     with training_args.main_process_first(desc="dataset map pre-processing"):
@@ -911,10 +937,11 @@ def main():
                 f"Unable to display metrics through TensorBoard because some packages are not installed: {ie}"
             )
     else:
-        logger.warning(
-            "Unable to display metrics through TensorBoard because the package is not installed: "
-            "Please run pip install tensorboard to enable."
-        )
+        if current_host_idx == 0:
+            logger.warning(
+                "Unable to display metrics through TensorBoard because the package is not installed: "
+                "Please run pip install tensorboard to enable."
+            )
 
     # Initialize our training
     rng = jax.random.PRNGKey(training_args.seed)
@@ -972,7 +999,7 @@ def main():
         return traverse_util.unflatten_dict(flat_mask)
     
     # Create adam optimizer
-    adamw = optax.adamw(
+    optimizer = optax.adamw(
         learning_rate=linear_decay_lr_schedule_fn,
         b1=training_args.adam_beta1,
         b2=training_args.adam_beta2,
@@ -980,10 +1007,14 @@ def main():
         weight_decay=training_args.weight_decay,
         mask=decay_mask_fn,
     )
+    if training_args.gradient_accumulation_steps > 1:
+        optimizer = optax.MultiSteps(
+            optimizer, training_args.gradient_accumulation_steps
+        )
 
     # Setup train state
     state = TrainState.create(
-        apply_fn=model.__call__, params=model.params, tx=adamw, dropout_rng=dropout_rng)
+        apply_fn=model.__call__, params=model.params, tx=optimizer, dropout_rng=dropout_rng)
 
     # Label smoothed cross entropy
     def loss_fn(logits, labels, label_smoothing_factor=0.0):
@@ -1061,10 +1092,17 @@ def main():
     num_beams = model_args.num_beams if model_args.num_beams is not None else model.config.num_beams
     gen_kwargs = {"max_length": max_label_length, "num_beams": num_beams}
 
+     
     def generate_step(params, batch):
         model.params = params
-        output_ids = model.generate(batch[model_input_name], attention_mask=batch.get(
-            "attention_mask"), **gen_kwargs)
+        
+        attention_mask = batch.get("attention_mask")
+        
+        #if attention_mask is not None:
+        output_ids = model.generate(batch[model_input_name], attention_mask=attention_mask, **gen_kwargs)
+        #else:
+        #    output_ids = model.generate(batch[model_input_name], **gen_kwargs)
+        
         return output_ids.sequences
 
     # Create parallel version of the train and eval step
@@ -1081,6 +1119,11 @@ def main():
     # Logging
     logger.info("***** Running training *****")
     logger.info(
+        f"  Original model = {model_args.model_name_or_path}")
+    if training_args.push_to_hub:
+        logger.info(
+        f"  Hub model id = {training_args.hub_model_id}")
+    logger.info(
         f"  Dataset name = {data_args.dataset_name}")
     logger.info(
         f"  Dataset config name = {data_args.dataset_config_name}")
@@ -1089,21 +1132,41 @@ def main():
     logger.info(
         f"  Scheduler = {training_args.lr_scheduler_type}")
     logger.info(
-        f"  Num examples = {data_args.num_train_steps * train_batch_size}")
-    if num_of_hosts > 1:
+        f"  Num examples = {data_args.num_train_steps * train_batch_size:,}")
+    if model_args.num_beams:
         logger.info(
-            f"  Number of hosts = {num_of_hosts}")
+        f"  Num beams evaluation = {model_args.num_beams}")
+    logger.info(
+        f"  Number of hosts = {num_of_hosts}")
+    if num_of_hosts > 1:
         logger.info(
             f"  Current host idx = {current_host_idx}")
     logger.info(
         f"  Instantaneous batch size per device = {training_args.per_device_train_batch_size}")
     logger.info(
-        f"  Total train batch size per node (w. parallel & distributed) = {train_batch_size // num_of_hosts}")
+        f"  Total train batch size per node (w. parallel & distributed) = {train_batch_size // num_of_hosts:,}")
     logger.info(
         f"  Total train batch size (w. parallel & distributed) = {train_batch_size}")
-    logger.info(f"  Total optimization steps = {data_args.num_train_steps - training_state['step']}")
+    if training_args.gradient_accumulation_steps > 1:
+        logger.info(
+            f"  Gradient accumulation steps = {training_args.gradient_accumulation_steps}")
+        logger.info(f"  ↪ Effective total batch size = {train_batch_size * training_args.gradient_accumulation_steps:,}")
+    logger.info(f"  Total optimization steps = {data_args.num_train_steps - training_state['step']:,}")
     if training_state['step'] > 0:
-        logger.info(f"  ↪ Starting at {str(training_state['step'])} and finishing at {str(data_args.num_train_steps)}")
+        logger.info(f"  ↪ Starting at {training_state['step']:,} and finishing at {data_args.num_train_steps:,}")
+
+    if model_args.dropout or model_args.attention_dropout or model_args.activation_dropout or model_args.encoder_dropout or model_args.decoder_dropout:
+        logger.info("  Dropout = True")
+        if model_args.dropout:
+            logger.info(f"  ↪ Dropout probability = {model_args.dropout}")
+        if model_args.attention_dropout:
+            logger.info(f"  ↪ Attention dropout probability = {model_args.attention_dropout}")
+        if model_args.activation_dropout:
+            logger.info(f"  ↪ Activation dropout probability = {model_args.activation_dropout}")
+        if model_args.encoder_dropout:
+            logger.info(f"  ↪ Encoder dropout probability = {model_args.encoder_dropout}")
+        if model_args.decoder_dropout:
+            logger.info(f"  ↪ Decoder dropout probability = {model_args.decoder_dropout}")
 
     train_time = 0
 
@@ -1133,16 +1196,36 @@ def main():
             "per_device_train_batch_size": training_args.per_device_train_batch_size,
             "total_train_batch_size_per_node": train_batch_size // num_of_hosts,
             "total_train_batch_size": train_batch_size,
-            "total_optimization_steps": data_args.num_train_steps - training_state['step'],
-            "starting_optimization_step": training_state['step'] if training_state['step'] > 0 else None,
-            "finishing_optimization_step": data_args.num_train_steps,
+            "total_optimization_steps": f"{(data_args.num_train_steps - training_state['step']):,}",
+            "starting_optimization_step": f"{training_state['step']:,}" if training_state['step'] > 0 else None,
+            "finishing_optimization_step": f"{data_args.num_train_steps:,}",
             "num_train_dataset_workers": f"{num_workers}",
-            "total_num_training_examples": data_args.num_train_steps * train_batch_size,
+            "numb_hosts": f"{num_of_hosts}",
+            "total_num_training_examples": f"{data_args.num_train_steps * train_batch_size:,}",
+            "steps_per_epoch": "To be computed after first epoch",
+            "num_beams": model_args.num_beams,
         },
         # TODO: Adapt https://github.com/huggingface/transformers/blob/main/src/transformers/modelcard.py#L855
         # "hyperparameters": training_args.to_sanitized_dict()
-    }
+    }   
+        
+    if training_args.gradient_accumulation_steps > 1:
+        training_summary["hyperparameters"]["gradient_accumulation_steps"] = f"{training_args.gradient_accumulation_steps:,}"
+        training_summary["hyperparameters"]["effective_total_train_batch_size"] = f"{train_batch_size * training_args.gradient_accumulation_steps:,}"
     
+    if model_args.dropout or model_args.attention_dropout or model_args.activation_dropout or model_args.encoder_dropout or model_args.decoder_dropout:
+        training_summary["hyperparameters"]["dropout"] = True
+        if model_args.dropout:
+            training_summary["hyperparameters"]["dropout_probability"] = model_args.dropout
+        if model_args.attention_dropout:
+            training_summary["hyperparameters"]["attention_dropout_probability"] = model_args.attention_dropout
+        if model_args.activation_dropout:
+            training_summary["hyperparameters"]["activation_dropout_probability"] = model_args.activation_dropout
+        if model_args.encoder_dropout:
+            training_summary["hyperparameters"]["encoder_dropout_probability"] = model_args.encoder_dropout
+        if model_args.decoder_dropout:
+            training_summary["hyperparameters"]["decoder_dropout_probability"] = model_args.decoder_dropout
+
     # Create README if it does not exist
     readme = output_dir / "README.md"
     if not readme.exists():
@@ -1153,20 +1236,21 @@ def main():
 
     train_metrics = []
     epoch = 0
-    train_dataset = vectorized_datasets["train"].shuffle(seed=training_args.seed, buffer_size=data_args.shuffle_buffer_size)
+    if training_args.do_train:
+        train_dataset = vectorized_datasets["train"].shuffle(seed=training_args.seed, buffer_size=data_args.shuffle_buffer_size)
+        # Split by node
+        train_dataset = split_dataset_by_node(train_dataset, rank=current_host_idx, world_size=num_of_hosts)   
     
-    # Split by node
-    train_dataset = split_dataset_by_node(train_dataset, rank=current_host_idx, world_size=num_of_hosts)   
-    
-    if train_dataset.n_shards < data_args.preprocessing_num_workers:
-        num_workers = train_dataset.n_shards
+        if train_dataset.n_shards < data_args.preprocessing_num_workers:
+            num_workers = train_dataset.n_shards
 
-    logger.info(f"  Number of train dataset workers = {num_workers} {'(Capped by the number of dataset shards)' if train_dataset.n_shards < data_args.preprocessing_num_workers else ''} {'(ADVICE: In most cases you will speed up training considerably if you increase the value of --preprocessing_num_workers!)' if num_workers < 10 else ''}")
- 
-    eval_dataset = vectorized_datasets["eval"]
-    train_loader = data_loader(train_dataset, train_batch_size // num_of_hosts, num_workers=num_workers)
+        logger.info(f"  Number of train dataset workers = {num_workers} {'(Capped by the number of dataset shards)' if train_dataset.n_shards < data_args.preprocessing_num_workers else ''} {'(ADVICE: In most cases you will speed up training considerably if you increase the value of --preprocessing_num_workers!)' if num_workers < 10 else ''}")
+        train_loader = data_loader(train_dataset, train_batch_size // num_of_hosts, num_workers=num_workers)
+
+    if training_args.do_eval:
+        eval_dataset = vectorized_datasets["eval"]
     
-    if not training_args.ignore_data_skip and training_state["step"] > 0:
+    if training_args.do_train and not training_args.ignore_data_skip and training_state["step"] > 0:
         logger.info(
             f"  Will skip the first {training_state['step']} steps. If this takes a lot of time,"
             " you can add the `--ignore_data_skip` flag to your launch command, but you will resume the"
@@ -1182,38 +1266,41 @@ def main():
                 samples = next(train_loader)
             batch = data_collator(samples)
             # batch = shard(batch.data)
-
+    
+    
     for step in tqdm(range(data_args.num_train_steps), desc="Training...", position=1, leave=False):
+        
         # Skip initial steps if these are specified. 
         if step < training_state["step"]:
             continue
         
         # =========================== Training ===========================
-        try:
-            samples = next(train_loader)
-        except StopIteration:
-            epoch += 1
-            train_dataset.set_epoch(epoch)
-            train_loader = data_loader(train_dataset, train_batch_size // num_of_hosts, num_workers=num_workers)
-            samples = next(train_loader)
-            logger.info(
-                f"Completed epoch ({epoch} | Loss: {train_metric['loss']}, Learning Rate:"
-                f" {train_metric['learning_rate']})"
-            )
+        if training_args.do_train:
+            try:
+                samples = next(train_loader)
+            except StopIteration:
+                epoch += 1
+                train_dataset.set_epoch(epoch)
+                train_loader = data_loader(train_dataset, train_batch_size // num_of_hosts, num_workers=num_workers)
+                samples = next(train_loader)
+                logger.info(
+                    f"Completed epoch ({epoch} | Loss: {train_metric['loss']}, Learning Rate:"
+                    f" {train_metric['learning_rate']})"
+                )
+                training_summary["hyperparameters"]["steps_per_epoch"] = step // epoch
 
-        batch = data_collator(samples)
-        batch = shard(batch.data)
-        
-        state, train_metric = p_train_step(state, batch)
-        
-        train_metrics.append(train_metric)
-        
-        train_time += time.time() - train_start
-        train_metric = unreplicate(train_metric)
+            batch = data_collator(samples)
+            batch = shard(batch.data)
+                      
+            state, train_metric = p_train_step(state, batch)
+            train_metrics.append(train_metric)
+
+            train_time += time.time() - train_start
+            train_metric = unreplicate(train_metric)
 
         # ========================== Evaluating ==========================
         # Evaluate at each eval_steps, and at the end of training at num_train_steps
-        if step % training_args.eval_steps == 0 or step == data_args.num_train_steps - 1:
+        if training_args.do_eval and (step % training_args.eval_steps == 0 or step == data_args.num_train_steps - 1):
             logger.info(
                 f"Starting evaluation at step {step} of num_training_step {data_args.num_train_steps} steps. Planned evaluation every {training_args.eval_steps} steps." 
             )
