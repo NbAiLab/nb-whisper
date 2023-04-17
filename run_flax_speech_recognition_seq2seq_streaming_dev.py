@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # coding=utf-8
-# Copyright 2023 The HuggingFace Inc. team. All rights reserved.
+# Original training script copyright 2023 The HuggingFace Inc. team. All rights reserved.
+# Support for streaming and training on TPU Pods are added by Per Egil Kummervold and Javier de la Rosa from the AiLab, National Library of Norway
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -1178,8 +1179,6 @@ def main():
             logger.info(f"  ↪ Encoder dropout probability = {model_args.encoder_dropout}")
         if model_args.decoder_dropout:
             logger.info(f"  ↪ Decoder dropout probability = {model_args.decoder_dropout}")
-
-
 
     train_time = 0
 
