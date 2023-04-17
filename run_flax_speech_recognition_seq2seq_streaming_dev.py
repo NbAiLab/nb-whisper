@@ -1147,7 +1147,7 @@ def main():
     logger.info(
         f"  Scheduler = {training_args.lr_scheduler_type}")
     logger.info(
-        f"  Num examples = {data_args.num_train_steps * train_batch_size}")
+        f"  Num examples = {data_args.num_train_steps * train_batch_size,:}")
     if model_args.num_beams:
         logger.info(
         f"  Num beams evaluation = {model_args.num_beams}")
@@ -1159,12 +1159,16 @@ def main():
     logger.info(
         f"  Instantaneous batch size per device = {training_args.per_device_train_batch_size}")
     logger.info(
-        f"  Total train batch size per node (w. parallel & distributed) = {train_batch_size // num_of_hosts}")
+        f"  Total train batch size per node (w. parallel & distributed) = {train_batch_size // num_of_hosts:,}")
     logger.info(
         f"  Total train batch size (w. parallel & distributed) = {train_batch_size}")
+    if training_args.gradient_accumulation_steps > 1:
+        logger.info(
+            f"  Gradient accumulation steps = {training_args.gradient_accumulation_steps}")
+        logger.info(f"  ↪ Effective total batch size = {train_batch_size * training_args.gradient_accumulation_steps:,}")
     logger.info(f"  Total optimization steps = {data_args.num_train_steps - training_state['step']}")
     if training_state['step'] > 0:
-        logger.info(f"  ↪ Starting at {str(training_state['step'])} and finishing at {str(data_args.num_train_steps)}")
+        logger.info(f"  ↪ Starting at {training_state['step'],:} and finishing at {data_args.num_train_steps,:}")
 
     train_time = 0
 
@@ -1198,13 +1202,16 @@ def main():
             "starting_optimization_step": training_state['step'] if training_state['step'] > 0 else None,
             "finishing_optimization_step": data_args.num_train_steps,
             "num_train_dataset_workers": f"{num_workers}",
-            "total_num_training_examples": data_args.num_train_steps * train_batch_size,
+            "total_num_training_examples": f"{data_args.num_train_steps * train_batch_size:,}",
             "steps_per_epoch": "To be computed after first epoch",
             "num_beams": model_args.num_beams,
         },
         # TODO: Adapt https://github.com/huggingface/transformers/blob/main/src/transformers/modelcard.py#L855
         # "hyperparameters": training_args.to_sanitized_dict()
     }
+    if training_args.gradient_accumulation_steps > 1:
+        training_summary["hyperparameters"]["gradient_accumulation_steps"] = f"{training_args.gradient_accumulation_steps:,}"
+        training_summary["hyperparameters"]["effective_total_train_batch_size"] = f"{train_batch_size * training_args.gradient_accumulation_steps:,}"
     
     # Create README if it does not exist
     readme = output_dir / "README.md"
@@ -1271,6 +1278,10 @@ def main():
 
             batch = data_collator(samples)
             batch = shard(batch.data)
+            
+            # DEBUG for memory issues
+            #print(len(batch['labels'][0]))
+            
             state, train_metric = p_train_step(state, batch)
             train_metrics.append(train_metric)
 
