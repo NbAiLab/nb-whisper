@@ -18,10 +18,14 @@ Fine-tuning the Flax library models for sequence to sequence speech recognition.
 """
 # You can also adapt this script on your own sequence to sequence task. Pointers for this are left as comments.
 
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+
+
 import itertools
 import json
 import logging
-import os
 import shutil
 import socket
 import sys
@@ -78,9 +82,8 @@ from flax.training import checkpoints
 check_min_version("4.27.0.dev0")
 
 require_version("datasets>=1.18.2",
-                "To fix: pip install -r examples/flax/speech-recogintion/requirements.txt")
+                "To fix: pip install datasets>=1.18.2")
 
-os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 logger = logging.getLogger(__name__)
 
@@ -538,14 +541,7 @@ def main():
         datefmt="%m/%d/%Y %H:%M:%S",
         handlers=[logging.StreamHandler(sys.stdout)],
     )
-    # Set the verbosity to info of the Transformers logger.
-    # We only want one process per machine to log things on the screen.
 
-    # logger.setLevel(logging.INFO if jax.local_devices()[0].id%jax.local_device_count() == 0 else logging.ERROR)
-
-    # logger.setLevel(logging.INFO if jax.process_index()
-    #                == 0 else logging.ERROR)
-    
     # Number of hosts
     num_of_hosts = jax.process_count()
     current_host_idx = jax.process_index()
@@ -1151,9 +1147,9 @@ def main():
     if model_args.num_beams:
         logger.info(
         f"  Num beams evaluation = {model_args.num_beams}")
+    logger.info(
+        f"  Number of hosts = {num_of_hosts}")
     if num_of_hosts > 1:
-        logger.info(
-            f"  Number of hosts = {num_of_hosts}")
         logger.info(
             f"  Current host idx = {current_host_idx}")
     logger.info(
@@ -1169,6 +1165,21 @@ def main():
     logger.info(f"  Total optimization steps = {data_args.num_train_steps - training_state['step']}")
     if training_state['step'] > 0:
         logger.info(f"  ↪ Starting at {training_state['step'],:} and finishing at {data_args.num_train_steps,:}")
+
+    if training_args.dropout or training_args.attention_dropout or training_args.activation_dropout or training_args.encoder_dropout or training_args.decoder_dropout:
+        logger.info("  Dropout = True")
+        if training_args.dropout:
+            logger.info(f"  ↪ Dropout probability = {training_args.dropout}")
+        if training_args.attention_dropout:
+            logger.info(f"  ↪ Attention dropout probability = {training_args.attention_dropout}")
+        if training_args.activation_dropout:
+            logger.info(f"  ↪ Activation dropout probability = {training_args.activation_dropout}")
+        if training_args.encoder_dropout:
+            logger.info(f"  ↪ Encoder dropout probability = {training_args.encoder_dropout}")
+        if training_args.decoder_dropout:
+            logger.info(f"  ↪ Decoder dropout probability = {training_args.decoder_dropout}")
+
+
 
     train_time = 0
 
@@ -1199,20 +1210,35 @@ def main():
             "total_train_batch_size_per_node": train_batch_size // num_of_hosts,
             "total_train_batch_size": train_batch_size,
             "total_optimization_steps": data_args.num_train_steps - training_state['step'],
-            "starting_optimization_step": training_state['step'] if training_state['step'] > 0 else None,
+            "starting_optimization_step": f"{training_state['step']:,}" if training_state['step'] > 0 else None,
             "finishing_optimization_step": data_args.num_train_steps,
             "num_train_dataset_workers": f"{num_workers}",
+            "number_hosts": {num_of_hosts},
             "total_num_training_examples": f"{data_args.num_train_steps * train_batch_size:,}",
             "steps_per_epoch": "To be computed after first epoch",
             "num_beams": model_args.num_beams,
         },
         # TODO: Adapt https://github.com/huggingface/transformers/blob/main/src/transformers/modelcard.py#L855
         # "hyperparameters": training_args.to_sanitized_dict()
-    }
+    }   
+        
     if training_args.gradient_accumulation_steps > 1:
         training_summary["hyperparameters"]["gradient_accumulation_steps"] = f"{training_args.gradient_accumulation_steps:,}"
         training_summary["hyperparameters"]["effective_total_train_batch_size"] = f"{train_batch_size * training_args.gradient_accumulation_steps:,}"
     
+    if training_args.dropout or training_args.attention_dropout or training_args.activation_dropout or training_args.encoder_dropout or training_args.decoder_dropout:
+        training_summary["hyperparameters"]["dropout"] = True
+        if training_args.dropout:
+            training_summary["hyperparameters"]["dropout_probability"] = training_args.dropout
+        if training_args.attention_dropout:
+            training_summary["hyperparameters"]["attention_dropout_probability"] = training_args.attention_dropout
+        if training_args.activation_dropout:
+            training_summary["hyperparameters"]["activation_dropout_probability"] = training_args.activation_dropout
+        if training_args.encoder_dropout:
+            training_summary["hyperparameters"]["encoder_dropout_probability"] = training_args.encoder_dropout
+        if training_args.decoder_dropout:
+            training_summary["hyperparameters"]["decoder_dropout_probability"] = training_args.decoder_dropout
+
     # Create README if it does not exist
     readme = output_dir / "README.md"
     if not readme.exists():
@@ -1279,7 +1305,7 @@ def main():
             batch = data_collator(samples)
             batch = shard(batch.data)
             
-            # DEBUG for memory issues
+            # TODO - More DEBUG on the memory issues
             #print(len(batch['labels'][0]))
             
             state, train_metric = p_train_step(state, batch)
