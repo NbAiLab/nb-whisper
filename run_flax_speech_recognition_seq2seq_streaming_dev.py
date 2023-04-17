@@ -1209,7 +1209,7 @@ def main():
             "per_device_train_batch_size": training_args.per_device_train_batch_size,
             "total_train_batch_size_per_node": train_batch_size // num_of_hosts,
             "total_train_batch_size": train_batch_size,
-            "total_optimization_steps": f("{(data_args.num_train_steps - training_state['step']):,}",
+            "total_optimization_steps": f"{(data_args.num_train_steps - training_state['step']):,}",
             "starting_optimization_step": f"{training_state['step']:,}" if training_state['step'] > 0 else None,
             "finishing_optimization_step": data_args.num_train_steps,
             "num_train_dataset_workers": f"{num_workers}",
