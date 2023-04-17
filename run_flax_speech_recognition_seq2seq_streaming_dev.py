@@ -1,7 +1,13 @@
 #!/usr/bin/env python
 # coding=utf-8
-# Original training script copyright 2023 The HuggingFace Inc. team. All rights reserved.
-# Support for streaming and training on TPU Pods are added by Per Egil Kummervold and Javier de la Rosa from the AiLab, National Library of Norway
+# Original code Copyright 2023 The HuggingFace Inc. team. All rights reserved.
+# Additions and modifications Copyright 2023 National Library of Norway. All rights reserved.
+#
+# This code is based on the original script developed by HuggingFace Inc.
+# Substantial additions and modifications have been made by the AiLab at the
+# National Library of Norway, with contributions from Per Egil Kummervold
+# and Javier de la Rosa, including TPU Pod support, Dataset Streaming, 
+# performance enhancements, and support for new features.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -1210,9 +1216,9 @@ def main():
             "total_train_batch_size": train_batch_size,
             "total_optimization_steps": f"{(data_args.num_train_steps - training_state['step']):,}",
             "starting_optimization_step": f"{training_state['step']:,}" if training_state['step'] > 0 else None,
-            "finishing_optimization_step": data_args.num_train_steps,
+            "finishing_optimization_step": f"{data_args.num_train_steps:,},
             "num_train_dataset_workers": f"{num_workers}",
-            "number_hosts": {num_of_hosts},
+            "numb_hosts": f"{num_of_hosts}",
             "total_num_training_examples": f"{data_args.num_train_steps * train_batch_size:,}",
             "steps_per_epoch": "To be computed after first epoch",
             "num_beams": model_args.num_beams,
