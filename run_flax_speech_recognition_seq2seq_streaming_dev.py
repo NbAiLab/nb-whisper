@@ -17,7 +17,7 @@
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR COND    ITIONS OF ANY KIND, either express or implied.
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
@@ -28,7 +28,6 @@ Fine-tuning the Flax library models for sequence to sequence speech recognition.
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
-
 
 import itertools
 import json
@@ -683,29 +682,15 @@ def main():
         revision=model_args.model_revision,
         use_auth_token=True if model_args.use_auth_token else None,
     )
-    
-    attributes = [
-        ("dropout", model_args.dropout),
-        ("attention_dropout", model_args.attention_dropout),
-        ("activation_dropout", model_args.activation_dropout),
-        ("decoder_layerdrop", model_args.decoder_dropout),
-        ("encoder_layerdrop", model_args.encoder_dropout),
-    ]
-    
-    for attr, value in attributes:
-        if value is not None:
-            setattr(config, attr, value)
-        
+       
     # Update config with arguments. Use values set by model_args if they are not None, otherwise use values from config
-    
-    # TODO: Javier. This does not work because .get is not available here. Check my rewrite above and see if it does the same as you wanted.
-    # config.update({
-    #     "dropout": model_args.dropout or config.get("dropout", 0.0),
-    #     "attention_dropout": model_args.attention_dropout or config.get("attention_dropout", 0.0),
-    #     "activation_dropout": model_args.activation_dropout or config.get("activation_dropout", 0.0),
-    #     "decoder_layerdrop": model_args.decoder_dropout or config.get("decoder_dropout", 0.0),
-    #     "encoder_layerdrop": model_args.encoder_dropout or config.get("encoder_dropout", 0.0),
-    # })
+    config.update({
+        "dropout": model_args.dropout or getattr(config, "dropout", 0.0),
+        "attention_dropout": model_args.attention_dropout or getattr(config, "attention_dropout", 0.0),
+        "activation_dropout": model_args.activation_dropout or getattr(config, "activation_dropout", 0.0),
+        "decoder_layerdrop": model_args.decoder_dropout or getattr(config, "decoder_dropout", 0.0),
+        "encoder_layerdrop": model_args.encoder_dropout or getattr(config, "encoder_dropout", 0.0),
+    })
     
     feature_extractor = AutoFeatureExtractor.from_pretrained(
         model_args.feature_extractor_name if model_args.feature_extractor_name else model_name_or_path,
@@ -1309,10 +1294,7 @@ def main():
 
             batch = data_collator(samples)
             batch = shard(batch.data)
-            
-            # TODO - More DEBUG on the memory issues
-            #print(len(batch['labels'][0]))
-            
+                      
             state, train_metric = p_train_step(state, batch)
             train_metrics.append(train_metric)
 
