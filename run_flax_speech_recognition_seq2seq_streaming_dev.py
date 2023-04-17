@@ -1164,7 +1164,7 @@ def main():
         logger.info(f"  ↪ Effective total batch size = {train_batch_size * training_args.gradient_accumulation_steps:,}")
     logger.info(f"  Total optimization steps = {data_args.num_train_steps - training_state['step']:,}")
     if training_state['step'] > 0:
-        logger.info(f"  ↪ Starting at {training_state['step'],:} and finishing at {data_args.num_train_steps,:}")
+        logger.info(f"  ↪ Starting at {training_state['step']:,} and finishing at {data_args.num_train_steps:,}")
 
     if model_args.dropout or model_args.attention_dropout or model_args.activation_dropout or model_args.encoder_dropout or model_args.decoder_dropout:
         logger.info("  Dropout = True")
