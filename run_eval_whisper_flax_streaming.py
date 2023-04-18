@@ -18,7 +18,9 @@
 Evaluating Whisper models using the Flax library and 🤗 Datasets.
 """
 
-
+import os
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 import argparse
 import logging
 from datasets import Dataset, DatasetDict, IterableDatasetDict, interleave_datasets, load_dataset
@@ -27,7 +29,7 @@ import jax.numpy as jnp
 from flax.training.common_utils import shard
 from flax.jax_utils import pad_shard_unpad, unreplicate
 from tqdm.auto import tqdm
-from transformers import FlaxAutoModelForSpeechSeq2Seq, AutoTokenizer, AutoProcessor
+from transformers import FlaxAutoModelForSpeechSeq2Seq, AutoTokenizer, AutoProcessor, AutoFeatureExtractor
 from typing import Any, Callable, Dict, Generator, List, Optional, Union
 from flax.training.common_utils import get_metrics
 import torch
@@ -258,6 +260,10 @@ def evaluate(model_name, dataset_name, dataset_split_name, num_beams):
     dataset_config_name = None
     
     model = FlaxAutoModelForSpeechSeq2Seq.from_pretrained(model_name)
+    feature_extractor = AutoFeatureExtractor.from_pretrained(
+        model_name,
+        use_auth_token=True,
+    )
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     tokenizer.set_prefix_tokens(language="Norwegian", task="transcribe")
     
