@@ -33,6 +33,7 @@ from flax.training.common_utils import get_metrics
 import torch
 import itertools
 from functools import partial
+import flax
 
 
 logger = logging.getLogger(__name__)
