@@ -296,7 +296,7 @@ def evaluate(model_name, dataset_name, dataset_split_name, num_beams):
     p_generate_step = jax.pmap(generate_step, "batch")
 
     max_eval_steps_iter = itertools.repeat(None)
-    eval_loader = data_loader(eval_dataset, eval_batch_size, drop_last=False)
+    eval_loader = data_loader(eval_dataset, 4, drop_last=False)
 
     eval_metrics = []
     eval_preds = []
