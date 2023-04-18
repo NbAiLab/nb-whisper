@@ -51,6 +51,11 @@ def shift_tokens_right(label_ids: np.array, decoder_start_token_id: int) -> np.n
 
     return shifted_label_ids
 
+class TrainState(train_state.TrainState):
+    dropout_rng: jnp.ndarray
+
+    def replicate(self):
+        return jax_utils.replicate(self).replace(dropout_rng=shard_prng_key(self.dropout_rng))
 
 @flax.struct.dataclass
 class FlaxDataCollatorSpeechSeq2SeqWithPadding:
@@ -293,6 +298,9 @@ def evaluate(model_name, dataset_name, dataset_split_name, num_beams):
         
     raw_datasets_features = list(next(iter(raw_datasets.values())).features.keys())
     
+    # Setup train state
+    state = TrainState.create(
+        apply_fn=model.__call__, params=model.params, tx=optimizer, dropout_rng=dropout_rng)
 
     
     vectorized_datasets = raw_datasets.map(
@@ -326,7 +334,7 @@ def evaluate(model_name, dataset_name, dataset_split_name, num_beams):
         labels = batch["labels"]
 
         metrics = pad_shard_unpad(p_eval_step, static_return=True)(
-            model.params, batch.data
+            state.params, batch.data
         )
         eval_metrics.append(metrics)
 
