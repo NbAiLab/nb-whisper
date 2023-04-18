@@ -30,7 +30,7 @@ import jax.numpy as jnp
 from flax.training.common_utils import shard
 from flax.training.train_state import TrainState
 from tqdm.auto import tqdm
-from transformers import FlaxAutoModelForSeq2SeqLM, AutoTokenizer
+from transformers import FlaxAutoModelForSpeechSeq2Seq, AutoTokenizer
 from datasets import load_dataset
 
 logger = logging.getLogger(__name__)
@@ -42,7 +42,7 @@ def data_loader(dataset, batch_size, drop_last=True):
         yield dataset[i:i + batch_size]
 
 def evaluate(model_name, dataset_name, dataset_split_name, num_beams):
-    model = FlaxAutoModelForSeq2SeqLM.from_pretrained(model_name)
+    model = FlaxAutoModelForSpeechSeq2Seq.from_pretrained(model_name, from_flax=True)
     tokenizer = AutoTokenizer.from_pretrained(model_name)
 
     dataset = load_dataset(dataset_name, split=dataset_split_name)
