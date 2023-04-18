@@ -247,8 +247,7 @@ def evaluate(model_name, dataset_name, dataset_split_name, num_beams):
         batch["input_length"] = len(sample["array"])
 
         # Process targets
-        input_str = batch[text_column_name].lower(
-        ) batch[text_column_name]
+        input_str = batch[text_column_name]
         
         
         batch["labels"] = tokenizer(input_str, truncation=True, max_length=max_label_length).input_ids
