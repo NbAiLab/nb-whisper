@@ -34,6 +34,7 @@ import torch
 import itertools
 from functools import partial
 import flax
+import numpy as np
 
 
 logger = logging.getLogger(__name__)
