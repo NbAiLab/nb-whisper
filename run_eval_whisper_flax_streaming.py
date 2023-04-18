@@ -326,7 +326,7 @@ def evaluate(model_name, dataset_name, dataset_split_name, num_beams):
         labels = batch["labels"]
 
         metrics = pad_shard_unpad(p_eval_step, static_return=True)(
-            state.params, batch.data
+            model.params, batch.data
         )
         eval_metrics.append(metrics)
 
