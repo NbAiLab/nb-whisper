@@ -335,13 +335,14 @@ def evaluate(model_name, dataset_name, dataset_split_name, num_beams):
                 print(f"{module_name}:")
                 for param_name, param_value in module_params.items():
                     print(f"  {param_name}: {param_value.shape}")
-
+        print("Model parameters dimensions:")
+        print_model_params_dimensions(model.params)
+        
         print("Model architecture:")
         breakpoint()
         print(model)
         
-print("Model parameters dimensions:")
-print_model_params_dimensions(model.params)
+
         
         metrics = pad_shard_unpad(p_eval_step, static_return=True)(
             model.params, batch.data, min_device_batch=4)
