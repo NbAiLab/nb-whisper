@@ -29,7 +29,6 @@ import jax
 import jax.numpy as jnp
 from flax.training.common_utils import shard
 from flax.training.train_state import TrainState
-from flax.training.training_loop import unreplicate
 from tqdm.auto import tqdm
 from transformers import FlaxAutoModelForSeq2SeqLM, AutoTokenizer, load_dataset
 
