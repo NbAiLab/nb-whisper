@@ -41,6 +41,17 @@ import numpy as np
 
 logger = logging.getLogger(__name__)
 
+def shift_tokens_right(label_ids: np.array, decoder_start_token_id: int) -> np.ndarray:
+    """
+    Shift label ids one token to the right.
+    """
+    shifted_label_ids = np.zeros_like(label_ids)
+    shifted_label_ids[:, 1:] = label_ids[:, :-1]
+    shifted_label_ids[:, 0] = decoder_start_token_id
+
+    return shifted_label_ids
+
+
 @flax.struct.dataclass
 class FlaxDataCollatorSpeechSeq2SeqWithPadding:
     """
