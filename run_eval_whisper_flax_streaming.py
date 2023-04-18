@@ -301,7 +301,7 @@ def evaluate(model_name, dataset_name, dataset_split_name, num_beams):
     
     # Setup train state
     state = TrainState.create(
-        apply_fn=model.__call__, params=model.params, tx=optimizer, dropout_rng=dropout_rng)
+        apply_fn=model.__call__, params=model.params)
 
     
     vectorized_datasets = raw_datasets.map(
