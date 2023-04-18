@@ -28,7 +28,7 @@ from flax.training.common_utils import shard
 from flax.jax_utils import pad_shard_unpad, unreplicate
 from tqdm.auto import tqdm
 from transformers import FlaxAutoModelForSpeechSeq2Seq, AutoTokenizer, AutoProcessor
-from typing import Any, Callable, Dict, Generator, List, Union
+from typing import Any, Callable, Dict, Generator, List, Optional, Union
 from flax.training.common_utils import get_metrics
 import torch
 import itertools
