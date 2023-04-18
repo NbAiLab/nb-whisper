@@ -186,29 +186,7 @@ def data_loader(
     ))
     return data_loader_iterator
 
-def generate_step(params, batch):
-    model.params = params
-    
-    attention_mask = batch.get("attention_mask")
-    
-    output_ids = model.generate(batch[model_input_name], attention_mask=attention_mask, **gen_kwargs)
-    
-    return output_ids.sequences
 
-# Define eval fn
-def eval_step(params, batch, label_smoothing_factor=0.0):
-    labels = batch.pop("labels")
-    logits = model(**batch, params=params, train=False)[0]
-
-    loss, num_labels = loss_fn(logits, labels, label_smoothing_factor)
-    num_labels = jax.lax.psum(num_labels, "batch")
-
-    # True loss = total loss / total samples
-    loss = jax.lax.psum(loss, "batch")
-    loss = jax.tree_util.tree_map(lambda x: x / num_labels, loss)
-
-    metrics = {"loss": loss}
-    return metrics
 
 def compute_metrics(pred_ids, label_ids, return_preds_labels=False):
     # Replace padded labels by the padding token
@@ -264,6 +242,29 @@ def evaluate(model_name, dataset_name, dataset_split_name, num_beams):
         batch["labels"] = tokenizer(input_str, truncation=True, max_length=max_label_length).input_ids
         return batch
     
+    def generate_step(params, batch):
+        model.params = params
+        
+        attention_mask = batch.get("attention_mask")
+        
+        output_ids = model.generate(batch[model_input_name], attention_mask=attention_mask, **gen_kwargs)
+        
+        return output_ids.sequences
+
+    # Define eval fn
+    def eval_step(params, batch, label_smoothing_factor=0.0):
+        labels = batch.pop("labels")
+        logits = model(**batch, params=params, train=False)[0]
+
+        loss, num_labels = loss_fn(logits, labels, label_smoothing_factor)
+        num_labels = jax.lax.psum(num_labels, "batch")
+
+        # True loss = total loss / total samples
+        loss = jax.lax.psum(loss, "batch")
+        loss = jax.tree_util.tree_map(lambda x: x / num_labels, loss)
+
+        metrics = {"loss": loss}
+        return metrics
     
     model = FlaxAutoModelForSpeechSeq2Seq.from_pretrained(model_name)
     feature_extractor = AutoFeatureExtractor.from_pretrained(model_name,use_auth_token=True)
