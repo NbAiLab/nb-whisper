@@ -42,7 +42,7 @@ def data_loader(dataset, batch_size, drop_last=True):
         yield dataset[i:i + batch_size]
 
 def evaluate(model_name, dataset_name, dataset_split_name, num_beams):
-    model = FlaxAutoModelForSpeechSeq2Seq.from_pretrained(model_name, from_flax=True)
+    model = FlaxAutoModelForSpeechSeq2Seq.from_pretrained(model_name)
     tokenizer = AutoTokenizer.from_pretrained(model_name)
 
     dataset = load_dataset(dataset_name, split=dataset_split_name)
