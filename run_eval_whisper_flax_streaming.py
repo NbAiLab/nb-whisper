@@ -51,12 +51,15 @@ def evaluate(model_name, dataset_name, dataset_split_name, num_beams):
         donate_argnums=(0,)
     )
 
+    eval_metrics = []
     eval_preds = []
     eval_labels = []
-    eval_loader = dataset.batch(16)
 
-    for samples in tqdm(eval_loader, desc="Evaluating...", leave=False):
-        batch = data_collator(samples)
+    dataset = dataset.map(data_collator, batched=True, batch_size=16)
+    dataset_iter = iter(dataset)
+
+    for samples in tqdm(dataset_iter, desc="Evaluating...", leave=False):
+        batch = samples
 
         labels = batch["labels"]
 
