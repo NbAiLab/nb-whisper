@@ -237,11 +237,26 @@ def evaluate(model_name, dataset_name, dataset_split_name, num_beams):
     audio_column_name = "audio"
     max_label_length = 256
     
+    def prepare_dataset(batch):
+        # Process audio
+        sample = batch[audio_column_name]
+        inputs = feature_extractor(
+            sample["array"], sampling_rate=sample["sampling_rate"])
+        # Process audio length
+        batch[model_input_name] = inputs.get(model_input_name)[0]
+        batch["input_length"] = len(sample["array"])
 
+        # Process targets
+        input_str = batch[text_column_name]
+        
+        
+        batch["labels"] = tokenizer(input_str, truncation=True, max_length=max_label_length).input_ids
+        return batch
     
     
     model = FlaxAutoModelForSpeechSeq2Seq.from_pretrained(model_name)
     feature_extractor = AutoFeatureExtractor.from_pretrained(model_name,use_auth_token=True)
+    model_input_name = feature_extractor.model_input_names[0]
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     tokenizer.set_prefix_tokens(language="Norwegian", task="transcribe")
     
@@ -267,21 +282,7 @@ def evaluate(model_name, dataset_name, dataset_split_name, num_beams):
         
     raw_datasets_features = list(next(iter(raw_datasets.values())).features.keys())
     
-    def prepare_dataset(batch):
-        # Process audio
-        sample = batch[audio_column_name]
-        inputs = feature_extractor(
-            sample["array"], sampling_rate=sample["sampling_rate"])
-        # Process audio length
-        batch[model_input_name] = inputs.get(model_input_name)[0]
-        batch["input_length"] = len(sample["array"])
 
-        # Process targets
-        input_str = batch[text_column_name]
-        
-        
-        batch["labels"] = tokenizer(input_str, truncation=True, max_length=max_label_length).input_ids
-        return batch
     
     vectorized_datasets = raw_datasets.map(
         prepare_dataset,
