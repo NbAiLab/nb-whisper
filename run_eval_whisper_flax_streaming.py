@@ -123,7 +123,7 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
         labels = labels_batch["input_ids"]
         if (labels[:, 0] == self.decoder_start_token_id).all().item():
             labels = labels[:, 1:]
-            labels_batch.attention_mask = labels_batch.attention_mask[:, 1:]
+            labels_batch["attention_mask"] = labels_batch["attention_mask"][:, 1:]
         
         
             
