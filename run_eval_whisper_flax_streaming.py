@@ -245,7 +245,8 @@ def evaluate(model_name, dataset_name, dataset_split_name, num_beams):
     metric_desc = " | ".join(
         [f"Eval {key}: {value}" for key, value in metric_values.items()]
 
-    desc = f"Eval WER: {metric_value['wer']}"
+    desc = f"Eval WER: {metric_values['wer']}"
+
     logger.info(desc)
 
 
