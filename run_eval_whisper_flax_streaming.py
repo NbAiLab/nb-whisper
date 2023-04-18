@@ -35,17 +35,12 @@ from datasets import load_dataset
 
 logger = logging.getLogger(__name__)
 
-def data_loader(dataset, batch_size, drop_last=True):
-    for i in range(0, len(dataset), batch_size):
-        if drop_last and i + batch_size > len(dataset):
-            break
-        yield dataset[i:i + batch_size]
 
 def evaluate(model_name, dataset_name, dataset_split_name, num_beams):
     model = FlaxAutoModelForSpeechSeq2Seq.from_pretrained(model_name)
     tokenizer = AutoTokenizer.from_pretrained(model_name)
-    breakpoint()
-    dataset = load_dataset(dataset_name, split=dataset_split_name)
+
+    dataset = load_dataset(dataset_name, split=dataset_split_name, streaming=True)
 
     state = TrainState.create(apply_fn=model.__call__, params=model.params)
 
@@ -64,12 +59,9 @@ def evaluate(model_name, dataset_name, dataset_split_name, num_beams):
     eval_metrics = []
     eval_preds = []
     eval_labels = []
-    eval_loader = data_loader(dataset, 16, drop_last=False)
-    for _ in tqdm(itertools.repeat(None), desc="Evaluating...", leave=False):
-        try:
-            samples = next(eval_loader)
-        except StopIteration:
-            break
+    eval_loader = dataset.batch(16)
+
+    for samples in tqdm(eval_loader, desc="Evaluating...", leave=False):
         batch = data_collator(samples)
 
         labels = batch["labels"]
@@ -86,6 +78,7 @@ def evaluate(model_name, dataset_name, dataset_split_name, num_beams):
 
     desc = f"Eval WER: {metric_value['wer']}"
     logger.info(desc)
+
 
 def main(args):
     evaluate(args.model_id, args.dataset, args.split, args.num_beams)
