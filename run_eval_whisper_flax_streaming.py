@@ -131,9 +131,6 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
         return batch
 
 
-
-
-
 def load_maybe_streaming_dataset(dataset_name, dataset_config_name, split="train", streaming=True, **kwargs):
     """
     Utility function to load a dataset in streaming mode. For datasets with multiple splits,
@@ -236,15 +233,11 @@ def evaluate(model_name, dataset_name, dataset_split_name, num_beams):
     #Default settings
     streaming = True
     dataset_config_name = None
+    text_column_name = "text"
+    audio_column_name = "audio"
+    max_label_length = 256
     
     def prepare_dataset(batch):
-        audio_column_name = "audio"
-        model_input_name = "input_values"
-        text_column_name = "text"
-        do_lower_case = True
-        do_remove_punctuation = True
-        max_label_length = 256
-
         # Process audio
         sample = batch[audio_column_name]
         inputs = feature_extractor(
@@ -255,9 +248,9 @@ def evaluate(model_name, dataset_name, dataset_split_name, num_beams):
 
         # Process targets
         input_str = batch[text_column_name].lower(
-        ) if do_lower_case else batch[text_column_name]
-        if do_remove_punctuation:
-            input_str = normalizer(input_str).strip()
+        ) batch[text_column_name]
+        
+        
         batch["labels"] = tokenizer(input_str, truncation=True, max_length=max_label_length).input_ids
         return batch
     
