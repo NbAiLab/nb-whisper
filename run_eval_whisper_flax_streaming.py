@@ -98,6 +98,9 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
 
     def __call__(self, features: List[Dict[str, Union[List[int], np.ndarray]]]) -> Dict[str, np.ndarray]:
         model_input_name = self.processor.model_input_names[0]
+        for i, feature in enumerate(features):
+            print(f"Feature {i} type: {type(feature)}")
+            print(f"Feature {i} content: {feature}")
         breakpoint()
         input_features = {model_input_name: [feature[model_input_name] for feature in features]}
         label_features = {"input_ids": [feature["labels"] for feature in features]}
