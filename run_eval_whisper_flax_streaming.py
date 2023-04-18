@@ -291,7 +291,7 @@ def evaluate(model_name, dataset_name, dataset_split_name, num_beams):
     gen_kwargs = {"max_length": 256, "num_beams": num_beams}
 
     p_eval_step = jax.pmap(partial(
-        eval_step, label_smoothing_factor=training_args.label_smoothing_factor), "batch")
+        eval_step, label_smoothing_factor=0.0), "batch")
     
     p_generate_step = jax.pmap(generate_step, "batch")
 
