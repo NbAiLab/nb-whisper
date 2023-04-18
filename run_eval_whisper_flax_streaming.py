@@ -20,15 +20,12 @@ Evaluating Whisper models using the Flax library and 🤗 Datasets.
 
 
 import argparse
-import itertools
-import json
 import logging
 from pathlib import Path
 from datasets import load_metric
 import jax
 import jax.numpy as jnp
 from flax.training.common_utils import shard
-from flax.training.train_state import TrainState
 from tqdm.auto import tqdm
 from transformers import FlaxAutoModelForSpeechSeq2Seq, AutoTokenizer
 from datasets import load_dataset
@@ -42,8 +39,6 @@ def evaluate(model_name, dataset_name, dataset_split_name, num_beams):
 
     dataset = load_dataset(dataset_name, split=dataset_split_name, streaming=True)
 
-    state = TrainState.create(apply_fn=model.__call__, params=model.params)
-
     data_collator = lambda samples: tokenizer(samples["speech"], truncation=True, padding="longest", return_tensors="jax")
 
     gen_kwargs = {"max_length": 256, "num_beams": num_beams, "early_stopping": True}
@@ -56,7 +51,6 @@ def evaluate(model_name, dataset_name, dataset_split_name, num_beams):
         donate_argnums=(0,)
     )
 
-    eval_metrics = []
     eval_preds = []
     eval_labels = []
     eval_loader = dataset.batch(16)
@@ -66,7 +60,7 @@ def evaluate(model_name, dataset_name, dataset_split_name, num_beams):
 
         labels = batch["labels"]
 
-        generated_ids = p_generate_step(state.params, batch.data)
+        generated_ids = p_generate_step(model.params, batch.data)
         eval_preds.extend(jax.device_get(generated_ids.reshape(-1, gen_kwargs["max_length"])))
         eval_labels.extend(labels)
 
@@ -78,6 +72,7 @@ def evaluate(model_name, dataset_name, dataset_split_name, num_beams):
 
     desc = f"Eval WER: {metric_value['wer']}"
     logger.info(desc)
+
 
 
 def main(args):
