@@ -325,29 +325,7 @@ def evaluate(model_name, dataset_name, dataset_split_name, num_beams):
         batch = data_collator(samples)
         
         labels = batch["labels"]
-        
-        def print_model_params_dimensions(params, prefix=""):
-            for key, value in params.items():
-                if isinstance(value, dict):
-                    print_model_params_dimensions(value, prefix + key + "/")
-                else:
-                    print(f"{prefix}{key}: {value.shape}")
 
-        def print_model_info(model):
-            # Inspect the dimensions of the model parameters
-            print("Model parameters dimensions:")
-            print_model_params_dimensions(model.params)
-
-            # Print model architecture
-            print("Model architecture:")
-            print(model)
-
-        # Then call the function
-        print_model_info(model)
-
-        
-
-        
         metrics = pad_shard_unpad(p_eval_step, static_return=True)(
             model.params, batch.data, min_device_batch=4)
         eval_metrics.append(metrics)
