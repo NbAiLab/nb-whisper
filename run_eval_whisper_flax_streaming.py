@@ -278,7 +278,7 @@ def evaluate(model_name, dataset_name, dataset_split_name, num_beams):
             dataset_config_name,
             split=dataset_split_name,
             streaming=streaming,
-            use_auth_token=True if model_args.use_auth_token else None,
+            use_auth_token=True,
         )
         
     raw_datasets_features = list(next(iter(raw_datasets.values())).features.keys())
