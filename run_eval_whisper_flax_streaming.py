@@ -44,7 +44,7 @@ def data_loader(dataset, batch_size, drop_last=True):
 def evaluate(model_name, dataset_name, dataset_split_name, num_beams):
     model = FlaxAutoModelForSpeechSeq2Seq.from_pretrained(model_name)
     tokenizer = AutoTokenizer.from_pretrained(model_name)
-
+    breakpoint()
     dataset = load_dataset(dataset_name, split=dataset_split_name)
 
     state = TrainState.create(apply_fn=model.__call__, params=model.params)
