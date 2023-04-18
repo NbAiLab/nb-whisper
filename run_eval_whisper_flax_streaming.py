@@ -21,57 +21,229 @@ Evaluating Whisper models using the Flax library and 🤗 Datasets.
 
 import argparse
 import logging
-from pathlib import Path
-from datasets import load_metric
+from datasets import Dataset, DatasetDict, IterableDatasetDict, interleave_datasets, load_dataset
 import jax
 import jax.numpy as jnp
 from flax.training.common_utils import shard
+from flax.jax_utils import pad_shard_unpad, unreplicate
 from tqdm.auto import tqdm
-from transformers import FlaxAutoModelForSpeechSeq2Seq, AutoTokenizer
-from datasets import load_dataset
+from transformers import FlaxAutoModelForSpeechSeq2Seq, AutoTokenizer, AutoProcessor, FlaxDataCollatorSpeechSeq2SeqWithPadding
+from typing import Any, Callable, Dict, Generator, List
+from flax.training.common_utils import get_metrics
+import torch
+import itertools
+from functools import partial
+
 
 logger = logging.getLogger(__name__)
 
+def prepare_dataset(batch):
+    audio_column_name = "audio"
+    model_input_name = "input_values"
+    text_column_name = "text"
+    do_lower_case = True
+    do_remove_punctuation = True
+    max_label_length = 256
+
+    # Process audio
+    sample = batch[audio_column_name]
+    inputs = feature_extractor(
+        sample["array"], sampling_rate=sample["sampling_rate"])
+    # Process audio length
+    batch[model_input_name] = inputs.get(model_input_name)[0]
+    batch["input_length"] = len(sample["array"])
+
+    # Process targets
+    input_str = batch[text_column_name].lower(
+    ) if do_lower_case else batch[text_column_name]
+    if do_remove_punctuation:
+        input_str = normalizer(input_str).strip()
+    batch["labels"] = tokenizer(input_str, truncation=True, max_length=max_label_length).input_ids
+    return batch
+
+
+def load_maybe_streaming_dataset(dataset_name, dataset_config_name, split="train", streaming=True, **kwargs):
+    """
+    Utility function to load a dataset in streaming mode. For datasets with multiple splits,
+    each split is loaded individually and then splits combined by taking alternating examples from
+    each (interleaving).
+    """
+    if "+" in split:
+        # load multiple splits separated by the `+` symbol with streaming mode
+        dataset_splits = [
+            load_dataset(dataset_name, dataset_config_name,
+                         split=split_name, streaming=streaming, **kwargs)
+            for split_name in split.split("+")
+        ]
+        # interleave multiple splits to form one dataset
+        interleaved_dataset = interleave_datasets(dataset_splits)
+        return interleaved_dataset
+    else:
+        # load a single split *with* streaming mode
+        dataset = load_dataset(
+            dataset_name, dataset_config_name, split=split, streaming=streaming, **kwargs)
+        return dataset
+
+def collate_batch(samples):
+    return {key: [feature[key] for feature in samples] for key in samples[0]}
+
+def data_loader(
+    dataset: Dataset,
+    batch_size: int,
+    drop_last: bool=True,
+    num_workers: int=0,
+) -> Generator:
+    """
+    Returns batches of size `batch_size` from `dataset`. If `drop_last` is set to `False`, the final batch may be incomplete,
+    and range in size from 1 to `batch_size`. Shuffle batches if `shuffle` is `True`.
+    """
+    data_loader_iterator = iter(torch.utils.data.DataLoader(
+        batch_size=batch_size,
+        dataset=dataset.with_format("torch"),
+        num_workers=num_workers,
+        collate_fn=collate_batch,
+        drop_last=drop_last,
+    ))
+    return data_loader_iterator
+
+def generate_step(params, batch):
+    model.params = params
+    
+    attention_mask = batch.get("attention_mask")
+    
+    output_ids = model.generate(batch[model_input_name], attention_mask=attention_mask, **gen_kwargs)
+    
+    return output_ids.sequences
+
+# Define eval fn
+def eval_step(params, batch, label_smoothing_factor=0.0):
+    labels = batch.pop("labels")
+    logits = model(**batch, params=params, train=False)[0]
+
+    loss, num_labels = loss_fn(logits, labels, label_smoothing_factor)
+    num_labels = jax.lax.psum(num_labels, "batch")
+
+    # True loss = total loss / total samples
+    loss = jax.lax.psum(loss, "batch")
+    loss = jax.tree_util.tree_map(lambda x: x / num_labels, loss)
+
+    metrics = {"loss": loss}
+    return metrics
+
+def compute_metrics(pred_ids, label_ids, return_preds_labels=False):
+    # Replace padded labels by the padding token
+    for idx in range(len(label_ids)):
+        label_ids[idx][label_ids[idx] == -100] = tokenizer.pad_token_id
+
+    predictions = tokenizer.batch_decode(pred_ids, skip_special_tokens=True)
+    # We do not want to group tokens when computing the metrics
+    labels = tokenizer.batch_decode(label_ids, skip_special_tokens=True)
+
+    if do_normalize_eval:
+        pred_str = [normalizer(pred) for pred in predictions]
+        label_str = [normalizer(label) for label in labels]
+        # Filtering step to only evaluate the samples that correspond to non-zero references:
+        pred_str = [pred_str[i]
+                    for i in range(len(pred_str)) if len(label_str[i]) > 0]
+        label_str = [label_str[i]
+                     for i in range(len(label_str)) if len(label_str[i]) > 0]
+    else:
+        pred_str = predictions
+        label_str = labels
+
+    wer = 100 * metric_wer.compute(predictions=pred_str, references=label_str)
+    cer = 100 * metric_cer.compute(predictions=pred_str, references=label_str)
+
+    if return_preds_labels:
+        return {"wer": wer, "cer": cer}, predictions, labels
+    else:
+        return {"wer": wer, "cer": cer}
+    
 
 def evaluate(model_name, dataset_name, dataset_split_name, num_beams):
+    #Default settings
+    streaming = True
+    dataset_config_name = None
+    
     model = FlaxAutoModelForSpeechSeq2Seq.from_pretrained(model_name)
     tokenizer = AutoTokenizer.from_pretrained(model_name)
-
-    dataset = load_dataset(dataset_name, split=dataset_split_name, streaming=True)
-
-    data_collator = lambda samples: tokenizer(samples["speech"], truncation=True, padding="longest", return_tensors="jax")
-
-    gen_kwargs = {"max_length": 256, "num_beams": num_beams, "early_stopping": True}
-
-    p_generate_step = jax.pmap(
-        model.generate,
-        axis_name="batch",
-        in_axes=(0, None),
-        static_broadcasted_argnums=1,
-        donate_argnums=(0,)
+    tokenizer.set_prefix_tokens(language="Norwegian", task="transcribe")
+    
+    processor = AutoProcessor.from_pretrained(model_name)
+    data_collator = FlaxDataCollatorSpeechSeq2SeqWithPadding(
+        processor=processor,
+        decoder_start_token_id=model.config.decoder_start_token_id,
+        input_padding="longest",
+        target_padding="longest",
+        max_target_length=256,
+        pad_input_to_multiple_of=None,
+        pad_target_to_multiple_of=None,
     )
+
+    raw_datasets = IterableDatasetDict() if streaming else DatasetDict()
+    raw_datasets["eval"] = load_maybe_streaming_dataset(
+            dataset_name,
+            dataset_config_name,
+            split=dataset_split_name,
+            streaming=streaming,
+            use_auth_token=True if model_args.use_auth_token else None,
+        )
+        
+    raw_datasets_features = list(next(iter(raw_datasets.values())).features.keys())
+    vectorized_datasets = raw_datasets.map(
+        prepare_dataset,
+        remove_columns=raw_datasets_features,
+    )
+    eval_dataset = vectorized_datasets["eval"]
+    
+    gen_kwargs = {"max_length": 256, "num_beams": num_beams}
+
+    p_eval_step = jax.pmap(partial(
+        eval_step, label_smoothing_factor=training_args.label_smoothing_factor), "batch")
+    
+    p_generate_step = jax.pmap(generate_step, "batch")
+
+    max_eval_steps_iter = itertools.repeat(None)
+    eval_loader = data_loader(eval_dataset, eval_batch_size, drop_last=False)
 
     eval_metrics = []
     eval_preds = []
     eval_labels = []
 
-    dataset = dataset.map(data_collator, batched=True, batch_size=16)
-    dataset_iter = iter(dataset)
-
-    for samples in tqdm(dataset_iter, desc="Evaluating...", leave=False):
-        batch = samples
-
+    for _ in tqdm(max_eval_steps_iter, desc="Evaluating...", position=2, leave=False):
+        # Model forward
+        try:
+            samples = next(eval_loader)
+        except StopIteration:
+            break
+        batch = data_collator(samples)
+        
         labels = batch["labels"]
 
-        generated_ids = p_generate_step(model.params, batch.data)
-        eval_preds.extend(jax.device_get(generated_ids.reshape(-1, gen_kwargs["max_length"])))
+        metrics = pad_shard_unpad(p_eval_step, static_return=True)(
+            state.params, batch.data
+        )
+        eval_metrics.append(metrics)
+
+        # Generation
+        generated_ids = pad_shard_unpad(
+            p_generate_step)(state.params, batch.data)
+        eval_preds.extend(jax.device_get(
+            generated_ids.reshape(-1, gen_kwargs["max_length"])))
         eval_labels.extend(labels)
+            
+    # Normalize eval metrics
+    eval_metrics = get_metrics(eval_metrics)
+    eval_metrics = jax.tree_util.tree_map(jnp.mean, eval_metrics)
 
-    eval_preds_text = tokenizer.batch_decode(eval_preds, skip_special_tokens=True)
-    eval_labels_text = tokenizer.batch_decode(eval_labels, skip_special_tokens=True)
-
-    wer_metric = load_metric("wer")
-    metric_value = wer_metric.compute(predictions=eval_preds_text, references=eval_labels_text)
+    # Compute metrics
+    metric_desc = ""
+    metric_values, pred_str, label_str = compute_metrics(
+        eval_preds, eval_labels, return_preds_labels=True
+    )
+    eval_metrics.update(metric_values)
+    metric_desc = " | ".join(
+        [f"Eval {key}: {value}" for key, value in metric_values.items()]
 
     desc = f"Eval WER: {metric_value['wer']}"
     logger.info(desc)
