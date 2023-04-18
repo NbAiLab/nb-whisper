@@ -300,7 +300,7 @@ def evaluate(model_name, dataset_name, dataset_split_name, num_beams):
         
     raw_datasets_features = list(next(iter(raw_datasets.values())).features.keys())
     
-    optimizer = optax.adamw()
+    optimizer = optax.adamw(learning_rate=0.001)
     
     # Setup train state
     state = TrainState.create(
