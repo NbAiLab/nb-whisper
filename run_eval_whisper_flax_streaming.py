@@ -326,21 +326,25 @@ def evaluate(model_name, dataset_name, dataset_split_name, num_beams):
         
         labels = batch["labels"]
         
-        print("Batch data dimensions:")
-        for key, value in batch.data.items():
-            print(f"{key}: {value.shape}")
-        
-        def print_model_params_dimensions(params):
-            for module_name, module_params in params.items():
-                print(f"{module_name}:")
-                for param_name, param_value in module_params.items():
-                    print(f"  {param_name}: {param_value.shape}")
-        print("Model parameters dimensions:")
-        print_model_params_dimensions(model.params)
-        
-        print("Model architecture:")
-        breakpoint()
-        print(model)
+        def print_model_params_dimensions(params, prefix=""):
+            for key, value in params.items():
+                if isinstance(value, dict):
+                    print_model_params_dimensions(value, prefix + key + "/")
+                else:
+                    print(f"{prefix}{key}: {value.shape}")
+
+        def print_model_info(model):
+            # Inspect the dimensions of the model parameters
+            print("Model parameters dimensions:")
+            print_model_params_dimensions(model.params)
+
+            # Print model architecture
+            print("Model architecture:")
+            print(model)
+
+        # Then call the function
+        print_model_info(model)
+
         
 
         
