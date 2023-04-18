@@ -99,7 +99,7 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
     def __call__(self, features: List[Dict[str, Union[List[int], np.ndarray]]]) -> Dict[str, np.ndarray]:
         model_input_name = self.processor.model_input_names[0]
         input_features = {model_input_name: features[model_input_name]}
-        label_features = {"input_ids": [feature["labels"] for feature in features]}
+        label_features = {"input_ids": features["labels"]}
 
         # reformat list to dict and set to pytorch format
         batch = self.processor.feature_extractor.pad(
