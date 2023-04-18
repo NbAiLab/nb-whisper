@@ -30,7 +30,8 @@ import jax.numpy as jnp
 from flax.training.common_utils import shard
 from flax.training.train_state import TrainState
 from tqdm.auto import tqdm
-from transformers import FlaxAutoModelForSeq2SeqLM, AutoTokenizer, load_dataset
+from transformers import FlaxAutoModelForSeq2SeqLM, AutoTokenizer
+from datasets import load_dataset
 
 logger = logging.getLogger(__name__)
 
