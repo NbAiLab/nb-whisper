@@ -332,9 +332,9 @@ def evaluate(model_name, dataset_name, dataset_split_name, num_beams):
         
         def print_model_params_dimensions(params):
             for module_name, module_params in params.items():
-        print(f"{module_name}:")
-        for param_name, param_value in module_params.items():
-            print(f"  {param_name}: {param_value.shape}")
+                print(f"{module_name}:")
+                for param_name, param_value in module_params.items():
+                    print(f"  {param_name}: {param_value.shape}")
 
         print("Model architecture:")
         breakpoint()
