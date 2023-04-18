@@ -27,7 +27,7 @@ import jax.numpy as jnp
 from flax.training.common_utils import shard
 from flax.jax_utils import pad_shard_unpad, unreplicate
 from tqdm.auto import tqdm
-from transformers import FlaxAutoModelForSpeechSeq2Seq, AutoTokenizer, AutoProcessor, FlaxDataCollatorSpeechSeq2SeqWithPadding
+from transformers import FlaxAutoModelForSpeechSeq2Seq, AutoTokenizer, AutoProcessor
 from typing import Any, Callable, Dict, Generator, List
 from flax.training.common_utils import get_metrics
 import torch
@@ -36,6 +36,96 @@ from functools import partial
 
 
 logger = logging.getLogger(__name__)
+
+@flax.struct.dataclass
+class FlaxDataCollatorSpeechSeq2SeqWithPadding:
+    """
+    Data collator that will dynamically pad the inputs received.
+    Args:
+        processor ([`Wav2Vec2Processor`])
+            The processor used for proccessing the data.
+        decoder_start_token_id (:obj: `int`)
+            The begin-of-sentence of the decoder.
+        input_padding (:obj:`bool`, :obj:`str` or :class:`~transformers.tokenization_utils_base.PaddingStrategy`, `optional`, defaults to :obj:`True`):
+            Select a strategy to pad the returned input sequences (according to the model's padding side and padding index)
+            among:
+            * :obj:`True` or :obj:`'longest'`: Pad to the longest sequence in the batch (or no padding if only a single
+              sequence if provided).
+            * :obj:`'max_length'`: Pad to a maximum length specified with the argument :obj:`max_length` or to the
+              maximum acceptable input length for the model if that argument is not provided.
+            * :obj:`False` or :obj:`'do_not_pad'` (default): No padding (i.e., can output a batch with sequences of
+              different lengths).
+        target_padding (:obj:`bool`, :obj:`str` or :class:`~transformers.tokenization_utils_base.PaddingStrategy`, `optional`, defaults to :obj:`True`):
+            Select a strategy to pad the returned target sequences (according to the model's padding side and padding index).
+            See above for details.
+        max_input_length (:obj:`float`, `optional`):
+            Maximum length of the ``input_values`` of the returned list and optionally padding length (see above).
+        max_target_length (:obj:`int`, `optional`):
+            Maximum length of the ``labels`` of the returned list and optionally padding length (see above).
+        pad_input_to_multiple_of (:obj:`int`, `optional`):
+            If set will pad the input sequence to a multiple of the provided value.
+            This is especially useful to enable the use of Tensor Cores on NVIDIA hardware with compute capability >=
+            7.5 (Volta).
+        pad_target_to_multiple_of (:obj:`int`, `optional`):
+            If set will pad the target sequence to a multiple of the provided value.
+            This is especially useful to enable the use of Tensor Cores on NVIDIA hardware with compute capability >=
+            7.5 (Volta).
+    """
+
+    processor: Any
+    decoder_start_token_id: int
+    input_padding: Union[bool, str] = "longest"
+    target_padding: Union[bool, str] = "max_length"
+    max_input_length: Optional[float] = None
+    max_target_length: Optional[int] = None
+    pad_input_to_multiple_of: Optional[int] = None
+    pad_target_to_multiple_of: Optional[int] = None
+
+    def __call__(self, features: List[Dict[str, Union[List[int], np.ndarray]]]) -> Dict[str, np.ndarray]:
+        model_input_name = self.processor.model_input_names[0]
+        input_features = {model_input_name: features[model_input_name]}
+        label_features = {"input_ids": features["labels"]}
+
+        # reformat list to dict and set to pytorch format
+        batch = self.processor.feature_extractor.pad(
+            input_features,
+            max_length=self.max_input_length,
+            padding=self.input_padding,
+            pad_to_multiple_of=self.pad_input_to_multiple_of,
+            return_tensors="np",
+        )
+
+        labels_batch = self.processor.tokenizer.pad(
+            label_features,
+            max_length=self.max_target_length,
+            padding=self.target_padding,
+            pad_to_multiple_of=self.pad_target_to_multiple_of,
+            return_tensors="np",
+        )
+
+        # if bos token is appended in previous tokenization step,
+        # cut bos token here as it's append later anyways
+        labels = labels_batch["input_ids"]
+        if (labels[:, 0] == self.decoder_start_token_id).all().item():
+            labels = labels[:, 1:]
+            labels_batch.attention_mask = labels_batch.attention_mask[:, 1:]
+        
+        
+            
+        decoder_input_ids = shift_tokens_right(
+            labels, self.decoder_start_token_id)
+
+        # replace padding with -100 to ignore correctly when computing the loss
+        labels = np.ma.array(labels, mask=np.not_equal(
+            labels_batch.attention_mask, 1))
+        labels = labels.filled(fill_value=-100)
+
+        batch["labels"] = labels
+        batch["decoder_input_ids"] = decoder_input_ids
+        batch["attention_mask"] = labels_batch.attention_mask  # Add attention_mask to the batch
+        
+        return batch
+
 
 def prepare_dataset(batch):
     audio_column_name = "audio"
