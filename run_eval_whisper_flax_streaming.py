@@ -131,29 +131,7 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
         return batch
 
 
-def prepare_dataset(batch):
-    audio_column_name = "audio"
-    model_input_name = "input_values"
-    text_column_name = "text"
-    do_lower_case = True
-    do_remove_punctuation = True
-    max_label_length = 256
 
-    # Process audio
-    sample = batch[audio_column_name]
-    inputs = feature_extractor(
-        sample["array"], sampling_rate=sample["sampling_rate"])
-    # Process audio length
-    batch[model_input_name] = inputs.get(model_input_name)[0]
-    batch["input_length"] = len(sample["array"])
-
-    # Process targets
-    input_str = batch[text_column_name].lower(
-    ) if do_lower_case else batch[text_column_name]
-    if do_remove_punctuation:
-        input_str = normalizer(input_str).strip()
-    batch["labels"] = tokenizer(input_str, truncation=True, max_length=max_label_length).input_ids
-    return batch
 
 
 def load_maybe_streaming_dataset(dataset_name, dataset_config_name, split="train", streaming=True, **kwargs):
@@ -259,11 +237,33 @@ def evaluate(model_name, dataset_name, dataset_split_name, num_beams):
     streaming = True
     dataset_config_name = None
     
+    def prepare_dataset(batch):
+        audio_column_name = "audio"
+        model_input_name = "input_values"
+        text_column_name = "text"
+        do_lower_case = True
+        do_remove_punctuation = True
+        max_label_length = 256
+
+        # Process audio
+        sample = batch[audio_column_name]
+        inputs = feature_extractor(
+            sample["array"], sampling_rate=sample["sampling_rate"])
+        # Process audio length
+        batch[model_input_name] = inputs.get(model_input_name)[0]
+        batch["input_length"] = len(sample["array"])
+
+        # Process targets
+        input_str = batch[text_column_name].lower(
+        ) if do_lower_case else batch[text_column_name]
+        if do_remove_punctuation:
+            input_str = normalizer(input_str).strip()
+        batch["labels"] = tokenizer(input_str, truncation=True, max_length=max_label_length).input_ids
+        return batch
+    
+    
     model = FlaxAutoModelForSpeechSeq2Seq.from_pretrained(model_name)
-    feature_extractor = AutoFeatureExtractor.from_pretrained(
-        model_name,
-        use_auth_token=True,
-    )
+    feature_extractor = AutoFeatureExtractor.from_pretrained(model_name,use_auth_token=True)
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     tokenizer.set_prefix_tokens(language="Norwegian", task="transcribe")
     
