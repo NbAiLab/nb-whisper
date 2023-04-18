@@ -32,6 +32,7 @@ from tqdm.auto import tqdm
 from transformers import FlaxAutoModelForSpeechSeq2Seq, AutoTokenizer, AutoProcessor, AutoFeatureExtractor
 from typing import Any, Callable, Dict, Generator, List, Optional, Union
 from flax.training.common_utils import get_metrics
+from flax.training import train_state
 import torch
 import itertools
 from functools import partial
