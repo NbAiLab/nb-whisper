@@ -32,13 +32,11 @@ from tqdm.auto import tqdm
 from transformers import FlaxAutoModelForSpeechSeq2Seq, AutoTokenizer, AutoProcessor, AutoFeatureExtractor
 from typing import Any, Callable, Dict, Generator, List, Optional, Union
 from flax.training.common_utils import get_metrics
-from flax.training import train_state
 import torch
 import itertools
 from functools import partial
 import flax
 import numpy as np
-import optax
 
 
 logger = logging.getLogger(__name__)
@@ -53,11 +51,6 @@ def shift_tokens_right(label_ids: np.array, decoder_start_token_id: int) -> np.n
 
     return shifted_label_ids
 
-class TrainState(train_state.TrainState):
-    dropout_rng: jnp.ndarray
-
-    def replicate(self):
-        return jax_utils.replicate(self).replace(dropout_rng=shard_prng_key(self.dropout_rng))
 
 @flax.struct.dataclass
 class FlaxDataCollatorSpeechSeq2SeqWithPadding:
@@ -300,11 +293,6 @@ def evaluate(model_name, dataset_name, dataset_split_name, num_beams):
         
     raw_datasets_features = list(next(iter(raw_datasets.values())).features.keys())
     
-    optimizer = optax.adamw(learning_rate=0.001)
-    
-    # Setup train state
-    state = TrainState.create(
-        apply_fn=model.__call__, params=model.params, tx=optimizer, dropout_rng=None)
 
     
     vectorized_datasets = raw_datasets.map(
@@ -338,13 +326,12 @@ def evaluate(model_name, dataset_name, dataset_split_name, num_beams):
         labels = batch["labels"]
 
         metrics = pad_shard_unpad(p_eval_step, static_return=True)(
-            state.params, batch.data
-        )
+            model.params, batch.data, min_device_batch=1)
         eval_metrics.append(metrics)
 
         # Generation
         generated_ids = pad_shard_unpad(
-            p_generate_step)(state.params, batch.data)
+            p_generate_step)(model.params, batch.data)
         eval_preds.extend(jax.device_get(
             generated_ids.reshape(-1, gen_kwargs["max_length"])))
         eval_labels.extend(labels)
