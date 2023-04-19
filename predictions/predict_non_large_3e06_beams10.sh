@@ -4,7 +4,7 @@ export TCMALLOC_VERBOSE=0
 export TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD=10000000000
 export TF_CPP_MIN_LOG_LEVEL=2
 python ../run_flax_speech_recognition_seq2seq_streaming_dev.py \
-        --model_name_or_path NbAiLab/scream_non_large_3e06_beams10 \
+        --model_name_or_path NbAiLab/scream_non_large_3e06 \
         --run_name "Scream - non_small_64pod_3e06_beam10" \
         --run_description "A Small Scream model. Trained with linear decay only on the all_v5 corpus. This version is trained with a learning rate of 6e6." \
         --wandb_entity "nbailab" \
