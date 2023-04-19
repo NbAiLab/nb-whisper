@@ -13,7 +13,7 @@ python ../run_flax_speech_recognition_seq2seq_streaming_dev.py \
         --dataset_config_name "no-close" \
         --language Norwegian \
         --text_column_name text \
-        --eval_split_name validation \
+        --eval_split_name test \
         --do_train False\
         --do_eval False \
         --do_predict True \
