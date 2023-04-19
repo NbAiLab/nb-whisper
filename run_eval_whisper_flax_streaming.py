@@ -244,55 +244,10 @@ def evaluate(model_name, dataset_name, dataset_split_name, num_beams):
     
     def generate_step(params, batch):
         model.params = params
-        
         attention_mask = batch.get("attention_mask")
-        
         output_ids = model.generate(batch[model_input_name], attention_mask=attention_mask, **gen_kwargs)
-        
         return output_ids.sequences
-
-    # Define eval fn
-    def eval_step(params, batch, label_smoothing_factor=0.0):
-        labels = batch.pop("labels")
-        logits = model(**batch, params=params, train=False)[0]
-
-        loss, num_labels = loss_fn(logits, labels, label_smoothing_factor)
-        num_labels = jax.lax.psum(num_labels, "batch")
-
-        # True loss = total loss / total samples
-        loss = jax.lax.psum(loss, "batch")
-        loss = jax.tree_util.tree_map(lambda x: x / num_labels, loss)
-
-        metrics = {"loss": loss}
-        return metrics
-    
-    # Label smoothed cross entropy
-    def loss_fn(logits, labels, label_smoothing_factor=0.0):
-        """
-        The label smoothing implementation is adapted from Flax's official example:
-        https://github.com/google/flax/blob/87a211135c6a377c8f29048a1cac3840e38b9da4/examples/wmt/train.py#L104
-        """
-        vocab_size = logits.shape[-1]
-        confidence = 1.0 - label_smoothing_factor
-        low_confidence = (1.0 - confidence) / (vocab_size - 1)
-        normalizing_constant = -(
-            confidence * jnp.log(confidence) + (vocab_size - 1) *
-            low_confidence * jnp.log(low_confidence + 1e-20)
-        )
-        soft_labels = onehot(labels, vocab_size,
-                             on_value=confidence, off_value=low_confidence)
-
-        loss = optax.softmax_cross_entropy(logits, soft_labels)
-        loss = loss - normalizing_constant
-
-        # Ignore padded tokens from loss, i.e. where labels are not set to -100
-        padding_mask = labels >= 0
-        loss = loss * padding_mask
-        loss = loss.sum()
-        num_labels = padding_mask.sum()
-        return loss, num_labels
-
-    
+ 
     model = FlaxAutoModelForSpeechSeq2Seq.from_pretrained(model_name)
     feature_extractor = AutoFeatureExtractor.from_pretrained(model_name,use_auth_token=True)
     model_input_name = feature_extractor.model_input_names[0]
@@ -330,10 +285,7 @@ def evaluate(model_name, dataset_name, dataset_split_name, num_beams):
     eval_dataset = vectorized_datasets["eval"]
     
     gen_kwargs = {"max_length": 256, "num_beams": num_beams}
-
-    p_eval_step = jax.pmap(partial(
-        eval_step, label_smoothing_factor=0.0), "batch")
-    
+        
     p_generate_step = jax.pmap(generate_step, "batch")
 
     max_eval_steps_iter = itertools.repeat(None)
@@ -352,21 +304,22 @@ def evaluate(model_name, dataset_name, dataset_split_name, num_beams):
         batch = data_collator(samples)
         
         labels = batch["labels"]
-
+        batch = shard(batch.data)
+        
         #metrics = pad_shard_unpad(p_eval_step, static_return=True)(
         #    model.params, batch.data, min_device_batch=4)
         #eval_metrics.append(metrics)
 
         # Generation
-        #generated_ids = pad_shard_unpad(
-        #    p_generate_step)(model.params, batch.data)
-        #eval_preds.extend(jax.device_get(
-        #    generated_ids.reshape(-1, gen_kwargs["max_length"])))
-        #eval_labels.extend(labels)
+        generated_ids = pad_shard_unpad(
+            p_generate_step)(model.params, batch)
+        eval_preds.extend(jax.device_get(
+            generated_ids.reshape(-1, gen_kwargs["max_length"])))
+        eval_labels.extend(labels)
             
     # Normalize eval metrics
-    eval_metrics = get_metrics(eval_metrics)
-    eval_metrics = jax.tree_util.tree_map(jnp.mean, eval_metrics)
+    # eval_metrics = get_metrics(eval_metrics)
+    # eval_metrics = jax.tree_util.tree_map(jnp.mean, eval_metrics)
 
     # Compute metrics
     metric_desc = ""
