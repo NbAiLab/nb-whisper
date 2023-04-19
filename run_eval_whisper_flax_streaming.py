@@ -358,11 +358,11 @@ def evaluate(model_name, dataset_name, dataset_split_name, num_beams):
         #eval_metrics.append(metrics)
 
         # Generation
-        generated_ids = pad_shard_unpad(
-            p_generate_step)(model.params, batch.data)
-        eval_preds.extend(jax.device_get(
-            generated_ids.reshape(-1, gen_kwargs["max_length"])))
-        eval_labels.extend(labels)
+        #generated_ids = pad_shard_unpad(
+        #    p_generate_step)(model.params, batch.data)
+        #eval_preds.extend(jax.device_get(
+        #    generated_ids.reshape(-1, gen_kwargs["max_length"])))
+        #eval_labels.extend(labels)
             
     # Normalize eval metrics
     eval_metrics = get_metrics(eval_metrics)
