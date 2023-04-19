@@ -304,6 +304,7 @@ def evaluate(model_name, dataset_name, dataset_split_name, num_beams):
         batch = data_collator(samples)
         
         labels = batch["labels"]
+        breakpoint()
         batch = shard(batch.data)
         
         #metrics = pad_shard_unpad(p_eval_step, static_return=True)(
