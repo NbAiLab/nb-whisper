@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 from slugify import slugify
 
-import run_flax_speech_recognition_seq2seq_streaming as cli
+import run_flax_speech_recognition_seq2seq_streaming_dev as cli
 
 
 def get_run_name(model_name_or_path, dataset_name, dataset_config_name, num_beams, do_normalize_eval, **kwargs):
@@ -29,7 +29,12 @@ def main():
     else:
         model_args, data_args, training_args = parser.parse_args_into_dataclasses()
 
-    sys_argv = sys.argv
+    sys_argv = []
+    for arg in sys.argv:
+        if "=" in arg:
+            sys_argv += arg.split("=")
+        else:
+            sys_argv += [arg]
     run_name_params = {**model_args.__dict__, **data_args.__dict__, **training_args.__dict__}
     if "--dataset_name" in sys_argv:
         dataset_pos = sys_argv.index("--dataset_name") + 1
