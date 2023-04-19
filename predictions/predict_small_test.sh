@@ -16,15 +16,15 @@ python ../run_flax_speech_recognition_seq2seq_streaming_dev.py \
         --do_train False\
         --do_eval False \
         --do_predict True \
+        --predict_with_generate \
         --per_device_eval_batch_size 4 \
         --log_max_eval_predictions 100 \
         --log_eval_predictions_fn "log_predictions.write_predictions" \
-        --hub_model_id NbAiLab/NbAiLab/small_non_64pod_1e4_beam5 \
         --streaming True \
         --use_auth_token True \
         --dtype bfloat16 \
         --output_dir output \
         --num_beams 5 \
         --push_to_hub False \
-        
+
         
