@@ -867,11 +867,8 @@ def main():
             pred_str = predictions
             label_str = labels
 
-        try:
-            wer = 100 * metric_wer.compute(predictions=pred_str, references=label_str)
-            cer = 100 * metric_cer.compute(predictions=pred_str, references=label_str)
-        except:
-            breakpoint()
+        wer = 100 * metric_wer.compute(predictions=pred_str, references=label_str)
+        cer = 100 * metric_cer.compute(predictions=pred_str, references=label_str)
             
         if return_preds_labels:
             return {"wer": wer, "cer": cer}, predictions, labels
