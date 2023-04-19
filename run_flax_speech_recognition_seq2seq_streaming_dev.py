@@ -265,7 +265,7 @@ class DataTrainingArguments:
         },
     )
     test_split_name: str = field(
-        default="validation",
+        default="test",
         metadata={
             "help": "The name of the prediction data set split to use (via the datasets library). Defaults to 'test'"
         },
