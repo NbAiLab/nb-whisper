@@ -330,6 +330,22 @@ class DataTrainingArguments:
             )
         },
     )
+    log_max_test_predictions: Optional[int] = field(
+        default=0,
+        metadata={
+            "help": (
+                "Number of label and prediction pairs to write to the summary at prediction time when do_predict is passed."
+            )
+        },
+    )
+    log_test_predictions_fn: Optional[str] = field(
+        default=None,
+        metadata={
+            "help": (
+                "Python path to function for logging predictions when do_predict is passed. It can be an external function like fn(summary_writer, train_metrics, eval_metrics, train_time, step, predictions, labels)."
+            )
+        },
+    )
     run_description: Optional[str] = field(
         default=None,
         metadata={
@@ -599,6 +615,7 @@ def main():
       
     # Handle the repository creation
     output_dir = Path(training_args.output_dir)
+    repo_name = ""
     if training_args.push_to_hub:
         if training_args.hub_model_id is None:
             repo_name = get_full_repo_name(
@@ -882,18 +899,25 @@ def main():
         eval_lines.append(eval_metrics_dict)
         return {**state, "eval_lines": eval_lines}
 
-    def write_metric(summary_writer, train_metrics, eval_metrics, train_time, step, predictions=None, labels=None):
-        summary_writer.scalar("train_time", train_time, step)
+    def write_metric(summary_writer, train_metrics, eval_metrics, train_time, step, predictions=None, labels=None, do_predict=False):
+        if not do_predict:
+            summary_writer.scalar("train_time", train_time, step)
 
-        train_metrics = get_metrics(train_metrics)
-        for key, vals in train_metrics.items():
-            tag = f"train_{key}"
-            for i, val in enumerate(vals):
-                summary_writer.scalar(tag, val, step - len(vals) + i + 1)
+            train_metrics = get_metrics(train_metrics)
+            for key, vals in train_metrics.items():
+                tag = f"train_{key}"
+                for i, val in enumerate(vals):
+                    summary_writer.scalar(tag, val, step - len(vals) + i + 1)
+
+            predictions_fn = data_args.log_eval_predictions_fn
+            summary_prefix = "eval"
+        else:
+            predictions_fn = data_args.log_test_predictions_fn or data_args.log_eval_predictions_fn
+            summary_prefix = "test"
 
         for metric_name, value in eval_metrics.items():
-            summary_writer.scalar(f"eval_{metric_name}", value, step)
-        
+            summary_writer.scalar(f"{summary_prefix}_{metric_name}", value, step)
+
         # Log evaluation predictions
         if predictions and labels:
             df = pd.DataFrame({
@@ -904,10 +928,10 @@ def main():
             df["cer"] = df.apply(lambda row: metric_cer.compute(predictions=[row["predictions"]], references=[row["references"]]), axis=1)
             markdown_table = df.to_markdown(index=False)
             eval_metrics_table = pd.DataFrame.from_dict([{"step": step, **eval_metrics}]).to_markdown(index=False)
-            summary_writer.text("eval_predictions", eval_metrics_table + "\n\n" + markdown_table, step)
+            summary_writer.text(f"{summary_prefix}_predictions", eval_metrics_table + "\n\n" + markdown_table, step)
             # External logging function
-            if data_args.log_eval_predictions_fn:
-                module, fname = data_args.log_eval_predictions_fn.rsplit('.', 1)
+            if predictions_fn:
+                module, fname = predictions_fn.rsplit('.', 1)
                 fn = getattr(import_module(module), fname)
                 fn(summary_writer, train_metrics, eval_metrics, train_time, step, predictions=predictions, labels=labels, training_args=training_args)
 
@@ -1013,8 +1037,8 @@ def main():
     # The mask is True for parameters that should be decayed.
     def decay_mask_fn(params):
         flat_params = traverse_util.flatten_dict(params)
-        # Find out all LayerNorm parameters
-        layer_norm_candidates = ["layernorm", "layer_norm", "ln"]
+        # find out all LayerNorm parameters
+        layer_norm_candidates = ["layer_norm", "self_attn_layer_norm", "final_layer_norm", "encoder_attn_layer_norm"]
         layer_norm_named_params = set(
             [
                 layer[-2:]
@@ -1023,10 +1047,9 @@ def main():
                 if layer_norm_name in "".join(layer).lower()
             ]
         )
-        flat_mask = {path: (path[-1] != "bias" and path[-2:]
-                            not in layer_norm_named_params) for path in flat_params}
+        flat_mask = {path: (path[-1] != "bias" and path[-2:] not in layer_norm_named_params) for path in flat_params}
         return traverse_util.unflatten_dict(flat_mask)
-    
+        
     # Create adam optimizer
     optimizer = optax.adamw(
         learning_rate=linear_decay_lr_schedule_fn,
@@ -1147,9 +1170,8 @@ def main():
     
     # Logging
     logger.info("***** Running training *****")
-    if model_args.model_name_or_path:
-        logger.info(
-            f"  Original model = {model_args.model_name_or_path}")
+    logger.info(
+        f"  Original model = {model_args.model_name_or_path}")
     if training_args.push_to_hub:
         logger.info(
         f"  Hub model id = {training_args.hub_model_id}")
@@ -1208,8 +1230,8 @@ def main():
             language_code = TO_LANGUAGE_CODE[language]
         elif len(language) == 2:
             language_code = language
-    
     training_summary = {
+        "model_name": repo_name.split("/")[-1] if repo_name else model_name_or_path,
         "language": language_code,
         "tags": ["audio", "asr", "automatic-speech-recognition", "hf-asr-leaderboard"],
         "license": "apache-2.0",
@@ -1230,20 +1252,14 @@ def main():
             "starting_optimization_step": f"{training_state['step']:,}" if training_state['step'] > 0 else None,
             "finishing_optimization_step": f"{data_args.num_train_steps:,}",
             "num_train_dataset_workers": f"{num_workers}",
-            "numb_hosts": f"{num_of_hosts}",
+            "num_hosts": f"{num_of_hosts}",
             "total_num_training_examples": f"{data_args.num_train_steps * train_batch_size:,}",
-            "steps_per_epoch": "To be computed after first epoch",
+            "steps_per_epoch": "_To be computed after first epoch_",
             "num_beams": model_args.num_beams,
         },
         # TODO: Adapt https://github.com/huggingface/transformers/blob/main/src/transformers/modelcard.py#L855
         # "hyperparameters": training_args.to_sanitized_dict()
     }   
-    if model_args.model_name_or_path:
-        training_summary["model_name"] = model_args.model_name_or_path
-
-    
-    if training_args.push_to_hub:
-        training_summary["repo_name"] = repo_name.split("/")[-1]
         
     if training_args.gradient_accumulation_steps > 1:
         training_summary["hyperparameters"]["gradient_accumulation_steps"] = f"{training_args.gradient_accumulation_steps:,}"
@@ -1430,7 +1446,7 @@ def main():
 
     # ======================== Prediction loop ==============================
     if training_args.do_predict:
-        logger.info("*** Predict ***")
+        logger.info("***** Runing prediction *****")
         predict_dataset = vectorized_datasets["test"]
         
         pred_metrics = []
@@ -1483,12 +1499,29 @@ def main():
         desc = f"Predict Loss: {pred_metrics['loss']} | {metric_desc})"
         logger.info(desc)
 
+        # Save metrics
+        if has_tensorboard and current_host_idx == 0:
+            log_max_predictions = data_args.log_max_test_predictions if data_args.log_max_test_predictions else 0
+            write_metric(
+                summary_writer,
+                [],
+                pred_metrics,
+                0,
+                0,
+                predictions=pred_str[:log_max_predictions],
+                labels=label_str[:log_max_predictions],
+                do_predict=True,
+            )
+
         # Save final metrics in json
-        if current_host_idx  == 0:
+        if current_host_idx == 0:
             pred_metrics = {f"test_{metric_name}": value for metric_name, value in metric_values.items()}
             (output_dir / "test_results.json").write_text(
                 json.dumps(pred_metrics, indent=4, sort_keys=True)
             )
+            if training_args.push_to_hub:
+                repo.push_to_hub(
+                    commit_message=f"Saving test results", blocking=False)
 
 
 if __name__ == "__main__":
