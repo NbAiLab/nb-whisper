@@ -253,7 +253,6 @@ def evaluate(model_name, dataset_name, dataset_split_name, num_beams):
 
     # Define eval fn
     def eval_step(params, batch, label_smoothing_factor=0.0):
-        breakpoint()
         labels = batch.pop("labels")
         logits = model(**batch, params=params, train=False)[0]
 
@@ -266,6 +265,33 @@ def evaluate(model_name, dataset_name, dataset_split_name, num_beams):
 
         metrics = {"loss": loss}
         return metrics
+    
+    # Label smoothed cross entropy
+    def loss_fn(logits, labels, label_smoothing_factor=0.0):
+        """
+        The label smoothing implementation is adapted from Flax's official example:
+        https://github.com/google/flax/blob/87a211135c6a377c8f29048a1cac3840e38b9da4/examples/wmt/train.py#L104
+        """
+        vocab_size = logits.shape[-1]
+        confidence = 1.0 - label_smoothing_factor
+        low_confidence = (1.0 - confidence) / (vocab_size - 1)
+        normalizing_constant = -(
+            confidence * jnp.log(confidence) + (vocab_size - 1) *
+            low_confidence * jnp.log(low_confidence + 1e-20)
+        )
+        soft_labels = onehot(labels, vocab_size,
+                             on_value=confidence, off_value=low_confidence)
+
+        loss = optax.softmax_cross_entropy(logits, soft_labels)
+        loss = loss - normalizing_constant
+
+        # Ignore padded tokens from loss, i.e. where labels are not set to -100
+        padding_mask = labels >= 0
+        loss = loss * padding_mask
+        loss = loss.sum()
+        num_labels = padding_mask.sum()
+        return loss, num_labels
+
     
     model = FlaxAutoModelForSpeechSeq2Seq.from_pretrained(model_name)
     feature_extractor = AutoFeatureExtractor.from_pretrained(model_name,use_auth_token=True)
@@ -327,9 +353,9 @@ def evaluate(model_name, dataset_name, dataset_split_name, num_beams):
         
         labels = batch["labels"]
 
-        metrics = pad_shard_unpad(p_eval_step, static_return=True)(
-            model.params, batch.data, min_device_batch=4)
-        eval_metrics.append(metrics)
+        #metrics = pad_shard_unpad(p_eval_step, static_return=True)(
+        #    model.params, batch.data, min_device_batch=4)
+        #eval_metrics.append(metrics)
 
         # Generation
         generated_ids = pad_shard_unpad(
