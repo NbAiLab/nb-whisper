@@ -187,11 +187,7 @@ def data_loader(
     return data_loader_iterator
 
 
-
-
-    
-
-def evaluate(model_name, dataset_name, dataset_split_name, num_beams):
+def evaluate(model_name, dataset_name, dataset_split_name, num_beams=1):
     #Default settings
     streaming = True
     dataset_config_name = None
@@ -340,10 +336,11 @@ def evaluate(model_name, dataset_name, dataset_split_name, num_beams):
 
 
 
-def main(args):
-    evaluate(args.model_id, args.dataset, args.split, args.num_beams)
 
-if __name__ == "__main__":
+def main(model_id, dataset, split, num_beams):
+    evaluate(model_id, dataset, split, num_beams)
+
+def cli_main():
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
@@ -372,7 +369,9 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
+    main(args.model_id, args.dataset, args.split, args.num_beams)
 
-    main(args)
+if __name__ == "__main__":
+    cli_main()
 
             
