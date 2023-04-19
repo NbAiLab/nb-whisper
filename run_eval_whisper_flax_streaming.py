@@ -280,7 +280,7 @@ def evaluate(model_name, dataset_name, dataset_split_name, num_beams):
         target_padding="longest",
         max_target_length=256,
         pad_input_to_multiple_of=None,
-        pad_target_to_multiple_of=None,
+        pad_target_to_multiple_of=256,
     )
 
     raw_datasets = IterableDatasetDict() if streaming else DatasetDict()
