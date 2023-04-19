@@ -30,6 +30,8 @@ from flax.training.common_utils import shard
 from flax.jax_utils import pad_shard_unpad, unreplicate
 from tqdm.auto import tqdm
 from transformers import FlaxAutoModelForSpeechSeq2Seq, AutoTokenizer, AutoProcessor, AutoFeatureExtractor
+from transformers.models.whisper.english_normalizer import BasicTextNormalizer
+from transformers.models.whisper.tokenization_whisper import TO_LANGUAGE_CODE
 from typing import Any, Callable, Dict, Generator, List, Optional, Union
 from flax.training.common_utils import get_metrics
 import torch
@@ -125,8 +127,6 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
             labels = labels[:, 1:]
             labels_batch["attention_mask"] = labels_batch["attention_mask"][:, 1:]
         
-        
-            
         decoder_input_ids = shift_tokens_right(
             labels, self.decoder_start_token_id)
 
@@ -188,34 +188,7 @@ def data_loader(
 
 
 
-def compute_metrics(pred_ids, label_ids, return_preds_labels=False):
-    # Replace padded labels by the padding token
-    for idx in range(len(label_ids)):
-        label_ids[idx][label_ids[idx] == -100] = tokenizer.pad_token_id
 
-    predictions = tokenizer.batch_decode(pred_ids, skip_special_tokens=True)
-    # We do not want to group tokens when computing the metrics
-    labels = tokenizer.batch_decode(label_ids, skip_special_tokens=True)
-
-    if do_normalize_eval:
-        pred_str = [normalizer(pred) for pred in predictions]
-        label_str = [normalizer(label) for label in labels]
-        # Filtering step to only evaluate the samples that correspond to non-zero references:
-        pred_str = [pred_str[i]
-                    for i in range(len(pred_str)) if len(label_str[i]) > 0]
-        label_str = [label_str[i]
-                     for i in range(len(label_str)) if len(label_str[i]) > 0]
-    else:
-        pred_str = predictions
-        label_str = labels
-
-    wer = 100 * metric_wer.compute(predictions=pred_str, references=label_str)
-    cer = 100 * metric_cer.compute(predictions=pred_str, references=label_str)
-
-    if return_preds_labels:
-        return {"wer": wer, "cer": cer}, predictions, labels
-    else:
-        return {"wer": wer, "cer": cer}
     
 
 def evaluate(model_name, dataset_name, dataset_split_name, num_beams):
@@ -225,6 +198,7 @@ def evaluate(model_name, dataset_name, dataset_split_name, num_beams):
     text_column_name = "text"
     audio_column_name = "audio"
     max_label_length = 256
+    do_normalize_eval = True
     
     def prepare_dataset(batch):
         # Process audio
@@ -253,7 +227,8 @@ def evaluate(model_name, dataset_name, dataset_split_name, num_beams):
     model_input_name = feature_extractor.model_input_names[0]
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     tokenizer.set_prefix_tokens(language="Norwegian", task="transcribe")
-    
+    normalizer = BasicTextNormalizer()  # 'official' text normalizer from OpenAI
+
     processor = AutoProcessor.from_pretrained(model_name)
     data_collator = FlaxDataCollatorSpeechSeq2SeqWithPadding(
         processor=processor,
@@ -265,6 +240,35 @@ def evaluate(model_name, dataset_name, dataset_split_name, num_beams):
         pad_target_to_multiple_of=256,
     )
 
+    def compute_metrics(pred_ids, label_ids, return_preds_labels=False):
+        # Replace padded labels by the padding token
+        for idx in range(len(label_ids)):
+            label_ids[idx][label_ids[idx] == -100] = tokenizer.pad_token_id
+
+        predictions = tokenizer.batch_decode(pred_ids, skip_special_tokens=True)
+        # We do not want to group tokens when computing the metrics
+        labels = tokenizer.batch_decode(label_ids, skip_special_tokens=True)
+
+        if do_normalize_eval:
+            pred_str = [normalizer(pred) for pred in predictions]
+            label_str = [normalizer(label) for label in labels]
+            # Filtering step to only evaluate the samples that correspond to non-zero references:
+            pred_str = [pred_str[i]
+                        for i in range(len(pred_str)) if len(label_str[i]) > 0]
+            label_str = [label_str[i]
+                        for i in range(len(label_str)) if len(label_str[i]) > 0]
+        else:
+            pred_str = predictions
+            label_str = labels
+
+        wer = 100 * metric_wer.compute(predictions=pred_str, references=label_str)
+        cer = 100 * metric_cer.compute(predictions=pred_str, references=label_str)
+
+        if return_preds_labels:
+            return {"wer": wer, "cer": cer}, predictions, labels
+        else:
+            return {"wer": wer, "cer": cer}
+    
     raw_datasets = IterableDatasetDict() if streaming else DatasetDict()
     raw_datasets["eval"] = load_maybe_streaming_dataset(
             dataset_name,
@@ -304,8 +308,11 @@ def evaluate(model_name, dataset_name, dataset_split_name, num_beams):
         batch = data_collator(samples)
         
         labels = batch["labels"]
-        breakpoint()
-        batch = shard(batch.data)
+        batch = batch.data
+        
+        # Strangely this gives same results as the commented out code below
+        #breakpoint()
+        #batch = shard(batch.data)
         
         #metrics = pad_shard_unpad(p_eval_step, static_return=True)(
         #    model.params, batch.data, min_device_batch=4)
@@ -318,10 +325,6 @@ def evaluate(model_name, dataset_name, dataset_split_name, num_beams):
             generated_ids.reshape(-1, gen_kwargs["max_length"])))
         eval_labels.extend(labels)
             
-    # Normalize eval metrics
-    # eval_metrics = get_metrics(eval_metrics)
-    # eval_metrics = jax.tree_util.tree_map(jnp.mean, eval_metrics)
-
     # Compute metrics
     metric_desc = ""
     metric_values, pred_str, label_str = compute_metrics(
