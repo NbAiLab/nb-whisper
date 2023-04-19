@@ -1147,8 +1147,9 @@ def main():
     
     # Logging
     logger.info("***** Running training *****")
-    logger.info(
-        f"  Original model = {model_args.model_name_or_path}")
+    if model_args.model_name_or_path:
+        logger.info(
+            f"  Original model = {model_args.model_name_or_path}")
     if training_args.push_to_hub:
         logger.info(
         f"  Hub model id = {training_args.hub_model_id}")
@@ -1207,8 +1208,8 @@ def main():
             language_code = TO_LANGUAGE_CODE[language]
         elif len(language) == 2:
             language_code = language
+    
     training_summary = {
-        "model_name": repo_name.split("/")[-1],
         "language": language_code,
         "tags": ["audio", "asr", "automatic-speech-recognition", "hf-asr-leaderboard"],
         "license": "apache-2.0",
@@ -1237,6 +1238,11 @@ def main():
         # TODO: Adapt https://github.com/huggingface/transformers/blob/main/src/transformers/modelcard.py#L855
         # "hyperparameters": training_args.to_sanitized_dict()
     }   
+    if model_args.model_name_or_path:
+        "original_model_name": model_args.model_name_or_path,
+    
+    if repo_name:
+        "repo_name": repo_name.split("/")[-1],
         
     if training_args.gradient_accumulation_steps > 1:
         training_summary["hyperparameters"]["gradient_accumulation_steps"] = f"{training_args.gradient_accumulation_steps:,}"
