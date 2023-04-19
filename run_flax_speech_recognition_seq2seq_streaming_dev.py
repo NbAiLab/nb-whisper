@@ -1241,7 +1241,7 @@ def main():
     if model_args.model_name_or_path:
         training_summary["hyperparameters"]["original_model_name"] = model_args.model_name_or_path
     
-    if repo_name:
+    if if training_args.push_to_hub:
         training_summary["hyperparameters"]["repo_name"] = repo_name.split("/")[-1]
         
     if training_args.gradient_accumulation_steps > 1:
