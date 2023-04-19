@@ -27,5 +27,5 @@ python ../run_flax_speech_recognition_seq2seq_streaming.py \
             --hub_private_repo True \
             --hub_model_id NbAiLab/scream_tertius_exp13_constant_bbs_1e5 \
             --use_auth_token True \
-            --dtype bfloat16 \
-            --push_to_hub
+            --dtype bfloat16
+            
