@@ -253,6 +253,7 @@ def evaluate(model_name, dataset_name, dataset_split_name, num_beams):
 
     # Define eval fn
     def eval_step(params, batch, label_smoothing_factor=0.0):
+        breakpoint()
         labels = batch.pop("labels")
         logits = model(**batch, params=params, train=False)[0]
 
