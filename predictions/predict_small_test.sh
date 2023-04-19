@@ -25,4 +25,6 @@ python ../run_flax_speech_recognition_seq2seq_streaming_dev.py \
         --dtype bfloat16 \
         --output_dir output \
         --num_beams 5 \
+        --push_to_hub False \
+        
         
