@@ -1240,6 +1240,8 @@ def main():
     }   
     if model_args.model_name_or_path:
         training_summary["hyperparameters"]["original_model_name"] = model_args.model_name_or_path
+        training_summary["hyperparameters"]["model_name"] = model_args.model_name_or_path
+
     
     if training_args.push_to_hub:
         training_summary["hyperparameters"]["repo_name"] = repo_name.split("/")[-1]
