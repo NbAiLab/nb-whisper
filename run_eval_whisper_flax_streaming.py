@@ -257,6 +257,8 @@ def evaluate(model_name, dataset_name, dataset_split_name, num_beams=1):
             pred_str = predictions
             label_str = labels
 
+        metric_wer = evaluate.load("wer")
+        metric_cer = evaluate.load("cer")
         wer = 100 * metric_wer.compute(predictions=pred_str, references=label_str)
         cer = 100 * metric_cer.compute(predictions=pred_str, references=label_str)
 
@@ -273,10 +275,7 @@ def evaluate(model_name, dataset_name, dataset_split_name, num_beams=1):
             streaming=streaming,
             use_auth_token=True,
         )
-        
     raw_datasets_features = list(next(iter(raw_datasets.values())).features.keys())
-    
-
     
     vectorized_datasets = raw_datasets.map(
         prepare_dataset,
