@@ -207,6 +207,12 @@ class DataTrainingArguments:
             "value if set."
         },
     )
+    max_predict_samples: Optional[int] = field(
+        default=None,
+        metadata={
+            "help": "Truncate the number of prediction examples (test set) to this value if set."
+        },
+    )
     audio_column_name: str = field(
         default="audio",
         metadata={
@@ -256,6 +262,12 @@ class DataTrainingArguments:
         default="validation",
         metadata={
             "help": "The name of the evaluation data set split to use (via the datasets library). Defaults to 'validation'"
+        },
+    )
+    test_split_name: str = field(
+        default="validation",
+        metadata={
+            "help": "The name of the prediction data set split to use (via the datasets library). Defaults to 'test'"
         },
     )
     do_lower_case: bool = field(
@@ -471,6 +483,7 @@ def load_maybe_streaming_dataset(dataset_name, dataset_config_name, split="train
 def collate_batch(samples):
     return {key: [feature[key] for feature in samples] for key in samples[0]}
 
+
 def data_loader(
     dataset: Dataset,
     batch_size: int,
@@ -650,9 +663,19 @@ def main():
             use_auth_token=True if model_args.use_auth_token else None,
         )
 
-    if not training_args.do_train and not training_args.do_eval:
+    if training_args.do_predict:
+        raw_datasets["test"] = load_maybe_streaming_dataset(
+            data_args.dataset_name,
+            data_args.dataset_config_name,
+            split=data_args.test_split_name,
+            cache_dir=data_args.dataset_cache_dir,
+            streaming=data_args.streaming,
+            use_auth_token=True if model_args.use_auth_token else None,
+        )
+
+    if not training_args.do_train and not training_args.do_eval and not training_args.do_predict:
         raise ValueError(
-            "Cannot not train and not do evaluation. At least one of training or evaluation has to be performed."
+            "There is nothing to do. Please pass `do_train`, `do_eval` and/or `do_predict`."
         )
 
     raw_datasets_features = list(
@@ -791,6 +814,12 @@ def main():
 
     if training_args.do_eval:
         vectorized_datasets["eval"] = vectorized_datasets["eval"].filter(
+            is_audio_in_length_range,
+            input_columns=["input_length"],
+        )
+
+    if training_args.do_predict:
+        vectorized_datasets["test"] = vectorized_datasets["test"].filter(
             is_audio_in_length_range,
             input_columns=["input_length"],
         )
@@ -1391,6 +1420,69 @@ def main():
                 if training_args.push_to_hub:
                     repo.push_to_hub(
                         commit_message=f"Saving weights and logs of step {step} - epoch {epoch}", blocking=False)
+
+    # ======================== Prediction loop ==============================
+    if training_args.do_predict:
+        logger.info("*** Predict ***")
+        predict_dataset = vectorized_datasets["test"]
+        
+        pred_metrics = []
+        pred_preds = []
+        pred_labels = []
+        pred_loader = data_loader(predict_dataset, eval_batch_size, drop_last=False)
+        if data_args.max_predict_samples:
+            max_pred_steps_iter = range(1 + data_args.max_predict_samples // eval_batch_size)
+        else:
+            max_pred_steps_iter = itertools.repeat(None)
+        for _ in tqdm(max_pred_steps_iter, desc="Predicting...", position=2, leave=False):
+            # Model forward
+            try:
+                samples = next(pred_loader)
+            except StopIteration:
+                break
+            batch = data_collator(samples)
+            
+            labels = batch["labels"]
+
+            metrics = pad_shard_unpad(p_eval_step, static_return=True)(
+                state.params, batch.data, min_device_batch=training_args.per_device_eval_batch_size
+            )
+            pred_metrics.append(metrics)
+
+            # Generation
+            if training_args.predict_with_generate:
+                generated_ids = pad_shard_unpad(
+                    p_generate_step)(state.params, batch.data)
+                pred_preds.extend(jax.device_get(
+                    generated_ids.reshape(-1, gen_kwargs["max_length"])))
+                pred_labels.extend(labels)
+
+
+        # Normalize eval metrics
+        pred_metrics = get_metrics(pred_metrics)
+        pred_metrics = jax.tree_util.tree_map(jnp.mean, pred_metrics)
+
+        # Compute metrics
+        metric_desc = ""
+        if training_args.predict_with_generate:
+            metric_values, pred_str, label_str = compute_metrics(
+                pred_preds, pred_labels, return_preds_labels=True
+            )
+            pred_metrics.update(metric_values)
+            metric_desc = " | ".join(
+                [f"Predict {key}: {value}" for key, value in metric_values.items()])
+
+        # Print metrics
+        desc = f"Predict Loss: {pred_metrics['loss']} | {metric_desc})"
+        logger.info(desc)
+
+        # Save final metrics in json
+        if current_host_idx  == 0:
+            pred_metrics = {f"test_{metric_name}": value for metric_name, value in metric_values.items()}
+            (output_dir / "test_results.json").write_text(
+                json.dumps(pred_metrics, indent=4, sort_keys=True)
+            )
+
 
 if __name__ == "__main__":
     main()
