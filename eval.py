@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 from slugify import slugify
 
-import run_flax_speech_recognition_seq2seq_streaming_dev as cli
+import run_nb_flax_speech_recognition_seq2seq_streaming as cli
 
 
 def get_run_name(model_name_or_path, dataset_name, dataset_config_name, num_beams, do_normalize_eval, **kwargs):
