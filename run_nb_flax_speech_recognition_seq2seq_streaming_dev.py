@@ -469,7 +469,7 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
         batch["labels"] = labels
         batch["decoder_input_ids"] = decoder_input_ids
         batch["attention_mask"] = labels_batch.attention_mask  # Add attention_mask to the batch
-        batch["id"] = [features["id"]]  # Add id to the batch
+        batch["id"] = features["id"]  # Add id to the batch
         
         return batch
 
@@ -910,7 +910,6 @@ def main():
         return {**state, "eval_lines": eval_lines}
 
     def write_metric(summary_writer, train_metrics, eval_metrics, train_time, step, predictions=None, labels=None, sample_ids=None, do_predict=False):
-        breakpoint()
         if not do_predict:
             summary_writer.scalar("train_time", train_time, step)
 
