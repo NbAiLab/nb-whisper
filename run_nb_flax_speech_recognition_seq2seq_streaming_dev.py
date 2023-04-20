@@ -1479,8 +1479,9 @@ def main():
             labels = batch["labels"]
             sample_ids = batch["id"]
             
-            breakpoint()
-            
+            #The metric function need batch.data without the id
+            del batch.data["id"]
+                        
             metrics = pad_shard_unpad(p_eval_step, static_return=True)(
                 state.params, batch.data, min_device_batch=training_args.per_device_eval_batch_size
             )
@@ -1495,8 +1496,6 @@ def main():
                 pred_labels.extend(labels)
                 pred_sample_ids.extend(sample_ids)
                 
-
-
         # Normalize eval metrics
         pred_metrics = get_metrics(pred_metrics)
         pred_metrics = jax.tree_util.tree_map(jnp.mean, pred_metrics)
