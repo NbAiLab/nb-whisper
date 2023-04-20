@@ -821,10 +821,11 @@ def main():
         batch["labels"] = tokenizer(input_str, truncation=True, max_length=max_label_length).input_ids
         return batch
 
+    # Make vecotrized datasets. Keeping the "id" since it is useful for prediction
     with training_args.main_process_first(desc="dataset map pre-processing"):
         vectorized_datasets = raw_datasets.map(
             prepare_dataset,
-            remove_columns=raw_datasets_features,
+            remove_columns=[col for col in raw_datasets_features if col != "id"],
         )
 
     # Filter training data with inputs longer than max_input_length
@@ -1474,7 +1475,7 @@ def main():
             batch = data_collator(samples)
             
             labels = batch["labels"]
-
+            breakpoint()
             metrics = pad_shard_unpad(p_eval_step, static_return=True)(
                 state.params, batch.data, min_device_batch=training_args.per_device_eval_batch_size
             )
