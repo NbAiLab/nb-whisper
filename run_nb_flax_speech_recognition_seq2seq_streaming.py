@@ -26,9 +26,6 @@ Fine-tuning the Flax library models for sequence to sequence speech recognition.
 # You can also adapt this script on your own sequence to sequence task. Pointers for this are left as comments.
 
 import os
-os.environ["TOKENIZERS_PARALLELISM"] = "false"
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
-
 import itertools
 import json
 import logging
@@ -210,6 +207,12 @@ class DataTrainingArguments:
             "value if set."
         },
     )
+    max_predict_samples: Optional[int] = field(
+        default=None,
+        metadata={
+            "help": "Truncate the number of prediction examples (test set) to this value if set."
+        },
+    )
     audio_column_name: str = field(
         default="audio",
         metadata={
@@ -259,6 +262,12 @@ class DataTrainingArguments:
         default="validation",
         metadata={
             "help": "The name of the evaluation data set split to use (via the datasets library). Defaults to 'validation'"
+        },
+    )
+    test_split_name: str = field(
+        default="test",
+        metadata={
+            "help": "The name of the prediction data set split to use (via the datasets library). Defaults to 'test'"
         },
     )
     do_lower_case: bool = field(
@@ -318,6 +327,22 @@ class DataTrainingArguments:
         metadata={
             "help": (
                 "Python path to function for logging evaluation predictions. It can be an external function like fn(summary_writer, train_metrics, eval_metrics, train_time, step, predictions, labels)."
+            )
+        },
+    )
+    log_max_test_predictions: Optional[int] = field(
+        default=0,
+        metadata={
+            "help": (
+                "Number of label and prediction pairs to write to the summary at prediction time when do_predict is passed."
+            )
+        },
+    )
+    log_test_predictions_fn: Optional[str] = field(
+        default=None,
+        metadata={
+            "help": (
+                "Python path to function for logging predictions when do_predict is passed. It can be an external function like fn(summary_writer, train_metrics, eval_metrics, train_time, step, predictions, labels)."
             )
         },
     )
@@ -474,6 +499,7 @@ def load_maybe_streaming_dataset(dataset_name, dataset_config_name, split="train
 def collate_batch(samples):
     return {key: [feature[key] for feature in samples] for key in samples[0]}
 
+
 def data_loader(
     dataset: Dataset,
     batch_size: int,
@@ -589,6 +615,7 @@ def main():
       
     # Handle the repository creation
     output_dir = Path(training_args.output_dir)
+    repo_name = ""
     if training_args.push_to_hub:
         if training_args.hub_model_id is None:
             repo_name = get_full_repo_name(
@@ -653,9 +680,19 @@ def main():
             use_auth_token=True if model_args.use_auth_token else None,
         )
 
-    if not training_args.do_train and not training_args.do_eval:
+    if training_args.do_predict:
+        raw_datasets["test"] = load_maybe_streaming_dataset(
+            data_args.dataset_name,
+            data_args.dataset_config_name,
+            split=data_args.test_split_name,
+            cache_dir=data_args.dataset_cache_dir,
+            streaming=data_args.streaming,
+            use_auth_token=True if model_args.use_auth_token else None,
+        )
+
+    if not training_args.do_train and not training_args.do_eval and not training_args.do_predict:
         raise ValueError(
-            "Cannot not train and not do evaluation. At least one of training or evaluation has to be performed."
+            "There is nothing to do. Please pass `do_train`, `do_eval` and/or `do_predict`."
         )
 
     raw_datasets_features = list(
@@ -798,6 +835,12 @@ def main():
             input_columns=["input_length"],
         )
 
+    if training_args.do_predict:
+        vectorized_datasets["test"] = vectorized_datasets["test"].filter(
+            is_audio_in_length_range,
+            input_columns=["input_length"],
+        )
+
     # Load metrics and write stats
     metric_wer = evaluate.load("wer")
     metric_cer = evaluate.load("cer")
@@ -826,7 +869,7 @@ def main():
 
         wer = 100 * metric_wer.compute(predictions=pred_str, references=label_str)
         cer = 100 * metric_cer.compute(predictions=pred_str, references=label_str)
-
+            
         if return_preds_labels:
             return {"wer": wer, "cer": cer}, predictions, labels
         else:
@@ -856,18 +899,25 @@ def main():
         eval_lines.append(eval_metrics_dict)
         return {**state, "eval_lines": eval_lines}
 
-    def write_metric(summary_writer, train_metrics, eval_metrics, train_time, step, predictions=None, labels=None):
-        summary_writer.scalar("train_time", train_time, step)
+    def write_metric(summary_writer, train_metrics, eval_metrics, train_time, step, predictions=None, labels=None, do_predict=False):
+        if not do_predict:
+            summary_writer.scalar("train_time", train_time, step)
 
-        train_metrics = get_metrics(train_metrics)
-        for key, vals in train_metrics.items():
-            tag = f"train_{key}"
-            for i, val in enumerate(vals):
-                summary_writer.scalar(tag, val, step - len(vals) + i + 1)
+            train_metrics = get_metrics(train_metrics)
+            for key, vals in train_metrics.items():
+                tag = f"train_{key}"
+                for i, val in enumerate(vals):
+                    summary_writer.scalar(tag, val, step - len(vals) + i + 1)
+
+            predictions_fn = data_args.log_eval_predictions_fn
+            summary_prefix = "eval"
+        else:
+            predictions_fn = data_args.log_test_predictions_fn or data_args.log_eval_predictions_fn
+            summary_prefix = "test"
 
         for metric_name, value in eval_metrics.items():
-            summary_writer.scalar(f"eval_{metric_name}", value, step)
-        
+            summary_writer.scalar(f"{summary_prefix}_{metric_name}", value, step)
+
         # Log evaluation predictions
         if predictions and labels:
             df = pd.DataFrame({
@@ -878,10 +928,10 @@ def main():
             df["cer"] = df.apply(lambda row: metric_cer.compute(predictions=[row["predictions"]], references=[row["references"]]), axis=1)
             markdown_table = df.to_markdown(index=False)
             eval_metrics_table = pd.DataFrame.from_dict([{"step": step, **eval_metrics}]).to_markdown(index=False)
-            summary_writer.text("eval_predictions", eval_metrics_table + "\n\n" + markdown_table, step)
+            summary_writer.text(f"{summary_prefix}_predictions", eval_metrics_table + "\n\n" + markdown_table, step)
             # External logging function
-            if data_args.log_eval_predictions_fn:
-                module, fname = data_args.log_eval_predictions_fn.rsplit('.', 1)
+            if predictions_fn:
+                module, fname = predictions_fn.rsplit('.', 1)
                 fn = getattr(import_module(module), fname)
                 fn(summary_writer, train_metrics, eval_metrics, train_time, step, predictions=predictions, labels=labels, training_args=training_args)
 
@@ -987,7 +1037,7 @@ def main():
     # The mask is True for parameters that should be decayed.
     def decay_mask_fn(params):
         flat_params = traverse_util.flatten_dict(params)
-        # Find out all LayerNorm parameters
+        # find out all LayerNorm parameters
         layer_norm_candidates = ["layer_norm", "self_attn_layer_norm", "final_layer_norm", "encoder_attn_layer_norm"]
         layer_norm_named_params = set(
             [
@@ -997,10 +1047,9 @@ def main():
                 if layer_norm_name in "".join(layer).lower()
             ]
         )
-        flat_mask = {path: (path[-1] != "bias" and path[-2:]
-                            not in layer_norm_named_params) for path in flat_params}
+        flat_mask = {path: (path[-1] != "bias" and path[-2:] not in layer_norm_named_params) for path in flat_params}
         return traverse_util.unflatten_dict(flat_mask)
-    
+        
     # Create adam optimizer
     optimizer = optax.adamw(
         learning_rate=linear_decay_lr_schedule_fn,
@@ -1182,7 +1231,7 @@ def main():
         elif len(language) == 2:
             language_code = language
     training_summary = {
-        "model_name": repo_name.split("/")[-1],
+        "model_name": repo_name.split("/")[-1] if repo_name else model_name_or_path,
         "language": language_code,
         "tags": ["audio", "asr", "automatic-speech-recognition", "hf-asr-leaderboard"],
         "license": "apache-2.0",
@@ -1203,9 +1252,9 @@ def main():
             "starting_optimization_step": f"{training_state['step']:,}" if training_state['step'] > 0 else None,
             "finishing_optimization_step": f"{data_args.num_train_steps:,}",
             "num_train_dataset_workers": f"{num_workers}",
-            "numb_hosts": f"{num_of_hosts}",
+            "num_hosts": f"{num_of_hosts}",
             "total_num_training_examples": f"{data_args.num_train_steps * train_batch_size:,}",
-            "steps_per_epoch": "To be computed after first epoch",
+            "steps_per_epoch": "_To be computed after first epoch_",
             "num_beams": model_args.num_beams,
         },
         # TODO: Adapt https://github.com/huggingface/transformers/blob/main/src/transformers/modelcard.py#L855
@@ -1394,6 +1443,86 @@ def main():
                 if training_args.push_to_hub:
                     repo.push_to_hub(
                         commit_message=f"Saving weights and logs of step {step} - epoch {epoch}", blocking=False)
+
+    # ======================== Prediction loop ==============================
+    if training_args.do_predict:
+        logger.info("***** Runing prediction *****")
+        predict_dataset = vectorized_datasets["test"]
+        
+        pred_metrics = []
+        pred_preds = []
+        pred_labels = []
+        pred_loader = data_loader(predict_dataset, eval_batch_size, drop_last=False)
+        if data_args.max_predict_samples:
+            max_pred_steps_iter = range(1 + data_args.max_predict_samples // eval_batch_size)
+        else:
+            max_pred_steps_iter = itertools.repeat(None)
+        for _ in tqdm(max_pred_steps_iter, desc="Predicting...", position=2, leave=False):
+            # Model forward
+            try:
+                samples = next(pred_loader)
+            except StopIteration:
+                break
+            batch = data_collator(samples)
+            
+            labels = batch["labels"]
+
+            metrics = pad_shard_unpad(p_eval_step, static_return=True)(
+                state.params, batch.data, min_device_batch=training_args.per_device_eval_batch_size
+            )
+            pred_metrics.append(metrics)
+
+            # Generation
+            if training_args.predict_with_generate:
+                generated_ids = pad_shard_unpad(
+                    p_generate_step)(state.params, batch.data)
+                pred_preds.extend(jax.device_get(
+                    generated_ids.reshape(-1, gen_kwargs["max_length"])))
+                pred_labels.extend(labels)
+
+
+        # Normalize eval metrics
+        pred_metrics = get_metrics(pred_metrics)
+        pred_metrics = jax.tree_util.tree_map(jnp.mean, pred_metrics)
+
+        # Compute metrics
+        metric_desc = ""
+        if training_args.predict_with_generate:
+            metric_values, pred_str, label_str = compute_metrics(
+                pred_preds, pred_labels, return_preds_labels=True
+            )
+            pred_metrics.update(metric_values)
+            metric_desc = " | ".join(
+                [f"Predict {key}: {value}" for key, value in metric_values.items()])
+
+        # Print metrics
+        desc = f"Predict Loss: {pred_metrics['loss']} | {metric_desc})"
+        logger.info(desc)
+
+        # Save metrics
+        if has_tensorboard and current_host_idx == 0:
+            log_max_predictions = data_args.log_max_test_predictions if data_args.log_max_test_predictions else 0
+            write_metric(
+                summary_writer,
+                [],
+                pred_metrics,
+                0,
+                0,
+                predictions=pred_str[:log_max_predictions],
+                labels=label_str[:log_max_predictions],
+                do_predict=True,
+            )
+
+        # Save final metrics in json
+        if current_host_idx == 0:
+            pred_metrics = {f"test_{metric_name}": value for metric_name, value in metric_values.items()}
+            (output_dir / "test_results.json").write_text(
+                json.dumps(pred_metrics, indent=4, sort_keys=True)
+            )
+            if training_args.push_to_hub:
+                repo.push_to_hub(
+                    commit_message=f"Saving test results", blocking=False)
+
 
 if __name__ == "__main__":
     main()
