@@ -869,7 +869,7 @@ def main():
 
         wer = 100 * metric_wer.compute(predictions=pred_str, references=label_str)
         cer = 100 * metric_cer.compute(predictions=pred_str, references=label_str)
-
+            
         if return_preds_labels:
             return {"wer": wer, "cer": cer}, predictions, labels
         else:
