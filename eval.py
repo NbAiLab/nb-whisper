@@ -43,6 +43,7 @@ def main():
             dataset_name, dataset_config_name = dataset.split(":")
             sys_argv[dataset_pos] = dataset_name
             sys_argv.extend(["--dataset_config_name", dataset_config_name])
+            run_name_params["dataset_name"] = dataset_name
             run_name_params["dataset_config_name"] = dataset_config_name
     if "--run_name" not in sys_argv:
         sys_argv.extend(["--run_name", get_run_name(**run_name_params)])
@@ -52,3 +53,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

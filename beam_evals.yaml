@@ -1,0 +1,53 @@
+name: Beams
+entity: nbailab
+project: tpu-whisper-evals
+program: eval.py
+metric:
+  goal: minimize
+  name: test_wer
+method: grid
+parameters:
+  dataset_name:
+    value: NbAiLab/NCC_speech_nrk_v5:no
+  do_eval:
+    value: false
+  do_predict:
+    value: true
+  do_train:
+    value: false
+  dtype:
+    value: bfloat16
+  language:
+    value: Norwegian
+  log_max_test_predictions:
+    value: 1000000
+  model_name_or_path:
+    values:
+      - openai/whisper-tiny
+      - NbAiLab/tiny_scream_april_beta
+  num_beams:
+    values:
+      - 1
+      - 3
+      - 5
+      - 10
+  output_dir:
+    value: ./outputs
+  overwrite_output_dir:
+    value: false
+  per_device_eval_batch_size:
+    value: 8
+  predict_with_generate:
+    value: true
+  preprocessing_num_workers:
+    value: 64
+  push_to_hub:
+    value: false
+  streaming:
+    value: true
+  test_split_name:
+    value: test
+  text_column_name:
+    value: text
+  use_auth_token:
+    value: true
