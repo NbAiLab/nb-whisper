@@ -909,7 +909,8 @@ def main():
         eval_lines.append(eval_metrics_dict)
         return {**state, "eval_lines": eval_lines}
 
-    def write_metric(summary_writer, train_metrics, eval_metrics, train_time, step, predictions=None, labels=None, do_predict=False):
+    def write_metric(summary_writer, train_metrics, eval_metrics, train_time, step, predictions=None, labels=None, sample_ids=None, do_predict=False):
+        breakpoint()
         if not do_predict:
             summary_writer.scalar("train_time", train_time, step)
 
@@ -1462,6 +1463,7 @@ def main():
         pred_metrics = []
         pred_preds = []
         pred_labels = []
+        pred_sample_ids = []
         pred_loader = data_loader(predict_dataset, eval_batch_size, drop_last=False)
         if data_args.max_predict_samples:
             max_pred_steps_iter = range(1 + data_args.max_predict_samples // eval_batch_size)
@@ -1476,7 +1478,8 @@ def main():
             batch = data_collator(samples)
             
             labels = batch["labels"]
-            breakpoint()
+            sample_ids = batch["id"]
+            
             metrics = pad_shard_unpad(p_eval_step, static_return=True)(
                 state.params, batch.data, min_device_batch=training_args.per_device_eval_batch_size
             )
@@ -1489,6 +1492,8 @@ def main():
                 pred_preds.extend(jax.device_get(
                     generated_ids.reshape(-1, gen_kwargs["max_length"])))
                 pred_labels.extend(labels)
+                pred_sample_ids.extend(sample_ids)
+                
 
 
         # Normalize eval metrics
@@ -1520,6 +1525,7 @@ def main():
                 0,
                 predictions=pred_str[:log_max_predictions],
                 labels=label_str[:log_max_predictions],
+                sample_ids=pred_sample_ids[:log_max_predictions],
                 do_predict=True,
             )
 
