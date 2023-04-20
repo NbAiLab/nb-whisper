@@ -795,7 +795,15 @@ def main():
         tokenizer.set_prefix_tokens(
             language=data_args.language, task=data_args.task)
     
-    
+    if training_args.do_train and data_args.max_train_samples is not None:
+        raw_datasets["train"] = raw_datasets["train"].select(range(data_args.max_train_samples))
+
+    if training_args.do_eval and data_args.max_eval_samples is not None:
+        raw_datasets["eval"] = raw_datasets["eval"].select(range(data_args.max_eval_samples))
+
+    if training_args.do_predict and data_args.max_predict_samples is not None:
+        raw_datasets["test"] = raw_datasets["test"].select(range(data_args.max_predict_samples))
+
     def prepare_dataset(batch):
         # Process audio
         sample = batch[audio_column_name]
@@ -933,7 +941,7 @@ def main():
             if predictions_fn:
                 module, fname = predictions_fn.rsplit('.', 1)
                 fn = getattr(import_module(module), fname)
-                fn(summary_writer, train_metrics, eval_metrics, train_time, step, predictions=predictions, labels=labels, training_args=training_args)
+                fn(summary_writer, train_metrics, eval_metrics, train_time, step, predictions=predictions, labels=labels, training_args=training_args, do_predict=do_predict)
 
     # Save feature extractor, tokenizer and config
     feature_extractor.save_pretrained(training_args.output_dir)

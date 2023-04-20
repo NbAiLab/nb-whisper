@@ -790,6 +790,15 @@ def main():
     do_remove_punctuation = data_args.do_remove_punctuation
     normalizer = BasicTextNormalizer()  # 'official' text normalizer from OpenAI
 
+    if training_args.do_train and data_args.max_train_samples is not None:
+        raw_datasets["train"] = raw_datasets["train"].select(range(data_args.max_train_samples))
+
+    if training_args.do_eval and data_args.max_eval_samples is not None:
+        raw_datasets["eval"] = raw_datasets["eval"].select(range(data_args.max_eval_samples))
+
+    if training_args.do_predict and data_args.max_predict_samples is not None:
+        raw_datasets["test"] = raw_datasets["test"].select(range(data_args.max_predict_samples))
+
     if data_args.language is not None:
         # We only need to set the task id when the language is specified (i.e. in a multilingual setting)
         tokenizer.set_prefix_tokens(
@@ -933,7 +942,7 @@ def main():
             if predictions_fn:
                 module, fname = predictions_fn.rsplit('.', 1)
                 fn = getattr(import_module(module), fname)
-                fn(summary_writer, train_metrics, eval_metrics, train_time, step, predictions=predictions, labels=labels, training_args=training_args)
+                fn(summary_writer, train_metrics, eval_metrics, train_time, step, predictions=predictions, labels=labels, training_args=training_args, do_predict=do_predict)
 
     # Save feature extractor, tokenizer and config
     feature_extractor.save_pretrained(training_args.output_dir)
