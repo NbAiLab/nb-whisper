@@ -831,9 +831,11 @@ def main():
     with training_args.main_process_first(desc="dataset map pre-processing"):
         vectorized_datasets = raw_datasets.map(
             prepare_dataset,
-            remove_columns=[col for col in raw_datasets_features if col != "id"],
+            remove_columns=raw_datasets_features
+            
         )
-
+    #remove_columns=[col for col in raw_datasets_features if col != "id"],
+    
     # Filter training data with inputs longer than max_input_length
     def is_audio_in_length_range(length):
         return min_input_length < length < max_input_length
