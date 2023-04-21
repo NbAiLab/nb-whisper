@@ -470,6 +470,7 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
         batch["decoder_input_ids"] = decoder_input_ids
         batch["attention_mask"] = labels_batch.attention_mask  # Add attention_mask to the batch
         batch["id"] = features["id"]  # Add id to the batch
+        breakpoint()
         
         return batch
 
@@ -699,6 +700,9 @@ def main():
     raw_datasets_features = list(
         next(iter(raw_datasets.values())).features.keys())
 
+    # These columns from the dataset are passed through to the model as additional inputs    
+    keep_extra_dataset_columns = ["id","verbosity"]
+    
     if data_args.audio_column_name not in raw_datasets_features:
         raise ValueError(
             f"--audio_column_name '{data_args.audio_column_name}' not found in dataset '{data_args.dataset_name}'. "
@@ -826,7 +830,7 @@ def main():
     with training_args.main_process_first(desc="dataset map pre-processing"):
         vectorized_datasets = raw_datasets.map(
             prepare_dataset,
-            remove_columns=[col for col in raw_datasets_features if col != "id"],
+            remove_columns=[col for col in raw_datasets_features if col not in keep_extra_dataset_columns],
         )
 
     # Filter training data with inputs longer than max_input_length
