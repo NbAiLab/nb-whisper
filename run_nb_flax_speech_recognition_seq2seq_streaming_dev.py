@@ -1366,7 +1366,7 @@ def main():
             #        del samples[key]
 
 
-            del samples["id"]
+            # del samples["id"]
             batch = data_collator(samples)
             
             
@@ -1401,7 +1401,7 @@ def main():
                 batch = data_collator(samples)
                 
                 labels = batch["labels"]
-                del batch["id"]
+                # del batch["id"]
                 
                 
                 metrics = pad_shard_unpad(p_eval_step, static_return=True)(
