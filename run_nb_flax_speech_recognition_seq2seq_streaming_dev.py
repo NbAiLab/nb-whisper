@@ -1361,6 +1361,7 @@ def main():
 
             # Delete the extra dataset columns before running through training
             # TODO: Change this later to keep the necessary parts
+            breakpoint()
             for key in samples:
                 if key in extra_dataset_columns:
                     del samples[key]
