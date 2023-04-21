@@ -831,7 +831,7 @@ def main():
     with training_args.main_process_first(desc="dataset map pre-processing"):
         vectorized_datasets = raw_datasets.map(
             prepare_dataset,
-            remove_columns=[col for col in raw_datasets_features if col != "id",
+            remove_columns=[col for col in raw_datasets_features if col != "id"],
         )
 
     # Filter training data with inputs longer than max_input_length
