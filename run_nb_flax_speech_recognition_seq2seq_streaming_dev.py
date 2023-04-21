@@ -1360,6 +1360,13 @@ def main():
                 training_summary["hyperparameters"]["steps_per_epoch"] = step // epoch
 
             batch = data_collator(samples)
+            
+            # Delete the extra dataset columns before running through training
+            # TODO: Change this later to keep the necessary parts
+            for key in batch:
+                if key in extra_dataset_columns:
+                    del batch[key]
+            
             batch = shard(batch.data)
                       
             state, train_metric = p_train_step(state, batch)
