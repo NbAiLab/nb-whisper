@@ -836,8 +836,6 @@ def main():
             prepare_dataset,
             remove_columns=[col for col in raw_datasets_features if col not in extra_dataset_columns],
         )
-    print("hh")
-    breakpoint()
 
     # Filter training data with inputs longer than max_input_length
     def is_audio_in_length_range(length):
