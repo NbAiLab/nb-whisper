@@ -469,9 +469,11 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
         batch["labels"] = labels
         batch["decoder_input_ids"] = decoder_input_ids
         batch["attention_mask"] = labels_batch.attention_mask  # Add attention_mask to the batch
-        breakpoint()
-        batch["id"] = features["id"]  # Add id to the batch
         
+        #The extra keys here should be passed along
+        for key in features.keys():
+            if key not in batch.keys():
+                batch[key] = features[key]
         
         return batch
 
@@ -827,12 +829,14 @@ def main():
         batch["labels"] = tokenizer(input_str, truncation=True, max_length=max_label_length).input_ids
         return batch
 
+    
     # Make vecotrized datasets. Keeping the "id" since it is useful for prediction
     with training_args.main_process_first(desc="dataset map pre-processing"):
         vectorized_datasets = raw_datasets.map(
             prepare_dataset,
             remove_columns=[col for col in raw_datasets_features if col not in keep_extra_dataset_columns],
         )
+    breakpoint()
 
     # Filter training data with inputs longer than max_input_length
     def is_audio_in_length_range(length):
