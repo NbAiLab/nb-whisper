@@ -1363,10 +1363,10 @@ def main():
             #    if key in extra_dataset_columns:
             #        del samples[key]
 
-            breakpoint()
-            
+
+            del samples["id"]
             batch = data_collator(samples)
-            del batch["id"]
+            
             
             batch = shard(batch.data)
                       
