@@ -1363,6 +1363,8 @@ def main():
             #    if key in extra_dataset_columns:
             #        del samples[key]
 
+            breakpoint()
+            
             batch = data_collator(samples)
             del batch["id"]
             
