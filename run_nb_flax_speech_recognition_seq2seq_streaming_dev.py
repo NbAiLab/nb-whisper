@@ -702,9 +702,6 @@ def main():
 
     raw_datasets_features = list(
         next(iter(raw_datasets.values())).features.keys())
-
-    # These columns from the dataset are passed through to the model as additional inputs    
-    extra_dataset_columns = ["id","verbosity"]
     
     if data_args.audio_column_name not in raw_datasets_features:
         raise ValueError(
@@ -834,7 +831,7 @@ def main():
     with training_args.main_process_first(desc="dataset map pre-processing"):
         vectorized_datasets = raw_datasets.map(
             prepare_dataset,
-            remove_columns=[col for col in raw_datasets_features if col not in extra_dataset_columns],
+            remove_columns=[col for col in raw_datasets_features if col != "id",
         )
 
     # Filter training data with inputs longer than max_input_length
@@ -1361,14 +1358,13 @@ def main():
 
             # Delete the extra dataset columns before running through training
             # TODO: Change this later to keep the necessary parts
-            breakpoint()
-            for key in samples:
-                if key in extra_dataset_columns:
-                    del samples[key]
+            # 
+            # for key in samples:
+            #    if key in extra_dataset_columns:
+            #        del samples[key]
 
             batch = data_collator(samples)
-            
-
+            del batch["id"]
             
             batch = shard(batch.data)
                       
@@ -1401,11 +1397,8 @@ def main():
                 batch = data_collator(samples)
                 
                 labels = batch["labels"]
-
-                # Delete the extra dataset columns before running through metrics
-                for key in batch:
-                    if key in extra_dataset_columns:
-                        del batch[key]
+                del batch["id"]
+                
                 
                 metrics = pad_shard_unpad(p_eval_step, static_return=True)(
                     state.params, batch.data, min_device_batch=training_args.per_device_eval_batch_size
@@ -1502,10 +1495,8 @@ def main():
             labels = batch["labels"]
             sample_ids = batch["id"]
             
-            # Delete the extra dataset columns before running through metrics
-            for key in batch:
-                if key in extra_dataset_columns:
-                    del batch[key]
+            #Delete the extra dataset columns before running through metrics
+            del batch["id"]
                         
             metrics = pad_shard_unpad(p_eval_step, static_return=True)(
                 state.params, batch.data, min_device_batch=training_args.per_device_eval_batch_size
