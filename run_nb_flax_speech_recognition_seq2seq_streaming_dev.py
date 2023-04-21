@@ -704,7 +704,7 @@ def main():
         next(iter(raw_datasets.values())).features.keys())
 
     # These columns from the dataset are passed through to the model as additional inputs    
-    keep_extra_dataset_columns = ["id","verbosity"]
+    extra_dataset_columns = ["id","verbosity"]
     
     if data_args.audio_column_name not in raw_datasets_features:
         raise ValueError(
@@ -834,7 +834,7 @@ def main():
     with training_args.main_process_first(desc="dataset map pre-processing"):
         vectorized_datasets = raw_datasets.map(
             prepare_dataset,
-            remove_columns=[col for col in raw_datasets_features if col not in keep_extra_dataset_columns],
+            remove_columns=[col for col in raw_datasets_features if col not in extra_dataset_columns],
         )
     print("hh")
     breakpoint()
@@ -1394,6 +1394,11 @@ def main():
                 
                 labels = batch["labels"]
 
+                # Delete the extra dataset columns before running through metrics
+                for key in batch:
+                    if key in extra_dataset_columns:
+                        del batch[key]
+                
                 metrics = pad_shard_unpad(p_eval_step, static_return=True)(
                     state.params, batch.data, min_device_batch=training_args.per_device_eval_batch_size
                 )
@@ -1489,8 +1494,10 @@ def main():
             labels = batch["labels"]
             sample_ids = batch["id"]
             
-            #The metric function need batch.data without the id
-            del batch.data["id"]
+            # Delete the extra dataset columns before running through metrics
+            for key in batch:
+                if key in extra_dataset_columns:
+                    del batch[key]
                         
             metrics = pad_shard_unpad(p_eval_step, static_return=True)(
                 state.params, batch.data, min_device_batch=training_args.per_device_eval_batch_size
