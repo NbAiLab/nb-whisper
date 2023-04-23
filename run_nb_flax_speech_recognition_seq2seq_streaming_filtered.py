@@ -792,6 +792,8 @@ def main():
 
     if training_args.do_train and data_args.max_train_samples is not None:
         raw_datasets["train"] = raw_datasets["train"].select(range(data_args.max_train_samples))
+        raw_datasets["train"] = raw_datasets["train"].filter(lambda batch: batch['verbosity'] == 6)
+
 
     if training_args.do_eval and data_args.max_eval_samples is not None:
         raw_datasets["eval"] = raw_datasets["eval"].select(range(data_args.max_eval_samples))
@@ -822,11 +824,8 @@ def main():
         batch["labels"] = tokenizer(input_str, truncation=True, max_length=max_label_length).input_ids
         return batch
 
-    # Foltering out everything with a verbosity!=6
     with training_args.main_process_first(desc="dataset map pre-processing"):
-        vectorized_datasets = raw_datasets.filter(
-            lambda batch: batch['verbosity'] == 6
-        ).map(
+        vectorized_datasets = raw_datasets.map(
             prepare_dataset,
             remove_columns=raw_datasets_features,
         )
