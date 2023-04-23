@@ -48,6 +48,7 @@ import numpy as np
 import optax
 import pandas as pd
 import torch
+# from jax.experimental.compilation_cache import compilation_cache; compilation_cache.initialize_cache(tempfile.gettempdir())
 from flax import jax_utils, traverse_util
 from flax.jax_utils import pad_shard_unpad, unreplicate
 from flax.training import train_state
@@ -297,12 +298,8 @@ class DataTrainingArguments:
         metadata={
             "help": "Task, either `transcribe` for speech recognition or `translate` for speech translation."},
     )
-    num_train_steps: int = field(
-        default=50000,
-        metadata={
-            "help": "The number of training steps."
-        },
-    )
+    num_train_steps: int = field(default=50000, metadata={
+                                 "help": "The number of training steps."})
     shuffle_buffer_size: Optional[int] = field(
         default=500,
         metadata={
@@ -316,6 +313,62 @@ class DataTrainingArguments:
         default=True,
         metadata={
             "help": "Whether to use streaming mode to load and pre-process the data."},
+    )
+    log_max_eval_predictions: Optional[int] = field(
+        default=0,
+        metadata={
+            "help": (
+                "Number of label and prediction pairs to write to the summary at each evaluation step."
+            )
+        },
+    )
+    log_eval_predictions_fn: Optional[str] = field(
+        default=None,
+        metadata={
+            "help": (
+                "Python path to function for logging evaluation predictions. It can be an external function like fn(summary_writer, train_metrics, eval_metrics, train_time, step, predictions, labels)."
+            )
+        },
+    )
+    log_max_test_predictions: Optional[int] = field(
+        default=0,
+        metadata={
+            "help": (
+                "Number of label and prediction pairs to write to the summary at prediction time when do_predict is passed."
+            )
+        },
+    )
+    log_test_predictions_fn: Optional[str] = field(
+        default=None,
+        metadata={
+            "help": (
+                "Python path to function for logging predictions when do_predict is passed. It can be an external function like fn(summary_writer, train_metrics, eval_metrics, train_time, step, predictions, labels)."
+            )
+        },
+    )
+    run_description: Optional[str] = field(
+        default=None,
+        metadata={
+            "help": (
+                "A longer description of the run/experiment."
+            )
+        },
+    )
+    wandb_entity: Optional[str] = field(
+        default=None,
+        metadata={
+            "help": (
+                "Weights & Biases username or entity (organization name)."
+            )
+        },
+    )
+    wandb_project: Optional[str] = field(
+        default=None,
+        metadata={
+            "help": (
+                "Weights & Biases project to log metrics to."
+            )
+        },
     )
 
 
@@ -403,6 +456,8 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
             labels = labels[:, 1:]
             labels_batch.attention_mask = labels_batch.attention_mask[:, 1:]
         
+        
+            
         decoder_input_ids = shift_tokens_right(
             labels, self.decoder_start_token_id)
 
@@ -418,10 +473,30 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
         return batch
 
 
-def collate_batch(samples: List) -> Dict[str, List]:
+def load_maybe_streaming_dataset(dataset_name, dataset_config_name, split="train", streaming=True, **kwargs):
     """
-    Collate function to transform a dataset batch into a format suitable for Torch
+    Utility function to load a dataset in streaming mode. For datasets with multiple splits,
+    each split is loaded individually and then splits combined by taking alternating examples from
+    each (interleaving).
     """
+    if "+" in split:
+        # load multiple splits separated by the `+` symbol with streaming mode
+        dataset_splits = [
+            load_dataset(dataset_name, dataset_config_name,
+                         split=split_name, streaming=streaming, **kwargs)
+            for split_name in split.split("+")
+        ]
+        # interleave multiple splits to form one dataset
+        interleaved_dataset = interleave_datasets(dataset_splits)
+        return interleaved_dataset
+    else:
+        # load a single split *with* streaming mode
+        dataset = load_dataset(
+            dataset_name, dataset_config_name, split=split, streaming=streaming, **kwargs)
+        return dataset
+
+
+def collate_batch(samples):
     return {key: [feature[key] for feature in samples] for key in samples[0]}
 
 
@@ -586,7 +661,7 @@ def main():
     raw_datasets = IterableDatasetDict() if data_args.streaming else DatasetDict()
 
     if training_args.do_train:
-        raw_datasets["train"] = load_dataset(
+        raw_datasets["train"] = load_maybe_streaming_dataset(
             data_args.dataset_name,
             data_args.dataset_config_name,
             split=data_args.train_split_name,
@@ -596,7 +671,7 @@ def main():
         )
 
     if training_args.do_eval:
-        raw_datasets["eval"] = load_dataset(
+        raw_datasets["eval"] = load_maybe_streaming_dataset(
             data_args.dataset_name,
             data_args.dataset_config_name,
             split=data_args.eval_split_name,
@@ -606,7 +681,7 @@ def main():
         )
 
     if training_args.do_predict:
-        raw_datasets["test"] = load_dataset(
+        raw_datasets["test"] = load_maybe_streaming_dataset(
             data_args.dataset_name,
             data_args.dataset_config_name,
             split=data_args.test_split_name,
@@ -715,11 +790,6 @@ def main():
     do_remove_punctuation = data_args.do_remove_punctuation
     normalizer = BasicTextNormalizer()  # 'official' text normalizer from OpenAI
 
-    if data_args.language is not None:
-        # We only need to set the task id when the language is specified (i.e. in a multilingual setting)
-        tokenizer.set_prefix_tokens(
-            language=data_args.language, task=data_args.task)
-    
     if training_args.do_train and data_args.max_train_samples is not None:
         raw_datasets["train"] = raw_datasets["train"].select(range(data_args.max_train_samples))
 
@@ -729,6 +799,12 @@ def main():
     if training_args.do_predict and data_args.max_predict_samples is not None:
         raw_datasets["test"] = raw_datasets["test"].select(range(data_args.max_predict_samples))
 
+    if data_args.language is not None:
+        # We only need to set the task id when the language is specified (i.e. in a multilingual setting)
+        tokenizer.set_prefix_tokens(
+            language=data_args.language, task=data_args.task)
+    
+    
     def prepare_dataset(batch):
         # Process audio
         sample = batch[audio_column_name]
@@ -782,7 +858,7 @@ def main():
     metric_cer = evaluate.load("cer")
     do_normalize_eval = data_args.do_normalize_eval
 
-    def compute_metrics(pred_ids, label_ids):
+    def compute_metrics(pred_ids, label_ids, return_preds_labels=False):
         # Replace padded labels by the padding token
         for idx in range(len(label_ids)):
             label_ids[idx][label_ids[idx] == -100] = tokenizer.pad_token_id
@@ -805,7 +881,11 @@ def main():
 
         wer = 100 * metric_wer.compute(predictions=pred_str, references=label_str)
         cer = 100 * metric_cer.compute(predictions=pred_str, references=label_str)
-        return {"wer": wer, "cer": cer}
+            
+        if return_preds_labels:
+            return {"wer": wer, "cer": cer}, predictions, labels
+        else:
+            return {"wer": wer, "cer": cer}
 
     def update_training_state(training_state, train_metrics, eval_metrics, step):
         safe_value = lambda x: float(x.tolist() if isinstance(x, jnp.ndarray) else x)
@@ -831,7 +911,7 @@ def main():
         eval_lines.append(eval_metrics_dict)
         return {**state, "eval_lines": eval_lines}
 
-    def write_metric(summary_writer, train_metrics, eval_metrics, train_time, step, do_predict=False):
+    def write_metric(summary_writer, train_metrics, eval_metrics, train_time, step, predictions=None, labels=None, do_predict=False):
         if not do_predict:
             summary_writer.scalar("train_time", train_time, step)
 
@@ -840,12 +920,32 @@ def main():
                 tag = f"train_{key}"
                 for i, val in enumerate(vals):
                     summary_writer.scalar(tag, val, step - len(vals) + i + 1)
+
+            predictions_fn = data_args.log_eval_predictions_fn
             summary_prefix = "eval"
         else:
+            predictions_fn = data_args.log_test_predictions_fn or data_args.log_eval_predictions_fn
             summary_prefix = "test"
 
         for metric_name, value in eval_metrics.items():
             summary_writer.scalar(f"{summary_prefix}_{metric_name}", value, step)
+
+        # Log evaluation predictions
+        if predictions and labels:
+            df = pd.DataFrame({
+                "references": labels,
+                "predictions": predictions,
+            })
+            df["wer"] = df.apply(lambda row: metric_wer.compute(predictions=[row["predictions"]], references=[row["references"]]), axis=1)
+            df["cer"] = df.apply(lambda row: metric_cer.compute(predictions=[row["predictions"]], references=[row["references"]]), axis=1)
+            markdown_table = df.to_markdown(index=False)
+            eval_metrics_table = pd.DataFrame.from_dict([{"step": step, **eval_metrics}]).to_markdown(index=False)
+            summary_writer.text(f"{summary_prefix}_predictions", eval_metrics_table + "\n\n" + markdown_table, step)
+            # External logging function
+            if predictions_fn:
+                module, fname = predictions_fn.rsplit('.', 1)
+                fn = getattr(import_module(module), fname)
+                fn(summary_writer, train_metrics, eval_metrics, train_time, step, predictions=predictions, labels=labels, training_args=training_args, do_predict=do_predict)
 
     # Save feature extractor, tokenizer and config
     feature_extractor.save_pretrained(training_args.output_dir)
@@ -868,6 +968,30 @@ def main():
     has_tensorboard = is_tensorboard_available()
     if has_tensorboard and current_host_idx == 0:
         try:
+            # TODO: Decouple wandb from tensorboard
+            import wandb
+
+            has_wandb = True
+        except ImportError:
+            has_wandb = False
+            if data_args.wandb_entity is not None or data_args.wandb_project is not None:
+                logger.warning(
+                    f"Unable to display metrics through Weights & Biases because some packages are not installed: {ie}"
+                )
+        try:
+            if has_wandb:
+                wandb.tensorboard.patch(root_logdir=output_dir / "runs")
+                wandb.init(
+                    entity=data_args.wandb_entity,
+                    project=data_args.wandb_project,
+                    name=training_args.run_name,
+                    notes=data_args.run_description,
+                    save_code=True,
+                    sync_tensorboard=True,
+                )
+                wandb.config.update(training_args)
+                wandb.config.update(model_args)
+                wandb.config.update(data_args)
             from flax.metrics.tensorboard import SummaryWriter
 
             summary_writer = SummaryWriter(
@@ -1035,8 +1159,14 @@ def main():
      
     def generate_step(params, batch):
         model.params = params
+        
         attention_mask = batch.get("attention_mask")
+        
+        #if attention_mask is not None:
         output_ids = model.generate(batch[model_input_name], attention_mask=attention_mask, **gen_kwargs)
+        #else:
+        #    output_ids = model.generate(batch[model_input_name], **gen_kwargs)
+        
         return output_ids.sequences
 
     # Create parallel version of the train and eval step
@@ -1201,7 +1331,9 @@ def main():
             batch = data_collator(samples)
             # batch = shard(batch.data)
     
+    
     for step in tqdm(range(data_args.num_train_steps), desc="Training...", position=1, leave=False):
+        
         # Skip initial steps if these are specified. 
         if step < training_state["step"]:
             continue
@@ -1274,7 +1406,7 @@ def main():
             # Compute metrics
             metric_desc = ""
             if training_args.predict_with_generate:
-                metric_values = compute_metrics(
+                metric_values, pred_str, label_str = compute_metrics(
                     eval_preds, eval_labels, return_preds_labels=True
                 )
                 eval_metrics.update(metric_values)
@@ -1295,12 +1427,15 @@ def main():
 
             # Save metrics
             if has_tensorboard and current_host_idx == 0:
+                log_max_predictions = data_args.log_max_eval_predictions if data_args.log_max_eval_predictions else 0
                 write_metric(
                     summary_writer,
                     train_metrics,
                     eval_metrics,
                     train_time,
                     step,
+                    predictions=pred_str[:log_max_predictions],
+                    labels=label_str[:log_max_predictions]
                 )
 
             # Save checkpoint at each eval_steps and push checkpoint to the hub
@@ -1357,6 +1492,7 @@ def main():
                     generated_ids.reshape(-1, gen_kwargs["max_length"])))
                 pred_labels.extend(labels)
 
+
         # Normalize eval metrics
         pred_metrics = get_metrics(pred_metrics)
         pred_metrics = jax.tree_util.tree_map(jnp.mean, pred_metrics)
@@ -1364,7 +1500,7 @@ def main():
         # Compute metrics
         metric_desc = ""
         if training_args.predict_with_generate:
-            metric_values = compute_metrics(
+            metric_values, pred_str, label_str = compute_metrics(
                 pred_preds, pred_labels, return_preds_labels=True
             )
             pred_metrics.update(metric_values)
@@ -1377,7 +1513,17 @@ def main():
 
         # Save metrics
         if has_tensorboard and current_host_idx == 0:
-            write_metric(summary_writer, [], pred_metrics, 0, 0, do_predict=True)
+            log_max_predictions = data_args.log_max_test_predictions if data_args.log_max_test_predictions else 0
+            write_metric(
+                summary_writer,
+                [],
+                pred_metrics,
+                0,
+                0,
+                predictions=pred_str[:log_max_predictions],
+                labels=label_str[:log_max_predictions],
+                do_predict=True,
+            )
 
         # Save final metrics in json
         if current_host_idx == 0:
