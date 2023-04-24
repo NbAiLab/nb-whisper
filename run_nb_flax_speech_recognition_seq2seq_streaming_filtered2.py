@@ -634,6 +634,7 @@ def main():
                     repo_name, exist_ok=True, token=training_args.hub_token, private=training_args.hub_private_repo
                 )
             except:
+                print("Waiting for the repository to be created...")
                 time.sleep(1)
 
         repo = Repository(training_args.output_dir,
