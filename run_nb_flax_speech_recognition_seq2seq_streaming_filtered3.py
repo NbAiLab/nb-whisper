@@ -790,7 +790,9 @@ def main():
     do_lower_case = data_args.do_lower_case
     do_remove_punctuation = data_args.do_remove_punctuation
     normalizer = BasicTextNormalizer()  # 'official' text normalizer from OpenAI
-
+    
+    breakpoint()
+    
     if training_args.do_train and data_args.max_train_samples is not None:
         raw_datasets["train"] = raw_datasets["train"].select(range(data_args.max_train_samples))
         breakpoint()
