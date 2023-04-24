@@ -791,27 +791,27 @@ def main():
     do_remove_punctuation = data_args.do_remove_punctuation
     normalizer = BasicTextNormalizer()  # 'official' text normalizer from OpenAI
     
-    breakpoint()
     
     if training_args.do_train and data_args.max_train_samples is not None:
         raw_datasets["train"] = raw_datasets["train"].select(range(data_args.max_train_samples))
-        breakpoint()
         
-        raw_datasets["train"] = raw_datasets["train"].filter(lambda batch: batch['verbosity'] == 3)
-
-
     if training_args.do_eval and data_args.max_eval_samples is not None:
         raw_datasets["eval"] = raw_datasets["eval"].select(range(data_args.max_eval_samples))
 
     if training_args.do_predict and data_args.max_predict_samples is not None:
         raw_datasets["test"] = raw_datasets["test"].select(range(data_args.max_predict_samples))
 
+    # Do additioning filtering on the train dataset
+    raw_datasets["train"] = raw_datasets["train"].filter(lambda batch: batch['verbosity'] == 3)
+    
+
+
     if data_args.language is not None:
         # We only need to set the task id when the language is specified (i.e. in a multilingual setting)
         tokenizer.set_prefix_tokens(
             language=data_args.language, task=data_args.task)
     
-    
+
     def prepare_dataset(batch):
         # Process audio
         sample = batch[audio_column_name]

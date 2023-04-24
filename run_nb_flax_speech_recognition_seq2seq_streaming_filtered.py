@@ -792,7 +792,6 @@ def main():
 
     if training_args.do_train and data_args.max_train_samples is not None:
         raw_datasets["train"] = raw_datasets["train"].select(range(data_args.max_train_samples))
-        raw_datasets["train"] = raw_datasets["train"].filter(lambda batch: batch['verbosity'] == 6)
 
 
     if training_args.do_eval and data_args.max_eval_samples is not None:
@@ -800,6 +799,10 @@ def main():
 
     if training_args.do_predict and data_args.max_predict_samples is not None:
         raw_datasets["test"] = raw_datasets["test"].select(range(data_args.max_predict_samples))
+
+    # Do additioning filtering on the train dataset
+    raw_datasets["train"] = raw_datasets["train"].filter(lambda batch: batch['verbosity'] == 6)
+    
 
     if data_args.language is not None:
         # We only need to set the task id when the language is specified (i.e. in a multilingual setting)
