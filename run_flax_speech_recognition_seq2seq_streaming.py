@@ -732,13 +732,26 @@ def main():
             language=data_args.language, task=data_args.task)
     
     if training_args.do_train and data_args.max_train_samples is not None:
-        raw_datasets["train"] = raw_datasets["train"].select(range(data_args.max_train_samples))
+        raw_datasets["train"] = (
+            raw_datasets["train"].take(data_args.max_train_samples)
+            if data_args.streaming
+            else raw_datasets["train"].select(range(data_args.max_train_samples))
+        )
 
     if training_args.do_eval and data_args.max_eval_samples is not None:
-        raw_datasets["eval"] = raw_datasets["eval"].select(range(data_args.max_eval_samples))
+        raw_datasets["eval"] = (
+            raw_datasets["eval"].take(data_args.max_eval_samples)
+            if data_args.streaming
+            else raw_datasets["eval"].select(range(data_args.max_eval_samples))
+        )
 
     if training_args.do_predict and data_args.max_predict_samples is not None:
-        raw_datasets["test"] = raw_datasets["test"].select(range(data_args.max_predict_samples))
+        raw_datasets["test"] = (
+            raw_datasets["test"].take(data_args.max_predict_samples)
+            if data_args.streaming
+            else raw_datasets["test"].select(range(data_args.max_predict_samples))
+        )
+
 
     def prepare_dataset(batch):
         # Process audio
