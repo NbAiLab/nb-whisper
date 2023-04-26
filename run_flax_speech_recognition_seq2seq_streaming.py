@@ -189,7 +189,7 @@ class DataTrainingArguments:
         default=False, metadata={"help": "Overwrite the cached training and evaluation sets"}
     )
     preprocessing_num_workers: Optional[int] = field(
-        default=50,
+        default=None,
         metadata={"help": "The number of processes to use for the preprocessing."},
     )
     max_train_samples: Optional[int] = field(
@@ -373,6 +373,7 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
     max_target_length: Optional[int] = None
     pad_input_to_multiple_of: Optional[int] = None
     pad_target_to_multiple_of: Optional[int] = None
+    forward_attention_mask: Optional[bool] = False
 
     def __call__(self, features: List[Dict[str, Union[List[int], np.ndarray]]]) -> Dict[str, np.ndarray]:
         model_input_name = self.processor.model_input_names[0]
@@ -413,8 +414,9 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
 
         batch["labels"] = labels
         batch["decoder_input_ids"] = decoder_input_ids
-        batch["attention_mask"] = labels_batch.attention_mask  # Add attention_mask to the batch
-        
+        if self.forward_attention_mask:
+            batch["attention_mask"] = np.array([feature["attention_mask"] for feature in features])
+
         return batch
 
 
@@ -433,11 +435,11 @@ def data_loader(
 ) -> Generator:
     """
     Returns batches of size `batch_size` from `dataset`. If `drop_last` is set to `False`, the final batch may be incomplete,
-    and range in size from 1 to `batch_size`. Shuffle batches if `shuffle` is `True`.
+    and range in size from 1 to `batch_size`.
     """
     data_loader_iterator = iter(torch.utils.data.DataLoader(
         batch_size=batch_size,
-        dataset=dataset.with_format("torch"),
+        dataset=dataset.with_format("numpy"),
         num_workers=num_workers,
         collate_fn=collate_batch,
         drop_last=drop_last,
@@ -455,7 +457,9 @@ class TrainState(train_state.TrainState):
 def create_learning_rate_fn(
     num_train_steps: int, num_warmup_steps: int, learning_rate: float, start_step: int=0, warmup_init_value: float=0.0, decay_end_value: float=0.0,
 ) -> Callable[[int], jnp.array]:
-    """Returns a linear warmup, linear_decay learning rate function."""
+    """
+    Returns a linear warmup, linear_decay learning rate function. `start_step` is an optional parameter (defaults to 0) to
+    shift the learning rate schedule by a specified number of steps."""
     warmup_fn = optax.linear_schedule(
         init_value=warmup_init_value, end_value=learning_rate, transition_steps=num_warmup_steps)
     decay_fn = optax.linear_schedule(
@@ -464,7 +468,7 @@ def create_learning_rate_fn(
     schedule_fn = optax.join_schedules(
         schedules=[warmup_fn, decay_fn], boundaries=[num_warmup_steps])
     
-    def learning_rate_fn(step: int) -> jnp.array:
+    def learning_rate_fn(step: int) -> Callable[[int], jnp.array]:
         return schedule_fn(step + start_step)
     
     return learning_rate_fn
@@ -515,7 +519,7 @@ def main():
 
     if num_of_hosts and not training_args.push_to_hub:
         logger.warning(
-            f"If you are on a TPU Pod or a multinode setup, you need to set --push_to_hub to be able to save checkpoints to the hub."
+            f"If you are on a TPU Pod or a multinode setup, it is impossible to recover from local checkpoints. You will therefore need to set `--push_to_hub` to save checkpoints and be able to restore a training."
         )
     if num_of_hosts and not training_args.overwrite_output_dir and training_args.resume_from_checkpoint:
         logger.error(
@@ -550,7 +554,7 @@ def main():
             )
         else:
             repo_name = training_args.hub_model_id
-         
+
         repo_url = None  
         while not repo_url:
             # Workaround for an internal HuggingFace error if the repo is being created by another worker
@@ -559,6 +563,7 @@ def main():
                     repo_name, exist_ok=True, token=training_args.hub_token, private=training_args.hub_private_repo
                 )
             except:
+                logger.info(f"Waiting for the creation of repository '{repo_name}'. Make sure you are logged in.")
                 time.sleep(1)
 
         repo = Repository(training_args.output_dir,
@@ -708,12 +713,18 @@ def main():
     pad_input_to_multiple_of = data_args.pad_input_to_multiple_of
     pad_target_to_multiple_of = data_args.pad_target_to_multiple_of
     audio_column_name = data_args.audio_column_name
-    num_workers = data_args.preprocessing_num_workers
+    num_workers = training_args.dataloader_num_workers
     text_column_name = data_args.text_column_name
     model_input_name = feature_extractor.model_input_names[0]
     do_lower_case = data_args.do_lower_case
     do_remove_punctuation = data_args.do_remove_punctuation
     normalizer = BasicTextNormalizer()  # 'official' text normalizer from OpenAI
+    # if SpecAugment is used for whisper models, return attention_mask to guide the mask along time axis
+    forward_attention_mask = (
+        getattr(config, "model_type", None) == "whisper"
+        and getattr(config, "apply_spec_augment", False)
+        and getattr(config, "mask_time_prob", 0) > 0
+    )
 
     if data_args.language is not None:
         # We only need to set the task id when the language is specified (i.e. in a multilingual setting)
@@ -733,10 +744,13 @@ def main():
         # Process audio
         sample = batch[audio_column_name]
         inputs = feature_extractor(
-            sample["array"], sampling_rate=sample["sampling_rate"])
+            sample["array"], sampling_rate=sample["sampling_rate"], return_attention_mask=forward_attention_mask
+        )
         # Process audio length
         batch[model_input_name] = inputs.get(model_input_name)[0]
         batch["input_length"] = len(sample["array"])
+        if forward_attention_mask:
+            batch["attention_mask"] = inputs.get("attention_mask")[0]
 
         # Process targets
         input_str = batch[text_column_name].lower(
@@ -1086,19 +1100,6 @@ def main():
     if training_state['step'] > 0:
         logger.info(f"  ↪ Starting at {training_state['step']:,} and finishing at {data_args.num_train_steps:,}")
 
-    if model_args.dropout or model_args.attention_dropout or model_args.activation_dropout or model_args.encoder_dropout or model_args.decoder_dropout:
-        logger.info("  Dropout = True")
-        if model_args.dropout:
-            logger.info(f"  ↪ Dropout probability = {model_args.dropout}")
-        if model_args.attention_dropout:
-            logger.info(f"  ↪ Attention dropout probability = {model_args.attention_dropout}")
-        if model_args.activation_dropout:
-            logger.info(f"  ↪ Activation dropout probability = {model_args.activation_dropout}")
-        if model_args.encoder_dropout:
-            logger.info(f"  ↪ Encoder dropout probability = {model_args.encoder_dropout}")
-        if model_args.decoder_dropout:
-            logger.info(f"  ↪ Decoder dropout probability = {model_args.decoder_dropout}")
-
     train_time = 0
 
     # Training summary
@@ -1172,10 +1173,10 @@ def main():
         # Split by node
         train_dataset = split_dataset_by_node(train_dataset, rank=current_host_idx, world_size=num_of_hosts)   
     
-        if train_dataset.n_shards < data_args.preprocessing_num_workers:
+        if train_dataset.n_shards < training_args.dataloader_num_workers:
             num_workers = train_dataset.n_shards
 
-        logger.info(f"  Number of train dataset workers = {num_workers} {'(Capped by the number of dataset shards)' if train_dataset.n_shards < data_args.preprocessing_num_workers else ''} {'(ADVICE: In most cases you will speed up training considerably if you increase the value of --preprocessing_num_workers!)' if num_workers < 10 else ''}")
+        logger.info(f"  Number of train dataset workers = {num_workers}")
         train_loader = data_loader(train_dataset, train_batch_size // num_of_hosts, num_workers=num_workers)
 
     if training_args.do_eval:
