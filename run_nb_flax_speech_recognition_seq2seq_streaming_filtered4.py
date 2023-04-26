@@ -802,13 +802,13 @@ def main():
         raw_datasets["test"] = raw_datasets["test"].select(range(data_args.max_predict_samples))
 
     # Do additioning filtering on the train dataset
-    def replace_and_lowercase(example):
-        if example['verbosity'] == "5" or example['verbosity'] == "6":
-            # Add '#' in front of the text and convert the text to lowercase
-            example['text'] = '<|lower|>' + example['text'].lower()
-        return example
+    #def replace_and_lowercase(example):
+    #    if example['verbosity'] == "5" or example['verbosity'] == "6":
+    #        # Add '#' in front of the text and convert the text to lowercase
+    #        example['text'] = '<|lower|>' + example['text'].lower()
+    #    return example
 
-    raw_datasets["train"] = raw_datasets["train"].map(replace_and_lowercase)    
+    #raw_datasets["train"] = raw_datasets["train"].map(replace_and_lowercase)    
 
 
     if data_args.language is not None:
