@@ -802,7 +802,10 @@ def main():
         raw_datasets["test"] = raw_datasets["test"].select(range(data_args.max_predict_samples))
 
     # Do additioning filtering on the train dataset
-    raw_datasets["train"] = raw_datasets["train"].filter(lambda batch: batch['verbosity'] == 3)
+    # Filtering out the examples that contains the following certain numbers written by letters
+    import re
+    pattern = r"\b(tjue|tretti|førti|femti|seksti|sytti|åtti|nitti)(|en|første|to|andre|tre|tredje|fire|fjerde|fem|femte|seks|sjette|sju|sjuende|syv|syvende|åtte|åttende|ni|niende)\b"
+    raw_datasets["train"] = raw_datasets["train"].filter(lambda example: not bool(re.search(pattern, example['text'])))
     
 
     if data_args.language is not None:

@@ -802,29 +802,13 @@ def main():
         raw_datasets["test"] = raw_datasets["test"].select(range(data_args.max_predict_samples))
 
     # Do additioning filtering on the train dataset
-    def replace_text(example):
-        # Replacing 'A' with a newline followed by 'A'
-        example['text'] = example['text'].replace("A", "\nA")
-
-        # Replacing 'B' with a newline, an em dash, and 'B'
-        example['text'] = example['text'].replace("B", "\n— B")
-
-        # Replacing 'C' with two newlines followed by 'C'
-        example['text'] = example['text'].replace("D", "\n\nD")
-
-        # Replacing 'D' with an opening paragraph tag followed by 'D'
-        example['text'] = example['text'].replace("E", "<p>E")
-
-        # Replacing 'E' with a pilcrow symbol followed by 'E'
-        example['text'] = example['text'].replace("F", "¶F")
-
+    def replace_and_lowercase(example):
+        if example['verbosity'] == "5" or example['verbosity'] == "6":
+            # Add '#' in front of the text and convert the text to lowercase
+            example['text'] = '<|lower|>' + example['text'].lower()
         return example
 
-    raw_datasets["train"] = raw_datasets["train"].map(replace_text)
-
-    
-    raw_datasets["train"] = raw_datasets["train"].filter(lambda batch: batch['verbosity'] == 3)
-    
+    raw_datasets["train"] = raw_datasets["train"].map(replace_and_lowercase)    
 
 
     if data_args.language is not None:
