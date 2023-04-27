@@ -821,9 +821,6 @@ def main():
         return example
 
     raw_datasets["train"] = raw_datasets["train"].map(replace_text)
-
-    
-    raw_datasets["train"] = raw_datasets["train"].filter(lambda batch: batch['verbosity'] == 3)
     
 
 
