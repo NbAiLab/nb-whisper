@@ -13,14 +13,14 @@ python ../run_nb_flax_speech_recognition_seq2seq_streaming_filtered3.py \
     --text_column_name text \
     --train_split_name train\
     --eval_split_name validation\
-    --output_dir ../../scream_large_decimus_written \
+    --output_dir ../../scream_large_decimus_no_written \
     --overwrite_output_dir\
-    --warmup_steps 5000 \
+    --warmup_steps 2000 \
     --do_train \
     --do_eval \
-    --num_train_steps 50000 \
+    --num_train_steps 20000 \
     --lr_scheduler_type linear \
-    --eval_steps 5000 \
+    --eval_steps 1000 \
     --learning_rate 2e-6 \
     --preprocessing_num_workers 32 \
     --per_device_train_batch_size 5 \
@@ -32,7 +32,7 @@ python ../run_nb_flax_speech_recognition_seq2seq_streaming_filtered3.py \
     --use_auth_token True \
     --dtype bfloat16 \
     --hub_private_repo True \
-    --hub_model_id NbAiLab/scream_large_decimus_reference \
+    --hub_model_id NbAiLab/scream_large_decimus_no_written \
     --resume_from_checkpoint True \
     --ignore_data_skip \
     --num_beams 5 \
