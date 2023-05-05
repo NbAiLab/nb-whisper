@@ -1,0 +1,252 @@
+2023-05-05 14:49:20 ERROR 400 response executing GraphQL.
+2023-05-05 14:49:20 ERROR {"errors":[{"message":"name required for project query","path":["project"]}],"data":{"project":null}}
+2023-05-05 14:49:20 ERROR Traceback (most recent call last):
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/apis/normalize.py", line 41, in wrapper
+    return func(*args, **kwargs)
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/sdk/internal/internal_api.py", line 792, in sweep
+    response = self.gql(
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/sdk/internal/internal_api.py", line 257, in gql
+    ret = self._retry_gql(
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/sdk/lib/retry.py", line 131, in __call__
+    result = self._call_fn(*args, **kwargs)
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/sdk/internal/internal_api.py", line 285, in execute
+    return self.client.execute(*args, **kwargs)  # type: ignore
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/vendor/gql-0.2.0/wandb_gql/client.py", line 52, in execute
+    result = self._get_result(document, *args, **kwargs)
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/vendor/gql-0.2.0/wandb_gql/client.py", line 60, in _get_result
+    return self.transport.execute(document, *args, **kwargs)
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/sdk/lib/gql_request.py", line 56, in execute
+    request.raise_for_status()
+  File "/home/perk/.whisper/lib/python3.8/site-packages/requests/models.py", line 1021, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 400 Client Error: Bad Request for url: https://api.wandb.ai/graphql
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/cli/cli.py", line 104, in wrapper
+    return func(*args, **kwargs)
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/cli/cli.py", line 1399, in agent
+    wandb_agent.agent(sweep_id, entity=entity, project=project, count=count)
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/wandb_agent.py", line 641, in agent
+    return run_agent(
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/wandb_agent.py", line 586, in run_agent
+    agent.run()
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/wandb_agent.py", line 231, in run
+    sweep_obj = self._api.sweep(self._sweep_id, "{}")
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/apis/internal.py", line 117, in sweep
+    return self.api.sweep(*args, **kwargs)
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/apis/normalize.py", line 51, in wrapper
+    raise CommError(message, error)
+wandb.errors.CommError: name required for project query (Error 400: Bad Request)
+
+2023-05-05 14:52:27 ERROR 400 response executing GraphQL.
+2023-05-05 14:52:27 ERROR {"errors":[{"message":"name required for project query","path":["project"]}],"data":{"project":null}}
+2023-05-05 14:52:27 ERROR Traceback (most recent call last):
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/apis/normalize.py", line 41, in wrapper
+    return func(*args, **kwargs)
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/sdk/internal/internal_api.py", line 792, in sweep
+    response = self.gql(
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/sdk/internal/internal_api.py", line 257, in gql
+    ret = self._retry_gql(
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/sdk/lib/retry.py", line 131, in __call__
+    result = self._call_fn(*args, **kwargs)
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/sdk/internal/internal_api.py", line 285, in execute
+    return self.client.execute(*args, **kwargs)  # type: ignore
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/vendor/gql-0.2.0/wandb_gql/client.py", line 52, in execute
+    result = self._get_result(document, *args, **kwargs)
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/vendor/gql-0.2.0/wandb_gql/client.py", line 60, in _get_result
+    return self.transport.execute(document, *args, **kwargs)
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/sdk/lib/gql_request.py", line 56, in execute
+    request.raise_for_status()
+  File "/home/perk/.whisper/lib/python3.8/site-packages/requests/models.py", line 1021, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 400 Client Error: Bad Request for url: https://api.wandb.ai/graphql
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/cli/cli.py", line 104, in wrapper
+    return func(*args, **kwargs)
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/cli/cli.py", line 1399, in agent
+    wandb_agent.agent(sweep_id, entity=entity, project=project, count=count)
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/wandb_agent.py", line 641, in agent
+    return run_agent(
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/wandb_agent.py", line 586, in run_agent
+    agent.run()
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/wandb_agent.py", line 231, in run
+    sweep_obj = self._api.sweep(self._sweep_id, "{}")
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/apis/internal.py", line 117, in sweep
+    return self.api.sweep(*args, **kwargs)
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/apis/normalize.py", line 51, in wrapper
+    raise CommError(message, error)
+wandb.errors.CommError: name required for project query (Error 400: Bad Request)
+
+2023-05-05 14:55:22 ERROR 400 response executing GraphQL.
+2023-05-05 14:55:22 ERROR {"errors":[{"message":"name required for project query","path":["project"]}],"data":{"project":null}}
+2023-05-05 14:55:22 ERROR Traceback (most recent call last):
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/apis/normalize.py", line 41, in wrapper
+    return func(*args, **kwargs)
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/sdk/internal/internal_api.py", line 792, in sweep
+    response = self.gql(
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/sdk/internal/internal_api.py", line 257, in gql
+    ret = self._retry_gql(
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/sdk/lib/retry.py", line 131, in __call__
+    result = self._call_fn(*args, **kwargs)
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/sdk/internal/internal_api.py", line 285, in execute
+    return self.client.execute(*args, **kwargs)  # type: ignore
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/vendor/gql-0.2.0/wandb_gql/client.py", line 52, in execute
+    result = self._get_result(document, *args, **kwargs)
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/vendor/gql-0.2.0/wandb_gql/client.py", line 60, in _get_result
+    return self.transport.execute(document, *args, **kwargs)
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/sdk/lib/gql_request.py", line 56, in execute
+    request.raise_for_status()
+  File "/home/perk/.whisper/lib/python3.8/site-packages/requests/models.py", line 1021, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 400 Client Error: Bad Request for url: https://api.wandb.ai/graphql
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/cli/cli.py", line 104, in wrapper
+    return func(*args, **kwargs)
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/cli/cli.py", line 1399, in agent
+    wandb_agent.agent(sweep_id, entity=entity, project=project, count=count)
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/wandb_agent.py", line 641, in agent
+    return run_agent(
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/wandb_agent.py", line 586, in run_agent
+    agent.run()
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/wandb_agent.py", line 231, in run
+    sweep_obj = self._api.sweep(self._sweep_id, "{}")
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/apis/internal.py", line 117, in sweep
+    return self.api.sweep(*args, **kwargs)
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/apis/normalize.py", line 51, in wrapper
+    raise CommError(message, error)
+wandb.errors.CommError: name required for project query (Error 400: Bad Request)
+
+2023-05-05 14:56:42 ERROR 400 response executing GraphQL.
+2023-05-05 14:56:42 ERROR {"errors":[{"message":"name required for project query","path":["project"]}],"data":{"project":null}}
+2023-05-05 14:56:42 ERROR Traceback (most recent call last):
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/apis/normalize.py", line 41, in wrapper
+    return func(*args, **kwargs)
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/sdk/internal/internal_api.py", line 792, in sweep
+    response = self.gql(
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/sdk/internal/internal_api.py", line 257, in gql
+    ret = self._retry_gql(
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/sdk/lib/retry.py", line 131, in __call__
+    result = self._call_fn(*args, **kwargs)
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/sdk/internal/internal_api.py", line 285, in execute
+    return self.client.execute(*args, **kwargs)  # type: ignore
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/vendor/gql-0.2.0/wandb_gql/client.py", line 52, in execute
+    result = self._get_result(document, *args, **kwargs)
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/vendor/gql-0.2.0/wandb_gql/client.py", line 60, in _get_result
+    return self.transport.execute(document, *args, **kwargs)
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/sdk/lib/gql_request.py", line 56, in execute
+    request.raise_for_status()
+  File "/home/perk/.whisper/lib/python3.8/site-packages/requests/models.py", line 1021, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 400 Client Error: Bad Request for url: https://api.wandb.ai/graphql
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/cli/cli.py", line 104, in wrapper
+    return func(*args, **kwargs)
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/cli/cli.py", line 1399, in agent
+    wandb_agent.agent(sweep_id, entity=entity, project=project, count=count)
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/wandb_agent.py", line 641, in agent
+    return run_agent(
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/wandb_agent.py", line 586, in run_agent
+    agent.run()
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/wandb_agent.py", line 231, in run
+    sweep_obj = self._api.sweep(self._sweep_id, "{}")
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/apis/internal.py", line 117, in sweep
+    return self.api.sweep(*args, **kwargs)
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/apis/normalize.py", line 51, in wrapper
+    raise CommError(message, error)
+wandb.errors.CommError: name required for project query (Error 400: Bad Request)
+
+2023-05-05 14:57:36 ERROR 400 response executing GraphQL.
+2023-05-05 14:57:36 ERROR {"errors":[{"message":"name required for project query","path":["project"]}],"data":{"project":null}}
+2023-05-05 14:57:36 ERROR Traceback (most recent call last):
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/apis/normalize.py", line 41, in wrapper
+    return func(*args, **kwargs)
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/sdk/internal/internal_api.py", line 792, in sweep
+    response = self.gql(
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/sdk/internal/internal_api.py", line 257, in gql
+    ret = self._retry_gql(
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/sdk/lib/retry.py", line 131, in __call__
+    result = self._call_fn(*args, **kwargs)
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/sdk/internal/internal_api.py", line 285, in execute
+    return self.client.execute(*args, **kwargs)  # type: ignore
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/vendor/gql-0.2.0/wandb_gql/client.py", line 52, in execute
+    result = self._get_result(document, *args, **kwargs)
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/vendor/gql-0.2.0/wandb_gql/client.py", line 60, in _get_result
+    return self.transport.execute(document, *args, **kwargs)
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/sdk/lib/gql_request.py", line 56, in execute
+    request.raise_for_status()
+  File "/home/perk/.whisper/lib/python3.8/site-packages/requests/models.py", line 1021, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 400 Client Error: Bad Request for url: https://api.wandb.ai/graphql
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/cli/cli.py", line 104, in wrapper
+    return func(*args, **kwargs)
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/cli/cli.py", line 1399, in agent
+    wandb_agent.agent(sweep_id, entity=entity, project=project, count=count)
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/wandb_agent.py", line 641, in agent
+    return run_agent(
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/wandb_agent.py", line 586, in run_agent
+    agent.run()
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/wandb_agent.py", line 231, in run
+    sweep_obj = self._api.sweep(self._sweep_id, "{}")
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/apis/internal.py", line 117, in sweep
+    return self.api.sweep(*args, **kwargs)
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/apis/normalize.py", line 51, in wrapper
+    raise CommError(message, error)
+wandb.errors.CommError: name required for project query (Error 400: Bad Request)
+
+2023-05-05 15:00:20 ERROR 400 response executing GraphQL.
+2023-05-05 15:00:20 ERROR {"errors":[{"message":"name required for project query","path":["project"]}],"data":{"project":null}}
+2023-05-05 15:00:20 ERROR Traceback (most recent call last):
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/apis/normalize.py", line 41, in wrapper
+    return func(*args, **kwargs)
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/sdk/internal/internal_api.py", line 792, in sweep
+    response = self.gql(
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/sdk/internal/internal_api.py", line 257, in gql
+    ret = self._retry_gql(
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/sdk/lib/retry.py", line 131, in __call__
+    result = self._call_fn(*args, **kwargs)
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/sdk/internal/internal_api.py", line 285, in execute
+    return self.client.execute(*args, **kwargs)  # type: ignore
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/vendor/gql-0.2.0/wandb_gql/client.py", line 52, in execute
+    result = self._get_result(document, *args, **kwargs)
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/vendor/gql-0.2.0/wandb_gql/client.py", line 60, in _get_result
+    return self.transport.execute(document, *args, **kwargs)
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/sdk/lib/gql_request.py", line 56, in execute
+    request.raise_for_status()
+  File "/home/perk/.whisper/lib/python3.8/site-packages/requests/models.py", line 1021, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 400 Client Error: Bad Request for url: https://api.wandb.ai/graphql
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/cli/cli.py", line 104, in wrapper
+    return func(*args, **kwargs)
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/cli/cli.py", line 1399, in agent
+    wandb_agent.agent(sweep_id, entity=entity, project=project, count=count)
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/wandb_agent.py", line 641, in agent
+    return run_agent(
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/wandb_agent.py", line 586, in run_agent
+    agent.run()
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/wandb_agent.py", line 231, in run
+    sweep_obj = self._api.sweep(self._sweep_id, "{}")
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/apis/internal.py", line 117, in sweep
+    return self.api.sweep(*args, **kwargs)
+  File "/home/perk/.whisper/lib/python3.8/site-packages/wandb/apis/normalize.py", line 51, in wrapper
+    raise CommError(message, error)
+wandb.errors.CommError: name required for project query (Error 400: Bad Request)
+
