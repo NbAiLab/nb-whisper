@@ -1,5 +1,5 @@
 name: per_device_train_batch_size_sweep
-project: Scream - bs sweep
+project: Scream_sweep
 entity: nbailab
 method: grid
 metric:
@@ -17,7 +17,7 @@ command:
   - --run_name="Scream - non_large_bstest"
   - --run_description="A Large Whisper Scream model. Experimenting to see what bs change we get on gradient checkpointing."
   - --wandb_entity="nbailab"
-  - --wandb_project="Scream - bs sweep"
+  - --wandb_project="Scream_sweep"
   - --dataset_name=NbAiLab/NCC_speech_all_v5
   - --language=Norwegian
   - --text_column_name=text
