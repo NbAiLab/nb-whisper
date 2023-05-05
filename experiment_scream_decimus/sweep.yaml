@@ -1,4 +1,4 @@
-name: per_device_train_batch_size_sweep
+name: bs_sweep
 project: Scream_sweep
 entity: nbailab
 method: grid
@@ -14,7 +14,7 @@ command:
   - python
   - ../run_nb_flax_speech_recognition_seq2seq_streaming.py
   - --model_name_or_path=NbAiLab/scream_non_large_1e06_beams5_constantlr_long
-  - --run_name="Scream - non_large_bstest"
+  - --run_name="bs_sweep"
   - --run_description="A Large Whisper Scream model. Experimenting to see what bs change we get on gradient checkpointing."
   - --wandb_entity="nbailab"
   - --wandb_project="Scream_sweep"
