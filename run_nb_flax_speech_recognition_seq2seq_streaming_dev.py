@@ -765,6 +765,10 @@ def main():
         raise ValueError(
             "Make sure that `config.decoder_start_token_id` is correctly defined")
 
+    # Activate gradient checkpointing if needed
+    if training_args.gradient_checkpointing:
+        model.enable_gradient_checkpointing()
+
     # Resample speech dataset: `datasets` takes care of automatically loading and resampling the audio,
     # so we just need to set the correct target sampling rate.
     dataset_sampling_rate = next(
