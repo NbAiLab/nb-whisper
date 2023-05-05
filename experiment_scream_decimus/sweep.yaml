@@ -1,5 +1,5 @@
 name: bs_sweep
-project: Scream_sweep
+project: Scream_sweep2
 entity: nbailab
 method: grid
 metric:
@@ -17,7 +17,7 @@ command:
   - --run_name="bs_sweep"
   - --run_description="A Large Whisper Scream model. Experimenting to see what bs change we get on gradient checkpointing."
   - --wandb_entity="nbailab"
-  - --wandb_project="Scream_sweep"
+  - --wandb_project="Scream_sweep2"
   - --dataset_name=NbAiLab/NCC_speech_all_v5
   - --language=Norwegian
   - --text_column_name=text
