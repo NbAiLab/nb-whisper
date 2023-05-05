@@ -1,4 +1,6 @@
 name: per_device_train_batch_size_sweep
+project: Scream - bs sweep
+entity: nbailab
 method: grid
 metric:
   name: eval_loss
