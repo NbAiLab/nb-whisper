@@ -1,0 +1,40 @@
+name: per_device_train_batch_size_sweep
+method: grid
+metric:
+  name: eval_loss
+  goal: minimize
+
+parameters:
+  per_device_train_batch_size:
+    values: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+
+command:
+  - python
+  - ../run_nb_flax_speech_recognition_seq2seq_streaming.py
+  - --model_name_or_path=NbAiLab/scream_non_large_1e06_beams5_constantlr_long
+  - --run_name="Scream - non_large_bstest"
+  - --run_description="A Large Whisper Scream model. Experimenting to see what bs change we get on gradient checkpointing."
+  - --wandb_entity="nbailab"
+  - --wandb_project="Scream - septimus"
+  - --dataset_name=NbAiLab/NCC_speech_all_v5
+  - --language=Norwegian
+  - --text_column_name=text
+  - --train_split_name=train
+  - --eval_split_name=validation
+  - --output_dir=../../scream_non_bstest
+  - --overwrite_output_dir
+  - --warmup_steps=100
+  - --do_train
+  - --do_eval
+  - --num_train_steps=1000
+  - --lr_scheduler_type=linear
+  - --eval_steps=10000
+  - --learning_rate=1e-6
+  - --preprocessing_num_workers=32
+  - --per_device_eval_batch_size=1
+  - --predict_with_generate
+  - --streaming=True
+  - --use_auth_token=True
+  - --dtype=bfloat16
+  - --hub_private_repo=True
+  - --hub_model_id=NbAiLab/scream_non_large_bst
