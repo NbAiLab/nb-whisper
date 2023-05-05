@@ -15,7 +15,7 @@ command:
   - --run_name="Scream - non_large_bstest"
   - --run_description="A Large Whisper Scream model. Experimenting to see what bs change we get on gradient checkpointing."
   - --wandb_entity="nbailab"
-  - --wandb_project="Scream - septimus"
+  - --wandb_project="Scream - bs sweep"
   - --dataset_name=NbAiLab/NCC_speech_all_v5
   - --language=Norwegian
   - --text_column_name=text
