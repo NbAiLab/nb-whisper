@@ -8,13 +8,13 @@ parameters:
   model_name_or_path:
     value: NbAiLab/scream_non_large_1e06_beams5_constantlr_long
   run_name:
-    value: "Scream_bstest_tpu"
+    value: "Scream_bstest_pod"
   run_description:
     value: "A Large Whisper Scream model. Experimenting to see what bs change we get on gradient checkpointing."
   wandb_entity:
     value: "nbailab"
   wandb_project:
-    value: "Scream_bstest_tpu"
+    value: "Scream_bstest_pod"
   dataset_name:
     value: NbAiLab/NCC_speech_all_v5
   language:
