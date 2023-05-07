@@ -2,7 +2,7 @@ export TOKENIZERS_PARALELLISM=false
 export CMALLOC_VERBOSE=0
 export TCMALLOC_VERBOSE=0
 export TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD=10000000000
-python ../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
+python ../run_nb_flax_speech_recognition_seq2seq_streaming.py \
     --model_name_or_path NbAiLab/scream_non_large_1e06_beams5_constantlr_long \
     --run_name "Scream - non_large_bstest" \
     --run_description "A Large Whisper Scream model. Experimenting to see what bs change we get on gradient checkpointing." \
@@ -34,4 +34,5 @@ python ../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --hub_private_repo True \
     --hub_model_id NbAiLab/scream_non_large_bstest2 \
     --resume_from_checkpoint True \
-    --gradient_checkpointing True \
+    --gradient_checkpointing False
+
