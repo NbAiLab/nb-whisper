@@ -4,16 +4,16 @@ export TCMALLOC_VERBOSE=0
 export TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD=10000000000
 python ../run_nb_flax_speech_recognition_seq2seq_streaming.py \
     --model_name_or_path NbAiLab/scream_non_large_1e06_beams5_constantlr_long \
-    --run_name "Scream - non_large_bstest" \
+    --run_name "Scream_bstest" \
     --run_description "A Large Whisper Scream model. Experimenting to see what bs change we get on gradient checkpointing." \
     --wandb_entity "nbailab" \
-    --wandb_project "Scream - septimus" \
+    --wandb_project "Scream_bstest" \
     --dataset_name NbAiLab/NCC_speech_all_v5 \
     --language Norwegian \
     --text_column_name text \
     --train_split_name train\
     --eval_split_name validation\
-    --output_dir ../../scream_non_bstest\
+    --output_dir ../../scream_bstest\
     --overwrite_output_dir\
     --warmup_steps 500 \
     --do_train \
