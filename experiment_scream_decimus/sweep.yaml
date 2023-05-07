@@ -1,42 +1,71 @@
-name: bs_sweep
-project: Scream_sweep2
-entity: nbailab
+name: Scream_bstest
+program: ../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py
 method: grid
 metric:
+  goal: maximize
   name: eval_loss
-  goal: minimize
-
 parameters:
+  model_name_or_path:
+    value: NbAiLab/scream_non_large_1e06_beams5_constantlr_long
+  run_name:
+    value: "Scream_bstest"
+  run_description:
+    value: "A Large Whisper Scream model. Experimenting to see what bs change we get on gradient checkpointing."
+  wandb_entity:
+    value: "nbailab"
+  wandb_project:
+    value: "Scream_bstest"
+  dataset_name:
+    value: NbAiLab/NCC_speech_all_v5
+  language:
+    value: Norwegian
+  text_column_name:
+    value: text
+  train_split_name:
+    value: train
+  eval_split_name:
+    value: validation
+  output_dir:
+    value: ../../scream_bstest
+  overwrite_output_dir:
+    value: True
+  warmup_steps:
+    value: 500
+  do_train:
+    value: True
+  do_eval:
+    value: True
+  num_train_steps:
+    value: 2000
+  lr_scheduler_type:
+    value: linear
+  eval_steps:
+    value: 2000
+  learning_rate:
+    value: 1e-6
+  preprocessing_num_workers:
+    value: 32
   per_device_train_batch_size:
-    values: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
-
-command:
-  - python
-  - ../run_nb_flax_speech_recognition_seq2seq_streaming.py
-  - --model_name_or_path=NbAiLab/scream_non_large_1e06_beams5_constantlr_long
-  - --run_name="bs_sweep"
-  - --run_description="A Large Whisper Scream model. Experimenting to see what bs change we get on gradient checkpointing."
-  - --wandb_entity="nbailab"
-  - --wandb_project="Scream_sweep2"
-  - --dataset_name=NbAiLab/NCC_speech_all_v5
-  - --language=Norwegian
-  - --text_column_name=text
-  - --train_split_name=train
-  - --eval_split_name=validation
-  - --output_dir=../../scream_non_bstest
-  - --overwrite_output_dir
-  - --warmup_steps=100
-  - --do_train
-  - --do_eval
-  - --num_train_steps=1000
-  - --lr_scheduler_type=linear
-  - --eval_steps=10000
-  - --learning_rate=1e-6
-  - --preprocessing_num_workers=32
-  - --per_device_eval_batch_size=1
-  - --predict_with_generate
-  - --streaming=True
-  - --use_auth_token=True
-  - --dtype=bfloat16
-  - --hub_private_repo=True
-  - --hub_model_id=NbAiLab/scream_non_large_bst
+    values: [3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+  per_device_eval_batch_size:
+    value: 1
+  predict_with_generate:
+    value: True
+  log_max_eval_predictions:
+    value: 100
+  log_eval_predictions_fn:
+    value: "log_predictions.write_predictions"
+  streaming:
+    value: True
+  use_auth_token:
+    value: True
+  dtype:
+    value: bfloat16
+  hub_private_repo:
+    value: True
+  hub_model_id:
+    value: NbAiLab/scream_non_large_bstest2
+  resume_from_checkpoint:
+    value: True
+  gradient_checkpointing:
+    value: True
