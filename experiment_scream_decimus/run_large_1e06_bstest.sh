@@ -34,5 +34,6 @@ python ../run_nb_flax_speech_recognition_seq2seq_streaming.py \
     --hub_private_repo True \
     --hub_model_id NbAiLab/scream_non_large_bstest2 \
     --resume_from_checkpoint True \
-    --gradient_checkpointing False
+    --gradient_checkpointing True
+
 
