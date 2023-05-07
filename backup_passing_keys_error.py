@@ -470,6 +470,11 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
         batch["decoder_input_ids"] = decoder_input_ids
         batch["attention_mask"] = labels_batch.attention_mask  # Add attention_mask to the batch
         
+        #The extra keys here should be passed along
+        for key in features.keys():
+            if key not in batch.keys():
+                batch[key] = features[key]
+        
         return batch
 
 
@@ -697,7 +702,7 @@ def main():
 
     raw_datasets_features = list(
         next(iter(raw_datasets.values())).features.keys())
-
+    
     if data_args.audio_column_name not in raw_datasets_features:
         raise ValueError(
             f"--audio_column_name '{data_args.audio_column_name}' not found in dataset '{data_args.dataset_name}'. "
@@ -826,13 +831,15 @@ def main():
         return batch
 
     
-    # Make vecotrized datasets. 
+    # Make vecotrized datasets. Keeping the "id" since it is useful for prediction
     with training_args.main_process_first(desc="dataset map pre-processing"):
         vectorized_datasets = raw_datasets.map(
             prepare_dataset,
             remove_columns=raw_datasets_features
+            
         )
-
+    #remove_columns=[col for col in raw_datasets_features if col != "id"],
+    
     # Filter training data with inputs longer than max_input_length
     def is_audio_in_length_range(length):
         return min_input_length < length < max_input_length
@@ -913,7 +920,7 @@ def main():
         eval_lines.append(eval_metrics_dict)
         return {**state, "eval_lines": eval_lines}
 
-    def write_metric(summary_writer, train_metrics, eval_metrics, train_time, step, predictions=None, labels=None, do_predict=False):
+    def write_metric(summary_writer, train_metrics, eval_metrics, train_time, step, predictions=None, labels=None, sample_ids=None, do_predict=False):
         if not do_predict:
             summary_writer.scalar("train_time", train_time, step)
 
@@ -1355,7 +1362,18 @@ def main():
                 )
                 training_summary["hyperparameters"]["steps_per_epoch"] = step // epoch
 
+            # Delete the extra dataset columns before running through training
+            # TODO: Change this later to keep the necessary parts
+            # 
+            # for key in samples:
+            #    if key in extra_dataset_columns:
+            #        del samples[key]
+
+
+            # del samples["id"]
             batch = data_collator(samples)
+            
+            
             batch = shard(batch.data)
                       
             state, train_metric = p_train_step(state, batch)
@@ -1468,6 +1486,7 @@ def main():
         pred_metrics = []
         pred_preds = []
         pred_labels = []
+        pred_sample_ids = []
         pred_loader = data_loader(predict_dataset, eval_batch_size, drop_last=False)
         if data_args.max_predict_samples:
             max_pred_steps_iter = range(1 + data_args.max_predict_samples // eval_batch_size)
@@ -1482,7 +1501,11 @@ def main():
             batch = data_collator(samples)
             
             labels = batch["labels"]
-
+            sample_ids = batch["id"]
+            
+            #Delete the extra dataset columns before running through metrics
+            del batch["id"]
+                        
             metrics = pad_shard_unpad(p_eval_step, static_return=True)(
                 state.params, batch.data, min_device_batch=training_args.per_device_eval_batch_size
             )
@@ -1495,6 +1518,7 @@ def main():
                 pred_preds.extend(jax.device_get(
                     generated_ids.reshape(-1, gen_kwargs["max_length"])))
                 pred_labels.extend(labels)
+                pred_sample_ids.extend(sample_ids)
                 
         # Normalize eval metrics
         pred_metrics = get_metrics(pred_metrics)
@@ -1525,6 +1549,7 @@ def main():
                 0,
                 predictions=pred_str[:log_max_predictions],
                 labels=label_str[:log_max_predictions],
+                sample_ids=pred_sample_ids[:log_max_predictions],
                 do_predict=True,
             )
 
