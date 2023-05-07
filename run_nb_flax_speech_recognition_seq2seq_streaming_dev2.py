@@ -760,6 +760,10 @@ def main():
         raise ValueError(
             "Make sure that `config.decoder_start_token_id` is correctly defined")
 
+    # Activate gradient checkpointing if needed
+    if training_args.gradient_checkpointing:
+        model.enable_gradient_checkpointing()
+
     # Resample speech dataset: `datasets` takes care of automatically loading and resampling the audio,
     # so we just need to set the correct target sampling rate.
     dataset_sampling_rate = next(
@@ -790,6 +794,11 @@ def main():
     do_remove_punctuation = data_args.do_remove_punctuation
     normalizer = BasicTextNormalizer()  # 'official' text normalizer from OpenAI
 
+    if data_args.language is not None:
+        # We only need to set the task id when the language is specified (i.e. in a multilingual setting)
+        tokenizer.set_prefix_tokens(
+            language=data_args.language, task=data_args.task)
+    
     if training_args.do_train and data_args.max_train_samples is not None:
         raw_datasets["train"] = raw_datasets["train"].select(range(data_args.max_train_samples))
 
@@ -799,12 +808,6 @@ def main():
     if training_args.do_predict and data_args.max_predict_samples is not None:
         raw_datasets["test"] = raw_datasets["test"].select(range(data_args.max_predict_samples))
 
-    if data_args.language is not None:
-        # We only need to set the task id when the language is specified (i.e. in a multilingual setting)
-        tokenizer.set_prefix_tokens(
-            language=data_args.language, task=data_args.task)
-    
-    
     def prepare_dataset(batch):
         # Process audio
         sample = batch[audio_column_name]
@@ -827,7 +830,7 @@ def main():
             prepare_dataset,
             remove_columns=raw_datasets_features,
         )
-        
+      
     # Filter training data with inputs longer than max_input_length
     def is_audio_in_length_range(length):
         return min_input_length < length < max_input_length
@@ -1383,6 +1386,7 @@ def main():
                 
                 labels = batch["labels"]
 
+                
                 metrics = pad_shard_unpad(p_eval_step, static_return=True)(
                     state.params, batch.data, min_device_batch=training_args.per_device_eval_batch_size
                 )
