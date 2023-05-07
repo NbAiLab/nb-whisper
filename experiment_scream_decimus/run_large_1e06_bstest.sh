@@ -32,6 +32,4 @@ python ../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --use_auth_token True \
     --dtype bfloat16 \
     --hub_private_repo True \
-    --hub_model_id NbAiLab/scream_non_large_bstest2 \
-    --resume_from_checkpoint True \
-    --gradient_checkpointing True \
+    --hub_model_id NbAiLab/scream_non_large_bstest2
