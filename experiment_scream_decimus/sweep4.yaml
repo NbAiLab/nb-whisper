@@ -46,7 +46,7 @@ parameters:
   preprocessing_num_workers:
     value: 32
   per_device_train_batch_size:
-    values: [24,28,32, 36, 40, 44, 48, 52, 56, 60, 64]
+    values: [26,30,34,38,42,46,50,54,58,62]
   per_device_eval_batch_size:
     value: 1
   predict_with_generate:
