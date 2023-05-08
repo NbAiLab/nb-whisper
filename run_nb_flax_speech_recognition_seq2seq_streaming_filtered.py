@@ -826,7 +826,7 @@ def main():
             input_str = normalizer(input_str).strip()
         batch["labels"] = tokenizer(input_str, truncation=True, max_length=max_label_length).input_ids
         
-        breakpoint()
+
         
         return batch
 
@@ -835,7 +835,8 @@ def main():
             prepare_dataset,
             remove_columns=raw_datasets_features,
         )
-
+    breakpoint()
+    
     # Filter training data with inputs longer than max_input_length
     def is_audio_in_length_range(length):
         return min_input_length < length < max_input_length
