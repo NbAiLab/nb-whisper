@@ -825,14 +825,18 @@ def main():
         if do_remove_punctuation:
             input_str = normalizer(input_str).strip()
         
-    
-        batch["labels"] = tokenizer(input_str, truncation=True, max_length=max_label_length).input_ids
         
+        #Add prefix if exists   
         if batch["source"]:
             prefix = "<|startofprev|>["+batch["source"]+"]"
             prefix_tokenized = tokenizer.encode(prefix, add_special_tokens=False)
-            batch["labels"] = prefix_tokenized + batch["labels"]    
-
+            prefix_length = len(prefix_tokenized)
+        else:
+            prefix_tokenized = []
+            prefix_length = 0
+            
+        batch["labels"] = prefix_tokenized + tokenizer(input_str, truncation=True, max_length=max_label_length-prefix_length).input_ids    
+    
         return batch
 
     with training_args.main_process_first(desc="dataset map pre-processing"):
