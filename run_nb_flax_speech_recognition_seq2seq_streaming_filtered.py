@@ -809,7 +809,6 @@ def main():
         tokenizer.set_prefix_tokens(
             language=data_args.language, task=data_args.task)
     
-    breakpoint()
     
     def prepare_dataset(batch):
         # Process audio
@@ -826,6 +825,7 @@ def main():
         if do_remove_punctuation:
             input_str = normalizer(input_str).strip()
         batch["labels"] = tokenizer(input_str, truncation=True, max_length=max_label_length).input_ids
+        breakpoint()
         return batch
 
     with training_args.main_process_first(desc="dataset map pre-processing"):
