@@ -824,10 +824,15 @@ def main():
         ) if do_lower_case else batch[text_column_name]
         if do_remove_punctuation:
             input_str = normalizer(input_str).strip()
+        
+    
         batch["labels"] = tokenizer(input_str, truncation=True, max_length=max_label_length).input_ids
         
+        if batch["source"]:
+            prefix = "<|startofprev|>["+batch["source"]+"]"
+            prefix_tokenized = tokenizer.encode(prefix, add_special_tokens=False)
+            batch["labels"] = prefix_tokenized + batch["labels"]    
 
-        
         return batch
 
     with training_args.main_process_first(desc="dataset map pre-processing"):
@@ -836,7 +841,6 @@ def main():
             remove_columns=raw_datasets_features,
         )
     breakpoint()
-    
     # Filter training data with inputs longer than max_input_length
     def is_audio_in_length_range(length):
         return min_input_length < length < max_input_length
