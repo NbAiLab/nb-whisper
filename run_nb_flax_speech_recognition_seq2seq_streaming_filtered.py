@@ -809,6 +809,7 @@ def main():
         tokenizer.set_prefix_tokens(
             language=data_args.language, task=data_args.task)
     
+    breakpoint()
     
     def prepare_dataset(batch):
         # Process audio

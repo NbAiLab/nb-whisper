@@ -1530,6 +1530,9 @@ def main():
 
         # Save final metrics in json
         if current_host_idx == 0:
+            if has_wandb:
+                wandb.log({"successful_run": 1})
+
             pred_metrics = {f"test_{metric_name}": value for metric_name, value in metric_values.items()}
             (output_dir / "test_results.json").write_text(
                 json.dumps(pred_metrics, indent=4, sort_keys=True)
