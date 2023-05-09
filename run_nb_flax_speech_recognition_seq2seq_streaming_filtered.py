@@ -825,8 +825,12 @@ def main():
         if do_remove_punctuation:
             input_str = normalizer(input_str).strip()
         
+        # Below the absolute references like "source", "language", "timestamps" are used. 
+        # This should of course be configurable, like text_column_name and audio_column_name is today
         
-        #Add prefix if exists   
+        # Add prefix if exists in dataset
+        # Here the "source" field is used and the value is put in brackets like this [NPSC]
+        # This is just an axample
         if batch["source"]:
             prefix = "<|startofprev|>["+batch["source"]+"]"
             prefix_tokenized = tokenizer.encode(prefix, add_special_tokens=False)
@@ -834,9 +838,21 @@ def main():
         else:
             prefix_tokenized = []
             prefix_length = 0
-            
+          
         batch["labels"] = prefix_tokenized + tokenizer(input_str, truncation=True, max_length=max_label_length-prefix_length).input_ids    
-    
+
+        # The default settings are used if the dataset does not have the field set
+        # Remove notimestamps-tag if that is set in the dataset
+        batch["labels"] = [label for label in batch.get("labels", []) if batch.get("timestamps", 0) != 1 or label != 109]
+        
+        # Change the task if that is set in the dataset
+        if batch.get("task", None):
+            batch["labels"] = batch["labels"].replace(data_args.task,tokenizer.encode(batch["task"], add_special_tokens=False))
+            
+        # Change the language if that is set in the dataset
+        if batch.get("language", None):
+            batch["labels"] = batch["labels"].replace(data_args.language,tokenizer.encode(batch["language"], add_special_tokens=False))
+            
         return batch
 
     with training_args.main_process_first(desc="dataset map pre-processing"):
