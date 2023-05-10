@@ -1144,7 +1144,7 @@ def main():
         def compute_loss(params):
             labels = batch.pop("labels")
             ## To calculate correct loss when prompting is used
-            labels = labels[np.argmax(labels == 4):]
+            #labels = labels[np.argmax(labels == 4):]
             
             logits = state.apply_fn(
                 **batch, params=params, dropout_rng=dropout_rng, train=True)[0]
@@ -1174,7 +1174,7 @@ def main():
     def eval_step(params, batch, label_smoothing_factor=0.0):
         labels = batch.pop("labels")
         ## To calculate correct loss when prompting is used
-        labels = labels[np.argmax(labels == 4):]
+        #labels = labels[np.argmax(labels == 4):]
         
         logits = model(**batch, params=params, train=False)[0]
 
