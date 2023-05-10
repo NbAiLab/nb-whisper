@@ -472,8 +472,8 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
         labels = labels.filled(fill_value=-100)
 
         # Replace initial prompt tokens with -100 to they are ignore whem computing the loss
-        eos_index = np.argmax(labels==self.decoder_start_token_id, axis=1)
-        prompt_mask = np.arange(labels.shape[1]) < eos_index[:, np.newaxis]
+        bos_index = np.argmax(labels==self.decoder_start_token_id, axis=1)
+        prompt_mask = np.arange(labels.shape[1]) < bos_index[:, np.newaxis]
         labels = np.where(prompt_mask, -100, labels)
 
         batch["labels"] = labels
