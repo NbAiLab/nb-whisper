@@ -831,11 +831,11 @@ def main():
 
     raw_datasets["train"] = raw_datasets["train"].map(add_brackets)
     raw_datasets["eval"] = raw_datasets["eval"].map(add_brackets)
-    raw_datasets["test"] = raw_datasets["test"].map(add_brackets)
+   
     
     raw_datasets["train"] = raw_datasets["train"].map(replace_content)
     raw_datasets["eval"] = raw_datasets["eval"].map(replace_content)
-    raw_datasets["test"] = raw_datasets["test"].map(replace_content)
+    
 
     
     
