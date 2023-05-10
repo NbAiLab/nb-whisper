@@ -13,7 +13,7 @@ python ../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --text_column_name text \
     --train_split_name train\
     --eval_split_name validation\
-    --output_dir ../../scream_speed_checkpointing\
+    --output_dir ../../scream_speed_nocheckpointing\
     --overwrite_output_dir\
     --warmup_steps 1000 \
     --do_train \
@@ -32,7 +32,7 @@ python ../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --use_auth_token True \
     --dtype bfloat16 \
     --hub_private_repo True \
-    --hub_model_id NbAiLab/scream_speed_checkpointing \
+    --hub_model_id NbAiLab/scream_speed_nocheckpointing \
     --resume_from_checkpoint True \
     --ignore_data_skip \
     --num_beams 5 \
