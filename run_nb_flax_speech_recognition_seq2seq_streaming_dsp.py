@@ -829,7 +829,7 @@ def main():
         # Add prefix if exists in dataset
         # Here the "source" field is used and the value is put in brackets like this [NPSC]
         # This is just an axample
-        if batch["source"] and batch["source"] != "NPSC":
+        if batch["source"] and batch["source"] != "NPSC" and batch["source"] != "Fleurs":
             prefix = "<|startofprev|>["+batch["source"]+"]"
             prefix_tokenized = tokenizer.encode(prefix, add_special_tokens=False)            
             prefix_length = len(prefix_tokenized)
