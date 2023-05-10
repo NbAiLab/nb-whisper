@@ -1174,7 +1174,7 @@ def main():
     def eval_step(params, batch, label_smoothing_factor=0.0):
         labels = batch.pop("labels")
         ## To calculate correct loss when prompting is used
-            labels = labels[labels.index(4):]
+        labels = labels[labels.index(4):]
         
         logits = model(**batch, params=params, train=False)[0]
 
