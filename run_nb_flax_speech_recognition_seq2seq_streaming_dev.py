@@ -223,6 +223,11 @@ class DataTrainingArguments:
         metadata={
             "help": "The name of the dataset column containing the text data. Defaults to 'text'"},
     )
+    prev_column_name: str = field(
+        default="prev",
+        metadata={
+            "help": "The name of the dataset column containing the previous text data. Defaults to 'prev'"},
+    )
     max_duration_in_seconds: float = field(
         default=30.0,
         metadata={
@@ -455,16 +460,21 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
         if (labels[:, 0] == self.decoder_start_token_id).all().item():
             labels = labels[:, 1:]
             labels_batch.attention_mask = labels_batch.attention_mask[:, 1:]
-        
-        
-            
-        decoder_input_ids = shift_tokens_right(
-            labels, self.decoder_start_token_id)
+
+            decoder_input_ids = shift_tokens_right(
+                labels, self.decoder_start_token_id)
+        else:
+            decoder_input_ids = np.copy(labels)
 
         # replace padding with -100 to ignore correctly when computing the loss
         labels = np.ma.array(labels, mask=np.not_equal(
             labels_batch.attention_mask, 1))
         labels = labels.filled(fill_value=-100)
+
+        # Replace initial prompt tokens with -100 to they are ignore whem computing the loss
+        eos_index = np.argmax(labels==self.decoder_start_token_id, axis=1)
+        prompt_mask = np.arange(labels.shape[1]) < eos_index[:, np.newaxis]
+        labels = np.where(prompt_mask, -100, labels)
 
         batch["labels"] = labels
         batch["decoder_input_ids"] = decoder_input_ids
@@ -789,6 +799,7 @@ def main():
     audio_column_name = data_args.audio_column_name
     num_workers = data_args.preprocessing_num_workers
     text_column_name = data_args.text_column_name
+    prev_column_name = data_args.prev_column_name
     model_input_name = feature_extractor.model_input_names[0]
     do_lower_case = data_args.do_lower_case
     do_remove_punctuation = data_args.do_remove_punctuation
@@ -818,11 +829,18 @@ def main():
         batch["input_length"] = len(sample["array"])
 
         # Process targets
-        input_str = batch[text_column_name].lower(
-        ) if do_lower_case else batch[text_column_name]
+        input_str = batch[text_column_name].lower() if do_lower_case else batch[text_column_name]
         if do_remove_punctuation:
             input_str = normalizer(input_str).strip()
         batch["labels"] = tokenizer(input_str, truncation=True, max_length=max_label_length).input_ids
+        if prev_column_name in batch:
+            prev_str = batch[prev_column_name].lower() if do_lower_case else batch[prev_column_name]
+            if do_remove_punctuation:
+                prev_str = normalizer(prev_str).strip()
+            prev_tokens = tokenizer(prev_str, truncation=False, add_special_tokens=False, add_prefix_space=True).input_ids
+            max_prev_str = tokenizer.decode(prev_tokens[-(max_label_length // 2 - 1):])
+            max_prev_tokens = tokenizer("<|startofprev|>", max_prev_str, add_special_tokens=False).input_ids
+            batch["labels"] = max_prev_tokens + batch["labels"]
         return batch
 
     
