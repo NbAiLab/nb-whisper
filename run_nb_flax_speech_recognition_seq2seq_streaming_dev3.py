@@ -856,7 +856,7 @@ def main():
             input_str = normalizer(input_str).strip()
         batch["labels"] = tokenizer(input_str, truncation=True, max_length=max_label_length).input_ids
         if prev_column_name in batch:
-            old_label_length=len(batch["labels"])
+            old_labels_length=len(batch["labels"])
             prev_str = batch[prev_column_name].lower() if do_lower_case else batch[prev_column_name]
             if do_remove_punctuation:
                 prev_str = normalizer(prev_str).strip()
@@ -864,11 +864,12 @@ def main():
             max_prev_str = tokenizer.decode(prev_tokens[-(max_label_length // 2 - 1):])
             max_prev_tokens = tokenizer("<|startofprev|>", max_prev_str, add_special_tokens=False).input_ids
             batch["labels"] = max_prev_tokens + batch["labels"]
-            new_label_length=len(batch["labels"])
-            if old_label_length != new_label_length:
+            new_labels_length=len(batch["labels"])
+            if old_labels_length != new_labels_length:
                 print("WARNING: label length changed from {} to {}".format(old_label_length, new_label_length))
                 print(f"WARNING: Attention mask length is {len(batch["attention_mask"])}")
-                exit(-1)
+                breakpoint()
+                #batch["attention_mask"] = ([1] * (new_labels_length - old_labels_length)) + batch["attention_mask"]
         return batch
 
     
