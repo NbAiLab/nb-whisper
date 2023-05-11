@@ -319,6 +319,19 @@ class DataTrainingArguments:
         metadata={
             "help": "Whether to use streaming mode to load and pre-process the data."},
     )
+    use_scan: bool = field(
+        default=False,
+        metadata={
+            "help": "Whether to use scan in the nn.Module or not. Not implemented in transformers."},
+    )
+    whisper_model_class: Optional[str] = field(
+        default=None,
+        metadata={
+            "help": (
+                "Python path to class for FlaxWhisperModel."
+            )
+        },
+    )
     log_max_eval_predictions: Optional[int] = field(
         default=0,
         metadata={
@@ -762,7 +775,12 @@ def main():
         add_prefix_space=True,
     )
 
-    model = FlaxAutoModelForSpeechSeq2Seq.from_pretrained(
+    if data_args.whisper_model_class:
+        module, class_name = data_args.whisper_model_class.rsplit('.', 1)
+        FlaxWhisper = getattr(import_module(module), class_name)
+    else:
+        FlaxWhisper = FlaxAutoModelForSpeechSeq2Seq
+    model = FlaxWhisper.from_pretrained(
         model_name_or_path,
         config=config,
         dtype=getattr(jnp, model_args.dtype),
@@ -778,6 +796,11 @@ def main():
     if model.config.decoder_start_token_id is None:
         raise ValueError(
             "Make sure that `config.decoder_start_token_id` is correctly defined")
+
+    # Enable scan if necessary
+    if data_args.use_scan:
+        model.enable_scan()  # to enable scan in the nn.Module
+        # params = model.convert_unroll_to_scan(params)  # to convert the unrolled params to scan
 
     # Activate gradient checkpointing if needed
     if training_args.gradient_checkpointing:
