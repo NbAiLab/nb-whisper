@@ -752,6 +752,15 @@ def main():
         revision=model_args.model_revision,
         use_auth_token=True if model_args.use_auth_token else None,
     )
+    # Work around for https://github.com/huggingface/transformers/issues/17391
+    tokenizer_prefix_space = AutoTokenizer.from_pretrained(
+        model_args.tokenizer_name if model_args.tokenizer_name else model_name_or_path,
+        cache_dir=model_args.cache_dir,
+        use_fast=model_args.use_fast_tokenizer,
+        revision=model_args.model_revision,
+        use_auth_token=True if model_args.use_auth_token else None,
+        add_prefix_space=True,
+    )
 
     model = FlaxAutoModelForSpeechSeq2Seq.from_pretrained(
         model_name_or_path,
@@ -837,9 +846,9 @@ def main():
             prev_str = batch[prev_column_name].lower() if do_lower_case else batch[prev_column_name]
             if do_remove_punctuation:
                 prev_str = normalizer(prev_str).strip()
-            prev_tokens = tokenizer(prev_str, truncation=False, add_special_tokens=False, add_prefix_space=True).input_ids
-            max_prev_str = tokenizer.decode(prev_tokens[-(max_label_length // 2 - 1):])
-            max_prev_tokens = tokenizer("<|startofprev|>", max_prev_str, add_special_tokens=False).input_ids
+            prev_tokens = tokenizer_prefix_space(prev_str, truncation=False, add_special_tokens=False).input_ids
+            max_prev_str = tokenizer_prefix_space.decode(prev_tokens[-(max_label_length // 2 - 1):])
+            max_prev_tokens = tokenizer_prefix_space("<|startofprev|>", max_prev_str, add_special_tokens=False).input_ids
             batch["labels"] = max_prev_tokens + batch["labels"]
         return batch
 
