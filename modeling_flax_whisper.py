@@ -234,9 +234,9 @@ class FlaxWhisperAttention(nn.Module):
         key_states = self._split_heads(key_states)
         value_states = self._split_heads(value_states)
 
-        query_states = lax.with_sharding_constraint(query_states, ("batch", "length", "heads", "kv"))
-        key_states = lax.with_sharding_constraint(key_states, ("batch", "length", "heads", "kv"))
-        value_states = lax.with_sharding_constraint(value_states, ("batch", "length", "heads", "kv"))
+        # query_states = lax.with_sharding_constraint(query_states, ("batch", "length", "heads", "kv"))
+        # key_states = lax.with_sharding_constraint(key_states, ("batch", "length", "heads", "kv"))
+        # value_states = lax.with_sharding_constraint(value_states, ("batch", "length", "heads", "kv"))
 
         if self.causal:
             query_length, key_length = query_states.shape[1], key_states.shape[1]
@@ -380,25 +380,25 @@ class FlaxWhisperEncoderLayer(nn.Module):
     ) -> Tuple[jnp.ndarray]:
         if self.use_scan:
             hidden_states = hidden_states[0]
-        hidden_states = lax.with_sharding_constraint(hidden_states, ("batch", "length", "embed"))
+        # hidden_states = lax.with_sharding_constraint(hidden_states, ("batch", "length", "embed"))
 
         residual = hidden_states
         hidden_states = self.self_attn_layer_norm(hidden_states)
         hidden_states, attn_weights = self.self_attn(hidden_states=hidden_states, attention_mask=attention_mask)
         hidden_states = self.dropout_layer(hidden_states, deterministic=deterministic)
         hidden_states = residual + hidden_states
-        hidden_states = lax.with_sharding_constraint(hidden_states, ("batch", "length", "embed"))
+        # hidden_states = lax.with_sharding_constraint(hidden_states, ("batch", "length", "embed"))
 
         residual = hidden_states
         hidden_states = self.final_layer_norm(hidden_states)
-        hidden_states = lax.with_sharding_constraint(hidden_states, ("batch", "length", "embed"))
+        # hidden_states = lax.with_sharding_constraint(hidden_states, ("batch", "length", "embed"))
         hidden_states = self.activation_fn(self.fc1(hidden_states))
         hidden_states = self.activation_dropout_layer(hidden_states, deterministic=deterministic)
-        hidden_states = lax.with_sharding_constraint(hidden_states, ("batch", "length", "embed"))
+        # hidden_states = lax.with_sharding_constraint(hidden_states, ("batch", "length", "embed"))
         hidden_states = self.fc2(hidden_states)
         hidden_states = self.dropout_layer(hidden_states, deterministic=deterministic)
         hidden_states = residual + hidden_states
-        hidden_states = lax.with_sharding_constraint(hidden_states, ("batch", "length", "embed"))
+        # hidden_states = lax.with_sharding_constraint(hidden_states, ("batch", "length", "embed"))
 
         outputs = (hidden_states,)
 
@@ -558,7 +558,7 @@ class FlaxWhisperDecoderLayer(nn.Module):
     ) -> Tuple[jnp.ndarray]:
         if self.use_scan:
             hidden_states = hidden_states[0]
-        hidden_states = lax.with_sharding_constraint(hidden_states, ("batch", "length", "embed"))
+        # hidden_states = lax.with_sharding_constraint(hidden_states, ("batch", "length", "embed"))
 
         residual = hidden_states
         hidden_states = self.self_attn_layer_norm(hidden_states)
@@ -569,7 +569,7 @@ class FlaxWhisperDecoderLayer(nn.Module):
         )
         hidden_states = self.dropout_layer(hidden_states, deterministic=deterministic)
         hidden_states = residual + hidden_states
-        hidden_states = lax.with_sharding_constraint(hidden_states, ("batch", "length", "embed"))
+        # hidden_states = lax.with_sharding_constraint(hidden_states, ("batch", "length", "embed"))
 
         # Cross-Attention Block
         cross_attn_weights = None
@@ -577,7 +577,7 @@ class FlaxWhisperDecoderLayer(nn.Module):
             residual = hidden_states
 
             hidden_states = self.encoder_attn_layer_norm(hidden_states)
-            hidden_states = lax.with_sharding_constraint(hidden_states, ("batch", "length", "embed"))
+            # hidden_states = lax.with_sharding_constraint(hidden_states, ("batch", "length", "embed"))
             hidden_states, cross_attn_weights = self.encoder_attn(
                 hidden_states=hidden_states,
                 key_value_states=encoder_hidden_states,
@@ -585,20 +585,20 @@ class FlaxWhisperDecoderLayer(nn.Module):
             )
             hidden_states = self.dropout_layer(hidden_states, deterministic=deterministic)
             hidden_states = residual + hidden_states
-            hidden_states = lax.with_sharding_constraint(hidden_states, ("batch", "length", "embed"))
+            # hidden_states = lax.with_sharding_constraint(hidden_states, ("batch", "length", "embed"))
 
         # Fully Connected
         residual = hidden_states
         hidden_states = self.final_layer_norm(hidden_states)
-        hidden_states = lax.with_sharding_constraint(hidden_states, ("batch", "length", "embed"))
+        # hidden_states = lax.with_sharding_constraint(hidden_states, ("batch", "length", "embed"))
         hidden_states = self.activation_fn(self.fc1(hidden_states))
         hidden_states = self.activation_dropout_layer(hidden_states, deterministic=deterministic)
-        hidden_states = lax.with_sharding_constraint(hidden_states, ("batch", "length", "embed"))
+        # hidden_states = lax.with_sharding_constraint(hidden_states, ("batch", "length", "embed"))
         hidden_states = self.fc2(hidden_states)
         hidden_states = self.dropout_layer(hidden_states, deterministic=deterministic)
         hidden_states = residual + hidden_states
 
-        hidden_states = lax.with_sharding_constraint(hidden_states, ("batch", "length", "embed"))
+        # hidden_states = lax.with_sharding_constraint(hidden_states, ("batch", "length", "embed"))
         outputs = (hidden_states,)
 
         if output_attentions:
@@ -781,9 +781,9 @@ class FlaxWhisperEncoder(nn.Module):
 
         input_features = input_features.transpose(0, 2, 1)
         hidden_states = jax.nn.gelu(self.conv1(input_features), approximate=False)
-        hidden_states = lax.with_sharding_constraint(hidden_states, ("batch", "embed", "num_mel"))
+        # hidden_states = lax.with_sharding_constraint(hidden_states, ("batch", "embed", "num_mel"))
         hidden_states = jax.nn.gelu(self.conv2(hidden_states), approximate=False)
-        hidden_states = lax.with_sharding_constraint(hidden_states, ("batch", "length", "embed"))
+        # hidden_states = lax.with_sharding_constraint(hidden_states, ("batch", "length", "embed"))
 
         embed_positions = self.embed_positions(jnp.arange(self.config.max_source_positions))
         hidden_states = hidden_states + embed_positions
