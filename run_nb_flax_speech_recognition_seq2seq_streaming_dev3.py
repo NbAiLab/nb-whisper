@@ -860,7 +860,7 @@ def main():
             prev_str = batch[prev_column_name].lower() if do_lower_case else batch[prev_column_name]
             if do_remove_punctuation:
                 prev_str = normalizer(prev_str).strip()
-            prev_tokens = tokenizer(prev_str, truncation=False, add_special_tokens=False, add_prefix_space=True).input_ids
+            prev_tokens = tokenizer(prev_str, truncation=False, add_special_tokens=False).input_ids
             max_prev_str = tokenizer.decode(prev_tokens[-(max_label_length // 2 - 1):])
             max_prev_tokens = tokenizer("<|startofprev|>", max_prev_str, add_special_tokens=False).input_ids
             batch["labels"] = max_prev_tokens + batch["labels"]
