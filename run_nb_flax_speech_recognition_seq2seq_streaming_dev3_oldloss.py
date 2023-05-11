@@ -485,9 +485,7 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
         batch["labels"] = labels
         batch["decoder_input_ids"] = decoder_input_ids
         batch["attention_mask"] = labels_batch.attention_mask  # Add attention_mask to the batch
-        
-        breakpoint()
-        
+                
         return batch
 
 
@@ -1171,6 +1169,10 @@ def main():
         loss = loss * padding_mask
         loss = loss.sum()
         num_labels = padding_mask.sum()
+        
+        print("old loss")
+        breakpoint()
+        
         return loss, num_labels
 
     # Define gradient update step fn
