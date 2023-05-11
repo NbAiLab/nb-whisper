@@ -187,7 +187,7 @@ class FlaxWhisperAttention(nn.Module):
     causal: bool = False
     bias: bool = True
     dtype: jnp.dtype = jnp.float32
-    params_dtype: jnp.dtype = jnp.float32
+    param_dtype: jnp.dtype = jnp.float32
 
     def setup(self) -> None:
         self.head_dim = self.embed_dim // self.num_heads
@@ -202,7 +202,7 @@ class FlaxWhisperAttention(nn.Module):
             self.embed_dim,
             axis=-1,
             dtype=self.dtype,
-            params_dtype=self.params_dtype,
+            param_dtype=self.param_dtype,
             kernel_axes=("embed", "joined_kv"),
         )
 
@@ -214,7 +214,7 @@ class FlaxWhisperAttention(nn.Module):
             self.embed_dim,
             axis=-1,
             dtype=self.dtype,
-            params_dtype=self.params_dtype,
+            param_dtype=self.param_dtype,
             kernel_axes=("joined_kv", "embed"),
             use_bias=self.bias,
         )
@@ -400,7 +400,7 @@ class FlaxWhisperAttention(nn.Module):
 class FlaxWhisperEncoderLayer(nn.Module):
     config: WhisperConfig
     dtype: jnp.dtype = jnp.float32
-    params_dtype: jnp.dtype = jnp.float32
+    param_dtype: jnp.dtype = jnp.float32
     use_scan: bool = False
 
     def setup(self) -> None:
@@ -411,25 +411,25 @@ class FlaxWhisperEncoderLayer(nn.Module):
             num_heads=self.config.encoder_attention_heads,
             dropout=self.config.attention_dropout,
             dtype=self.dtype,
-            params_dtype=self.params_dtype,
+            param_dtype=self.param_dtype,
         )
-        self.self_attn_layer_norm = LayerNorm(dtype=self.dtype, epsilon=1e-05, params_dtype=self.params_dtype)
+        self.self_attn_layer_norm = LayerNorm(dtype=self.dtype, epsilon=1e-05, param_dtype=self.param_dtype)
         self.dropout_layer = nn.Dropout(rate=self.config.dropout)
         self.activation_fn = ACT2FN[self.config.activation_function]
         self.activation_dropout_layer = nn.Dropout(rate=self.config.activation_dropout)
         self.fc1 = DenseGeneral(
             self.config.encoder_ffn_dim,
             dtype=self.dtype,
-            params_dtype=self.params_dtype,
+            param_dtype=self.param_dtype,
             kernel_axes=("embed", "mlp"),
         )
         self.fc2 = DenseGeneral(
             self.embed_dim,
             dtype=self.dtype,
-            params_dtype=self.params_dtype,
+            param_dtype=self.param_dtype,
             kernel_axes=("mlp", "embed"),
         )
-        self.final_layer_norm = LayerNorm(dtype=self.dtype, epsilon=1e-05, params_dtype=self.params_dtype)
+        self.final_layer_norm = LayerNorm(dtype=self.dtype, epsilon=1e-05, param_dtype=self.param_dtype)
 
     def __call__(
         self,
@@ -481,7 +481,7 @@ class FlaxWhisperEncoderLayer(nn.Module):
 class FlaxWhisperEncoderLayerCollection(nn.Module):
     config: WhisperConfig
     dtype: jnp.dtype = jnp.float32  # the dtype of the computation
-    params_dtype: jnp.dtype = jnp.float32
+    param_dtype: jnp.dtype = jnp.float32
     use_scan: bool = False
     gradient_checkpointing: bool = False
 
@@ -524,7 +524,7 @@ class FlaxWhisperEncoderLayerCollection(nn.Module):
             )(
                 self.config,
                 dtype=self.dtype,
-                params_dtype=self.params_dtype,
+                param_dtype=self.param_dtype,
                 use_scan=True,
                 name="FlaxEncoderScanLayers",
             )(
@@ -547,7 +547,7 @@ class FlaxWhisperEncoderLayerCollection(nn.Module):
                     layer_outputs = FlaxWhisperEncoderCheckpointLayer(
                         self.config,
                         dtype=self.dtype,
-                        params_dtype=self.params_dtype,
+                        param_dtype=self.param_dtype,
                         name=str(layer_idx),
                     )(
                         hidden_states,
@@ -577,7 +577,7 @@ class FlaxWhisperEncoderLayerCollection(nn.Module):
 class FlaxWhisperDecoderLayer(nn.Module):
     config: WhisperConfig
     dtype: jnp.dtype = jnp.float32
-    params_dtype: jnp.dtype = jnp.float32
+    param_dtype: jnp.dtype = jnp.float32
     use_scan: bool = False
 
     def setup(self) -> None:
@@ -589,35 +589,35 @@ class FlaxWhisperDecoderLayer(nn.Module):
             dropout=self.config.attention_dropout,
             causal=True,
             dtype=self.dtype,
-            params_dtype=self.params_dtype,
+            param_dtype=self.param_dtype,
         )
         self.dropout_layer = nn.Dropout(rate=self.config.dropout)
         self.activation_fn = ACT2FN[self.config.activation_function]
         self.activation_dropout_layer = nn.Dropout(rate=self.config.activation_dropout)
 
-        self.self_attn_layer_norm = LayerNorm(dtype=self.dtype, epsilon=1e-05, params_dtype=self.params_dtype)
+        self.self_attn_layer_norm = LayerNorm(dtype=self.dtype, epsilon=1e-05, param_dtype=self.param_dtype)
         self.encoder_attn = FlaxWhisperAttention(
             config=self.config,
             embed_dim=self.embed_dim,
             num_heads=self.config.decoder_attention_heads,
             dropout=self.config.attention_dropout,
             dtype=self.dtype,
-            params_dtype=self.params_dtype,
+            param_dtype=self.param_dtype,
         )
-        self.encoder_attn_layer_norm = LayerNorm(dtype=self.dtype, epsilon=1e-05, params_dtype=self.params_dtype)
+        self.encoder_attn_layer_norm = LayerNorm(dtype=self.dtype, epsilon=1e-05, param_dtype=self.param_dtype)
         self.fc1 = DenseGeneral(
             self.config.decoder_ffn_dim,
             dtype=self.dtype,
-            params_dtype=self.params_dtype,
+            param_dtype=self.param_dtype,
             kernel_axes=("embed", "mlp"),
         )
         self.fc2 = DenseGeneral(
             self.embed_dim,
             dtype=self.dtype,
-            params_dtype=self.params_dtype,
+            param_dtype=self.param_dtype,
             kernel_axes=("mlp", "embed"),
         )
-        self.final_layer_norm = LayerNorm(dtype=self.dtype, epsilon=1e-05, params_dtype=self.params_dtype)
+        self.final_layer_norm = LayerNorm(dtype=self.dtype, epsilon=1e-05, param_dtype=self.param_dtype)
 
     def __call__(
         self,
@@ -697,7 +697,7 @@ class FlaxWhisperDecoderLayer(nn.Module):
 class FlaxWhisperDecoderLayerCollection(nn.Module):
     config: WhisperConfig
     dtype: jnp.dtype = jnp.float32  # the dtype of the computation
-    params_dtype: jnp.dtype = jnp.float32
+    param_dtype: jnp.dtype = jnp.float32
     use_scan: bool = False
     gradient_checkpointing: bool = False
 
@@ -752,7 +752,7 @@ class FlaxWhisperDecoderLayerCollection(nn.Module):
             )(
                 self.config,
                 dtype=self.dtype,
-                params_dtype=self.params_dtype,
+                param_dtype=self.param_dtype,
                 use_scan=True,
                 name="FlaxDecoderScanLayers",
             )(
@@ -778,7 +778,7 @@ class FlaxWhisperDecoderLayerCollection(nn.Module):
                     layer_outputs = FlaxWhisperDecoderCheckpointLayer(
                         self.config,
                         dtype=self.dtype,
-                        params_dtype=self.params_dtype,
+                        param_dtype=self.param_dtype,
                         name=str(layer_idx),
                     )(
                         hidden_states,
@@ -822,7 +822,7 @@ class FlaxWhisperDecoderLayerCollection(nn.Module):
 class FlaxWhisperEncoder(nn.Module):
     config: WhisperConfig
     dtype: jnp.dtype = jnp.float32
-    params_dtype: jnp.dtype = jnp.float32
+    param_dtype: jnp.dtype = jnp.float32
     use_scan: bool = False
     gradient_checkpointing: bool = False
 
@@ -832,7 +832,7 @@ class FlaxWhisperEncoder(nn.Module):
             kernel_size=(3,),
             padding=1,
             dtype=self.dtype,
-            params_dtype=self.params_dtype,
+            param_dtype=self.param_dtype,
             kernel_axes=("channels", "num_mel", "embed"),
         )
         self.conv2 = Conv(
@@ -841,7 +841,7 @@ class FlaxWhisperEncoder(nn.Module):
             strides=2,
             padding=1,
             dtype=self.dtype,
-            params_dtype=self.params_dtype,
+            param_dtype=self.param_dtype,
             kernel_axes=("channels", "embed", "num_mel"),
         )
 
@@ -850,7 +850,7 @@ class FlaxWhisperEncoder(nn.Module):
         self.layers = FlaxWhisperEncoderLayerCollection(
             self.config,
             dtype=self.dtype,
-            params_dtype=self.params_dtype,
+            param_dtype=self.param_dtype,
             use_scan=self.use_scan,
             gradient_checkpointing=self.gradient_checkpointing,
         )
@@ -858,10 +858,10 @@ class FlaxWhisperEncoder(nn.Module):
             self.config.max_source_positions,
             self.config.d_model,
             dtype=self.dtype,
-            params_dtype=self.params_dtype,
+            param_dtype=self.param_dtype,
         )
 
-        self.layer_norm = LayerNorm(dtype=self.dtype, epsilon=1e-05, params_dtype=self.params_dtype)
+        self.layer_norm = LayerNorm(dtype=self.dtype, epsilon=1e-05, param_dtype=self.param_dtype)
 
     def __call__(
         self,
@@ -926,7 +926,7 @@ class FlaxWhisperEncoder(nn.Module):
 class FlaxWhisperDecoder(nn.Module):
     config: WhisperConfig
     dtype: jnp.dtype = jnp.float32
-    params_dtype: jnp.dtype = jnp.float32
+    param_dtype: jnp.dtype = jnp.float32
     use_scan: bool = False
     gradient_checkpointing: bool = False
 
@@ -935,26 +935,26 @@ class FlaxWhisperDecoder(nn.Module):
             self.config.vocab_size,
             self.config.d_model,
             dtype=self.dtype,
-            params_dtype=self.params_dtype,
+            param_dtype=self.param_dtype,
         )
         self.embed_positions = Embed(
             self.config.max_target_positions,
             self.config.d_model,
             dtype=self.dtype,
-            params_dtype=self.params_dtype,
+            param_dtype=self.param_dtype,
         )
 
         self.layers = FlaxWhisperDecoderLayerCollection(
             self.config,
             dtype=self.dtype,
-            params_dtype=self.params_dtype,
+            param_dtype=self.param_dtype,
             use_scan=self.use_scan,
             gradient_checkpointing=self.gradient_checkpointing,
         )
 
         self.dropout_layer = nn.Dropout(rate=self.config.dropout)
 
-        self.layer_norm = LayerNorm(dtype=self.dtype, epsilon=1e-5, params_dtype=self.params_dtype)
+        self.layer_norm = LayerNorm(dtype=self.dtype, epsilon=1e-5, param_dtype=self.param_dtype)
 
     def __call__(
         self,
@@ -1009,7 +1009,7 @@ class FlaxWhisperDecoder(nn.Module):
 class FlaxWhisperModule(nn.Module):
     config: WhisperConfig
     dtype: jnp.dtype = jnp.float32
-    params_dtype: jnp.dtype = jnp.float32
+    param_dtype: jnp.dtype = jnp.float32
     use_scan: bool = False
     gradient_checkpointing: bool = False
 
@@ -1017,14 +1017,14 @@ class FlaxWhisperModule(nn.Module):
         self.encoder = FlaxWhisperEncoder(
             self.config,
             dtype=self.dtype,
-            params_dtype=self.params_dtype,
+            param_dtype=self.param_dtype,
             use_scan=self.use_scan,
             gradient_checkpointing=self.gradient_checkpointing,
         )
         self.decoder = FlaxWhisperDecoder(
             self.config,
             dtype=self.dtype,
-            params_dtype=self.params_dtype,
+            param_dtype=self.param_dtype,
             use_scan=self.use_scan,
             gradient_checkpointing=self.gradient_checkpointing,
         )
@@ -1097,7 +1097,7 @@ class FlaxWhisperPreTrainedModel(FlaxPreTrainedModel):
         input_shape: Tuple[int] = (1, 80, 3000),
         seed: int = 0,
         dtype: jnp.dtype = jnp.float32,
-        params_dtype: jnp.dtype = jnp.float32,
+        param_dtype: jnp.dtype = jnp.float32,
         _do_init: bool = True,
         # Can only use_scan=True in init if loading scanned weights -> need to handle use_scan=True and unrolled weights
         use_scan: bool = False,
@@ -1110,7 +1110,7 @@ class FlaxWhisperPreTrainedModel(FlaxPreTrainedModel):
         module = self.module_class(
             config=config,
             dtype=dtype,
-            params_dtype=params_dtype,
+            param_dtype=param_dtype,
             use_scan=use_scan,
             gradient_checkpointing=gradient_checkpointing,
             **kwargs,
@@ -1643,7 +1643,7 @@ class FlaxWhisperPreTrainedModel(FlaxPreTrainedModel):
 class FlaxWhisperModel(FlaxWhisperPreTrainedModel):
     config: WhisperConfig
     dtype: jnp.dtype = jnp.float32  # the dtype of the computation
-    params_dtype: jnp.dtype = jnp.float32
+    param_dtype: jnp.dtype = jnp.float32
     module_class = FlaxWhisperModule
 
 
@@ -1653,7 +1653,7 @@ append_call_sample_docstring(FlaxWhisperModel, _CHECKPOINT_FOR_DOC, FlaxSeq2SeqM
 class FlaxWhisperForConditionalGenerationModule(nn.Module):
     config: WhisperConfig
     dtype: jnp.dtype = jnp.float32
-    params_dtype: jnp.dtype = jnp.float32
+    param_dtype: jnp.dtype = jnp.float32
     use_scan: bool = False
     gradient_checkpointing: bool = False
 
@@ -1661,7 +1661,7 @@ class FlaxWhisperForConditionalGenerationModule(nn.Module):
         self.model = FlaxWhisperModule(
             config=self.config,
             dtype=self.dtype,
-            params_dtype=self.params_dtype,
+            param_dtype=self.param_dtype,
             use_scan=self.use_scan,
             gradient_checkpointing=self.gradient_checkpointing,
         )
@@ -1669,7 +1669,7 @@ class FlaxWhisperForConditionalGenerationModule(nn.Module):
             self.config.vocab_size,
             use_bias=False,
             dtype=self.dtype,
-            params_dtype=self.params_dtype,
+            param_dtype=self.param_dtype,
             kernel_axes=("embed", "vocab"),
         )
 

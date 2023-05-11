@@ -328,7 +328,7 @@ class DataTrainingArguments:
         default=None,
         metadata={
             "help": (
-                "Python path to custom FlaxWhisperForConditionalGenerationModule class."
+                "Python path to custom FlaxWhisperForConditionalGeneration class."
             )
         },
     )
