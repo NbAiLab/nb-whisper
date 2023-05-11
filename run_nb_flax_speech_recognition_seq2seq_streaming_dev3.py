@@ -851,14 +851,7 @@ def main():
     if training_args.do_predict and data_args.max_predict_samples is not None:
         raw_datasets["test"] = raw_datasets["test"].select(range(data_args.max_predict_samples))
 
-    ## Temparary code for working with todays dataset
-    def process_example(example):
-        return {**example, prev_column_name: "" if example[prev_column_name] == "NPSC" else "[" + example[prev_column_name] + "]"}
-    
-    if prev_column_name:
-        raw_datasets["train"] = raw_datasets["train"].map(process_example)
-    
-    def prepare_dataset(batch):
+    def prepare_dataset(batch, add_previous_text=True):
         # Process audio
         sample = batch[audio_column_name]
         inputs = feature_extractor(
@@ -872,7 +865,7 @@ def main():
         if do_remove_punctuation:
             input_str = normalizer(input_str).strip()
         batch["labels"] = tokenizer(input_str, truncation=True, max_length=max_label_length).input_ids
-        if prev_column_name in batch and batch[prev_column_name].strip():
+        if add_previous_text and prev_column_name in batch and batch[prev_column_name].strip():
             prev_str = batch[prev_column_name].lower() if do_lower_case else batch[prev_column_name]
             if do_remove_punctuation:
                 prev_str = normalizer(prev_str).strip()
@@ -881,14 +874,34 @@ def main():
             max_prev_tokens = tokenizer_prefix_space("<|startofprev|>", max_prev_str, add_special_tokens=False).input_ids
             batch["labels"] = max_prev_tokens + batch["labels"]
         return batch
+    ## Temparary code for working with todays dataset
+    def process_example(example):
+        return {**example, prev_column_name: "" if example[prev_column_name] == "NPSC" else "[" + example[prev_column_name] + "]"}
+    
+    if prev_column_name:
+        raw_datasets["train"] = raw_datasets["train"].map(process_example)
 
-    breakpoint()    
+    
     # Make vecotrized datasets. 
     with training_args.main_process_first(desc="dataset map pre-processing"):
-        vectorized_datasets = raw_datasets.map(
-            prepare_dataset,
-            remove_columns=raw_datasets_features
-        )
+        vectorized_datasets = IterableDatasetDict() if data_args.streaming else DatasetDict()
+        if training_args.do_train:
+            vectorized_datasets["train"] = raw_datasets["train"].map(
+                prepare_dataset,
+                remove_columns=raw_datasets_features
+            )
+
+        if training_args.do_eval:
+            vectorized_datasets["eval"] = raw_datasets["eval"].map(
+                partial(prepare_dataset, add_previous_text=False),
+                remove_columns=raw_datasets_features
+            )
+
+        if training_args.do_predict:
+            vectorized_datasets["test"] = raw_datasets["test"].map(
+                partial(prepare_dataset, add_previous_text=False),
+                remove_columns=raw_datasets_features
+            )
 
     # Filter training data with inputs longer than max_input_length
     def is_audio_in_length_range(length):
