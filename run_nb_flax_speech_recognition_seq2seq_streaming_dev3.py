@@ -853,7 +853,7 @@ def main():
 
     ## Temparary code for working with todays dataset
     def process_example(example):
-        return {**example, prev_column_name: "" if example[prev_column_name] == "NPSC" else "[" + example[prev_column_name] + "]"} (e
+        return {**example, prev_column_name: "" if example[prev_column_name] == "NPSC" else "[" + example[prev_column_name] + "]"}
     
     raw_datasets["train"] = raw_datasets["train"].map(process_example)
     
