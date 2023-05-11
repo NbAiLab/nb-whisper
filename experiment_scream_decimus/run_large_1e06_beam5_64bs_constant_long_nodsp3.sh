@@ -2,7 +2,7 @@ export TOKENIZERS_PARALLELISM=false
 export CMALLOC_VERBOSE=0
 export TCMALLOC_VERBOSE=0
 export TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD=10000000000
-python ../run_nb_flax_speech_recognition_seq2seq_streaming_dsp.py \
+python ../run_nb_flax_speech_recognition_seq2seq_streaming_dev3.py \
     --model_name_or_path openai/whisper-large-v2 \
     --run_name "Scream - deci_64bs_1e06lr" \
     --run_description "A Large Whisper Scream model - Dynamic Style Prompting. With bug fix for Fleurs." \
@@ -13,7 +13,7 @@ python ../run_nb_flax_speech_recognition_seq2seq_streaming_dsp.py \
     --text_column_name text \
     --train_split_name train\
     --eval_split_name validation\
-    --output_dir ../../deci_64bs_1e06lr_dsp_v2\
+    --output_dir ../../deci_64bs_1e06lr_nodsp_v3\
     --overwrite_output_dir\
     --warmup_steps 1000 \
     --do_train \
@@ -32,7 +32,7 @@ python ../run_nb_flax_speech_recognition_seq2seq_streaming_dsp.py \
     --use_auth_token True \
     --dtype bfloat16 \
     --hub_private_repo True \
-    --hub_model_id NbAiLab/deci_64bs_1e06lr_dsp_v2 \
+    --hub_model_id NbAiLab/deci_64bs_1e06lr_nodsp_v3 \
     --resume_from_checkpoint True \
     --ignore_data_skip \
     --num_beams 5 \

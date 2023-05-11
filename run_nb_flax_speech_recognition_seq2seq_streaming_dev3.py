@@ -319,6 +319,19 @@ class DataTrainingArguments:
         metadata={
             "help": "Whether to use streaming mode to load and pre-process the data."},
     )
+    use_scan: bool = field(
+        default=False,
+        metadata={
+            "help": "Whether to use scan in the nn.Module or not. Not implemented in transformers."},
+    )
+    whisper_model_class: Optional[str] = field(
+        default=None,
+        metadata={
+            "help": (
+                "Python path to custom FlaxWhisperForConditionalGeneration class."
+            )
+        },
+    )
     log_max_eval_predictions: Optional[int] = field(
         default=0,
         metadata={
@@ -475,8 +488,6 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
         bos_index = np.argmax(labels==self.decoder_start_token_id, axis=1)
         prompt_mask = np.arange(labels.shape[1]) < bos_index[:, np.newaxis]
         labels = np.where(prompt_mask, -100, labels)
-
-
 
         batch["labels"] = labels
         batch["decoder_input_ids"] = decoder_input_ids
@@ -753,10 +764,23 @@ def main():
         use_fast=model_args.use_fast_tokenizer,
         revision=model_args.model_revision,
         use_auth_token=True if model_args.use_auth_token else None,
+    )
+    # Work around for https://github.com/huggingface/transformers/issues/17391
+    tokenizer_prefix_space = AutoTokenizer.from_pretrained(
+        model_args.tokenizer_name if model_args.tokenizer_name else model_name_or_path,
+        cache_dir=model_args.cache_dir,
+        use_fast=model_args.use_fast_tokenizer,
+        revision=model_args.model_revision,
+        use_auth_token=True if model_args.use_auth_token else None,
         add_prefix_space=True,
     )
 
-    model = FlaxAutoModelForSpeechSeq2Seq.from_pretrained(
+    if data_args.whisper_model_class:
+        module, class_name = data_args.whisper_model_class.rsplit('.', 1)
+        FlaxWhisper = getattr(import_module(module), class_name)
+    else:
+        FlaxWhisper = FlaxAutoModelForSpeechSeq2Seq
+    model = FlaxWhisper.from_pretrained(
         model_name_or_path,
         config=config,
         dtype=getattr(jnp, model_args.dtype),
@@ -772,6 +796,11 @@ def main():
     if model.config.decoder_start_token_id is None:
         raise ValueError(
             "Make sure that `config.decoder_start_token_id` is correctly defined")
+
+    # Enable scan if necessary
+    if data_args.use_scan:
+        model.enable_scan()  # to enable scan in the nn.Module
+        # params = model.convert_unroll_to_scan(params)  # to convert the unrolled params to scan
 
     # Activate gradient checkpointing if needed
     if training_args.gradient_checkpointing:
@@ -822,25 +851,12 @@ def main():
     if training_args.do_predict and data_args.max_predict_samples is not None:
         raw_datasets["test"] = raw_datasets["test"].select(range(data_args.max_predict_samples))
 
-    # Do some basic filtering of the prev_column_name field
-    def add_brackets(example):
-        example[prev_column_name] = "[" + example[prev_column_name] + "]"
-        return example
-    def replace_content(example):
-        if example[prev_column_name] == "[NPSC]" or example[prev_column_name] == "[Fleurs]":
-            example[prev_column_name] = ""
-        return example
-
-
-    raw_datasets["train"] = raw_datasets["train"].map(add_brackets)
-    raw_datasets["eval"] = raw_datasets["eval"].map(add_brackets)
-   
+    ## Temparary code for working with todays dataset
+    def process_example(example):
+        return {**example, prev_column_name: "" if example[prev_column_name] == "NPSC" else "[" + example[prev_column_name] + "]"}
     
-    raw_datasets["train"] = raw_datasets["train"].map(replace_content)
-    raw_datasets["eval"] = raw_datasets["eval"].map(replace_content)
-    
-
-    
+    if prev_column_name:
+        raw_datasets["train"] = raw_datasets["train"].map(process_example)
     
     def prepare_dataset(batch):
         # Process audio
@@ -856,25 +872,17 @@ def main():
         if do_remove_punctuation:
             input_str = normalizer(input_str).strip()
         batch["labels"] = tokenizer(input_str, truncation=True, max_length=max_label_length).input_ids
-        if prev_column_name in batch:
-            old_labels_length=len(batch["labels"])
+        if prev_column_name in batch and batch[prev_column_name].strip():
             prev_str = batch[prev_column_name].lower() if do_lower_case else batch[prev_column_name]
             if do_remove_punctuation:
                 prev_str = normalizer(prev_str).strip()
-            prev_tokens = tokenizer(prev_str, truncation=False, add_special_tokens=False).input_ids
-            max_prev_str = tokenizer.decode(prev_tokens[-(max_label_length // 2 - 1):])
-            max_prev_tokens = tokenizer("<|startofprev|>", max_prev_str, add_special_tokens=False).input_ids
+            prev_tokens = tokenizer_prefix_space(prev_str, truncation=False, add_special_tokens=False).input_ids
+            max_prev_str = tokenizer_prefix_space.decode(prev_tokens[-(max_label_length // 2 - 1):])
+            max_prev_tokens = tokenizer_prefix_space("<|startofprev|>", max_prev_str, add_special_tokens=False).input_ids
             batch["labels"] = max_prev_tokens + batch["labels"]
-            new_labels_length=len(batch["labels"])
-            if old_labels_length != new_labels_length:
-                print(f"WARNING: label length changed from {old_labels_length} to {new_labels_length}")
-                breakpoint()
-                print(f"WARNING: Attention mask length is {len(batch['attention_mask'])}")
-                breakpoint()
-                #batch["attention_mask"] = ([1] * (new_labels_length - old_labels_length)) + batch["attention_mask"]
         return batch
 
-    
+    breakpoint()    
     # Make vecotrized datasets. 
     with training_args.main_process_first(desc="dataset map pre-processing"):
         vectorized_datasets = raw_datasets.map(
