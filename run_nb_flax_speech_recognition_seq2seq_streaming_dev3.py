@@ -753,6 +753,7 @@ def main():
         use_fast=model_args.use_fast_tokenizer,
         revision=model_args.model_revision,
         use_auth_token=True if model_args.use_auth_token else None,
+        add_prefix_space=True,
     )
 
     model = FlaxAutoModelForSpeechSeq2Seq.from_pretrained(
