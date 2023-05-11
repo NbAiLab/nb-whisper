@@ -328,7 +328,7 @@ class DataTrainingArguments:
         default=None,
         metadata={
             "help": (
-                "Python path to class for FlaxWhisperModel."
+                "Python path to custom FlaxWhisperForConditionalGenerationModule class."
             )
         },
     )
@@ -865,7 +865,7 @@ def main():
         if do_remove_punctuation:
             input_str = normalizer(input_str).strip()
         batch["labels"] = tokenizer(input_str, truncation=True, max_length=max_label_length).input_ids
-        if prev_column_name in batch:
+        if prev_column_name in batch and batch[prev_column_name].strip():
             prev_str = batch[prev_column_name].lower() if do_lower_case else batch[prev_column_name]
             if do_remove_punctuation:
                 prev_str = normalizer(prev_str).strip()

@@ -51,7 +51,8 @@ from transformers.utils import (
     replace_return_docstrings,
 )
 
-from .layers import Conv, DenseGeneral, Embed, LayerNorm, with_sharding_constraint
+from jax.lax import with_sharding_constraint
+from flax.linen import Conv, DenseGeneral, Embed, LayerNorm
 
 
 logger = logging.get_logger(__name__)
