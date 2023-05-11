@@ -881,7 +881,7 @@ def main():
             batch["labels"] = max_prev_tokens + batch["labels"]
         return batch
 
-    
+    breakpoint()    
     # Make vecotrized datasets. 
     with training_args.main_process_first(desc="dataset map pre-processing"):
         vectorized_datasets = raw_datasets.map(
