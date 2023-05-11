@@ -866,7 +866,7 @@ def main():
             batch["labels"] = max_prev_tokens + batch["labels"]
             new_labels_length=len(batch["labels"])
             if old_labels_length != new_labels_length:
-                print("WARNING: label length changed from {} to {}".format(old_label_length, new_label_length))
+                print(f"WARNING: label length changed from {old_labels_length} to {new_labels_length}")
                 print(f"WARNING: Attention mask length is {len(batch['attention_mask'])}")
                 breakpoint()
                 #batch["attention_mask"] = ([1] * (new_labels_length - old_labels_length)) + batch["attention_mask"]
