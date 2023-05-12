@@ -390,7 +390,7 @@ class DataTrainingArguments:
     )
 
 
-def shift_tokens_right(label_ids: np.array, decoder_start_token_id: int) -> np.ndarray:
+def shift_tokens_right(label_ids: np.array, decoder_start_token_id: Union[int, np.ndarray]) -> np.ndarray:
     """
     Shift label ids one token to the right.
     """
@@ -410,6 +410,8 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
             The processor used for proccessing the data.
         decoder_start_token_id (:obj: `int`)
             The begin-of-sentence of the decoder.
+        decoder_prev_token_id (:obj: `int`)
+            The previous token id of the decoder.
         input_padding (:obj:`bool`, :obj:`str` or :class:`~transformers.tokenization_utils_base.PaddingStrategy`, `optional`, defaults to :obj:`True`):
             Select a strategy to pad the returned input sequences (according to the model's padding side and padding index)
             among:
@@ -438,6 +440,7 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
 
     processor: Any
     decoder_start_token_id: int
+    decoder_prev_token_id: int
     input_padding: Union[bool, str] = "longest"
     target_padding: Union[bool, str] = "max_length"
     max_input_length: Optional[float] = None
@@ -467,17 +470,23 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
             return_tensors="np",
         )
 
-        # if bos token is appended in previous tokenization step,
-        # cut bos token here as it's append later anyways
+        # if bos/prev token is appended in previous tokenization step,
+        # cut bos/prev token here as it's append later anyways
         labels = labels_batch["input_ids"]
-        if (labels[:, 0] == self.decoder_start_token_id).all().item():
+        if set(np.unique(decoder_token_ids)) == {self.decoder_start_token_id, self.decoder_prev_token_id}:
+            decoder_token_ids = labels[:, 0]
             labels = labels[:, 1:]
             labels_batch.attention_mask = labels_batch.attention_mask[:, 1:]
-
-            decoder_input_ids = shift_tokens_right(
-                labels, self.decoder_start_token_id)
         else:
-            decoder_input_ids = np.copy(labels)
+            decoder_token_ids = labels[:, :]
+            # Rows that contain start token should start with prev token
+            decoder_token_ids[np.any(decoder_token_ids == self.decoder_start_token_id, axis=1), 0] == self.decoder_prev_token_id
+            # Rows that do not contain start token should start with start token
+            decoder_token_ids[np.all(decoder_token_ids != self.decoder_start_token_id, axis=1), 0] == self.decoder_start_token_id
+            decoder_token_ids = decoder_token_ids[:, 0]
+
+        decoder_input_ids = shift_tokens_right(
+            labels, decoder_token_ids)
 
         # replace padding with -100 to ignore correctly when computing the loss
         labels = np.ma.array(labels, mask=np.not_equal(
@@ -1023,6 +1032,7 @@ def main():
     data_collator = FlaxDataCollatorSpeechSeq2SeqWithPadding(
         processor=processor,
         decoder_start_token_id=model.config.decoder_start_token_id,
+        decoder_prev_token_id=tokenizer.convert_tokens_to_ids("<|startofprev|>"),
         input_padding="longest",
         target_padding="longest",
         max_target_length=max_label_length,
