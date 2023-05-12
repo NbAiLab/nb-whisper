@@ -2,10 +2,10 @@ export TOKENIZERS_PARALLELISM=false
 export CMALLOC_VERBOSE=0
 export TCMALLOC_VERBOSE=0
 export TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD=10000000000
-python ../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
+python ../run_nb_flax_speech_recognition_seq2seq_streaming_run1.py \
         --model_name_or_path openai/whisper-small \
-        --run_name "Scream - prompt test v3 dev" \
-        --run_description "A Small Scream model. Prompt test 3 - dev." \
+        --run_name "Scream - prompt test v4 run1" \
+        --run_description "A Small Scream model. Prompt test 4 - run1" \
         --wandb_entity "nbailab" \
         --wandb_project "Scream - septimus" \
         --dataset_name NbAiLab/NCC_speech_all_v5 \
@@ -13,7 +13,7 @@ python ../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
         --text_column_name text \
         --train_split_name train \
         --eval_split_name validation \
-        --output_dir ../../scream_prompt_test_v3_dev\
+        --output_dir ../../scream_prompt_test_v4_run1\
         --overwrite_output_dir\
         --warmup_steps 1000 \
         --do_train \
@@ -32,7 +32,7 @@ python ../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
         --use_auth_token True \
         --dtype bfloat16 \
         --hub_private_repo True \
-        --hub_model_id NbAiLab/scream_prompt_test_v3_dev \
+        --hub_model_id NbAiLab/scream_prompt_test_v4_run1 \
         --resume_from_checkpoint True \
         --num_beams 5 \
         --ignore_data_skip \
