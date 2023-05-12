@@ -473,27 +473,21 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
         if (labels[:, 0] == self.decoder_start_token_id).all().item():
             labels = labels[:, 1:]
             labels_batch.attention_mask = labels_batch.attention_mask[:, 1:]
-
-            decoder_input_ids = shift_tokens_right(
-                labels, self.decoder_start_token_id)
-        else:
-            decoder_input_ids = np.copy(labels)
+        
+        decoder_input_ids = shift_tokens_right(
+            labels, self.decoder_start_token_id)
 
         # replace padding with -100 to ignore correctly when computing the loss
         labels = np.ma.array(labels, mask=np.not_equal(
             labels_batch.attention_mask, 1))
         labels = labels.filled(fill_value=-100)
 
-        # Replace initial prompt tokens with -100 to they are ignore whem computing the loss
-        bos_index = np.argmax(labels==self.decoder_start_token_id, axis=1)
-        prompt_mask = np.arange(labels.shape[1]) < bos_index[:, np.newaxis]
-        labels = np.where(prompt_mask, -100, labels)
-
         batch["labels"] = labels
         batch["decoder_input_ids"] = decoder_input_ids
         batch["attention_mask"] = labels_batch.attention_mask  # Add attention_mask to the batch
         
         breakpoint()
+         
         return batch
 
 
@@ -1178,7 +1172,7 @@ def main():
         loss = loss.sum()
         num_labels = padding_mask.sum()
         
-
+        
         return loss, num_labels
 
     # Define gradient update step fn
