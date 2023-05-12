@@ -493,7 +493,6 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
         batch["decoder_input_ids"] = decoder_input_ids
         batch["attention_mask"] = labels_batch.attention_mask  # Add attention_mask to the batch
         
-        breakpoint()
         return batch
 
 
