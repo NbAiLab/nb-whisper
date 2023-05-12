@@ -405,6 +405,9 @@ class FlaxWhisperEncoderLayer(nn.Module):
         if output_attentions:
             outputs += (attn_weights,)
 
+        if self.use_scan:
+            outputs = (outputs, None)
+
         return outputs
 
 
@@ -604,6 +607,9 @@ class FlaxWhisperDecoderLayer(nn.Module):
         if output_attentions:
             outputs += (self_attn_weights, cross_attn_weights)
 
+        if self.use_scan:
+            outputs = (outputs, None)
+
         return outputs
 
 
@@ -759,6 +765,7 @@ class FlaxWhisperEncoder(nn.Module):
             self.config,
             dtype=self.dtype,
             gradient_checkpointing=self.gradient_checkpointing,
+            use_scan=self.use_scan,
         )
         self.embed_positions = nn.Embed(self.config.max_source_positions, self.config.d_model, dtype=self.dtype, param_dtype=self.param_dtype)
 
