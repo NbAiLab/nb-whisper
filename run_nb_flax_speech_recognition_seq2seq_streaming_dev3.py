@@ -1177,8 +1177,7 @@ def main():
         loss = loss.sum()
         num_labels = padding_mask.sum()
         
-        print("new loss")
-        breakpoint()
+
         return loss, num_labels
 
     # Define gradient update step fn
