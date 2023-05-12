@@ -480,9 +480,9 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
         else:
             decoder_token_ids = labels[:, :]
             # Rows that contain start token should start with prev token
-            decoder_token_ids[np.any(decoder_token_ids == self.decoder_start_token_id, axis=1), 0] == self.decoder_prev_token_id
+            decoder_token_ids[np.any(decoder_token_ids == self.decoder_start_token_id, axis=1), 0] = self.decoder_prev_token_id
             # Rows that do not contain start token should start with start token
-            decoder_token_ids[np.all(decoder_token_ids != self.decoder_start_token_id, axis=1), 0] == self.decoder_start_token_id
+            decoder_token_ids[np.all(decoder_token_ids != self.decoder_start_token_id, axis=1), 0] = self.decoder_start_token_id
             decoder_token_ids = decoder_token_ids[:, 0]
 
         decoder_input_ids = shift_tokens_right(
