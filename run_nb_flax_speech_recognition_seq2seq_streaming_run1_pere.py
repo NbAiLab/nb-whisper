@@ -870,7 +870,11 @@ def main():
 
         # Add start token id
         batch_labels = tokenizer(input_str, truncation=True, max_length=max_label_length - 1).input_ids
-        batch["labels"] = tokenizer.convert_tokens_to_ids(["<|startoftranscript|>"]) + batch_labels
+        
+        # Pere change
+        #batch["labels"] = tokenizer.convert_tokens_to_ids(["<|startoftranscript|>"]) + batch_labels
+        batch["labels"] = batch_labels
+        
 
         # Prepend previous text tokens
         if add_previous_text and prev_column_name in batch and batch[prev_column_name].strip():
@@ -879,9 +883,8 @@ def main():
                 prev_str = normalizer(prev_str).strip()
             prev_tokens = tokenizer_prefix_space(prev_str, truncation=False, add_special_tokens=False).input_ids
             max_prev_str = tokenizer_prefix_space.decode(prev_tokens[-(max_label_length // 2 - 1):])
-            # Pere change
-            #max_prev_tokens = tokenizer_prefix_space("<|startofprev|>", max_prev_str, add_special_tokens=False).input_ids
-            max_prev_tokens = tokenizer_prefix_space(max_prev_str, add_special_tokens=False).input_ids
+            max_prev_tokens = tokenizer_prefix_space("<|startofprev|>", max_prev_str, add_special_tokens=False).input_ids
+           
 
             batch["labels"] = max_prev_tokens + batch["labels"]
             
