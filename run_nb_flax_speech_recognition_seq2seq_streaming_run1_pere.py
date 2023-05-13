@@ -872,7 +872,6 @@ def main():
         batch_labels = tokenizer(input_str, truncation=True, max_length=max_label_length - 1).input_ids
         batch["labels"] = tokenizer.convert_tokens_to_ids(["<|startoftranscript|>"]) + batch_labels
 
-        breakpoint()
         # Prepend previous text tokens
         if add_previous_text and prev_column_name in batch and batch[prev_column_name].strip():
             prev_str = batch[prev_column_name].lower() if do_lower_case else batch[prev_column_name]
@@ -880,11 +879,12 @@ def main():
                 prev_str = normalizer(prev_str).strip()
             prev_tokens = tokenizer_prefix_space(prev_str, truncation=False, add_special_tokens=False).input_ids
             max_prev_str = tokenizer_prefix_space.decode(prev_tokens[-(max_label_length // 2 - 1):])
-            max_prev_tokens = tokenizer_prefix_space("<|startofprev|>", max_prev_str, add_special_tokens=False).input_ids
+            # Pere change
+            #max_prev_tokens = tokenizer_prefix_space("<|startofprev|>", max_prev_str, add_special_tokens=False).input_ids
+            max_prev_tokens = tokenizer_prefix_space(max_prev_str, add_special_tokens=False).input_ids
+
             batch["labels"] = max_prev_tokens + batch["labels"]
             
-        breakpoint()
-        
         return batch
 
     ## Temparary code for working with todays dataset
@@ -916,6 +916,7 @@ def main():
                 remove_columns=raw_datasets_features
             )
 
+    breakpoint()
     
     # Filter training data with inputs longer than max_input_length
     def is_audio_in_length_range(length):
