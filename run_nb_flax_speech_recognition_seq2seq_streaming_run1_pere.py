@@ -471,8 +471,7 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
         )
 
         labels = labels_batch["input_ids"]
-        ## Debug - reducing the length of labels from 256 to 255, to see it it is any effect on the loss
-        labels = labels[:, :-1]
+
         
         
         
@@ -491,6 +490,9 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
         batch["labels"] = labels
         batch["decoder_input_ids"] = decoder_input_ids
         batch["attention_mask"] = labels_batch.attention_mask  # Add attention_mask to the batch
+        
+        ## Debug - reducing the length of labels from 256 to 255, to see it it is any effect on the loss
+        batch = batch[:, :-1]
         
         breakpoint()
         
