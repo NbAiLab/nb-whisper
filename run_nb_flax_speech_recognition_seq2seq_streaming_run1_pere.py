@@ -891,11 +891,11 @@ def main():
         return batch
 
     ## Temparary code for working with todays dataset
-    def process_example(example):
-        return {**example, prev_column_name: "" if example[prev_column_name] == "NPSC" else "[" + example[prev_column_name] + "]"}
+    #def process_example(example):
+    #    return {**example, prev_column_name: "" if example[prev_column_name] == "NPSC" else "[" + example[prev_column_name] + "]"}
     
-    if prev_column_name:
-        raw_datasets["train"] = raw_datasets["train"].map(process_example)
+    #if prev_column_name:
+    #    raw_datasets["train"] = raw_datasets["train"].map(process_example)
         
         
     # Make vecotrized datasets. 
