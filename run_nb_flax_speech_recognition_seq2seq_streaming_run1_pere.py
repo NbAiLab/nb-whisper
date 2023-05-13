@@ -920,7 +920,6 @@ def main():
                 remove_columns=raw_datasets_features
             )
 
-    breakpoint()
     # Filter training data with inputs longer than max_input_length
     def is_audio_in_length_range(length):
         return min_input_length < length < max_input_length
