@@ -471,6 +471,11 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
         )
 
         labels = labels_batch["input_ids"]
+        ## Debug - reducing the length of labels from 256 to 255, to see it it is any effect on the loss
+        labels = labels[:, :-1]
+        
+        
+        
         decoder_input_ids = labels_batch["input_ids"]
 
         # replace padding with -100 to ignore correctly when computing the loss
