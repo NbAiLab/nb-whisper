@@ -480,9 +480,9 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
         else:
             decoder_token_ids = labels[:, :]
             # Rows that contain start token should start with prev token
-            decoder_token_ids[np.any(decoder_token_ids == self.decoder_start_token_id, axis=1), 0] == self.decoder_prev_token_id
+            decoder_token_ids[np.any(decoder_token_ids == self.decoder_start_token_id, axis=1), 0] = self.decoder_prev_token_id
             # Rows that do not contain start token should start with start token
-            decoder_token_ids[np.all(decoder_token_ids != self.decoder_start_token_id, axis=1), 0] == self.decoder_start_token_id
+            decoder_token_ids[np.all(decoder_token_ids != self.decoder_start_token_id, axis=1), 0] = self.decoder_start_token_id
             decoder_token_ids = decoder_token_ids[:, 0]
 
         decoder_input_ids = shift_tokens_right(
@@ -500,10 +500,12 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
 
         batch["labels"] = labels
         batch["decoder_input_ids"] = decoder_input_ids
-        #batch["attention_mask"] = labels_batch.attention_mask  # Add attention_mask to the batch
-        #Adjusts the attention mask so that it is 1 for the last token in each sequence . it then fits the deocder_input_ids
-        batch["attention_mask"][np.arange(labels_batch.attention_mask.shape[0]), np.argmax(labels_batch.attention_mask == 0, axis=1)] = 1
-                
+        batch["attention_mask"] = labels_batch.attention_mask  # Add attention_mask to the batch
+        #Adjusts the attention mask so that it is 
+        batch["attention_mask"][np.arange(batch["attention_mask"].shape[0]), np.argmax(batch["attention_mask"] == 0, axis=1)] = 1
+        
+        breakpoint()
+        
         return batch
 
 
