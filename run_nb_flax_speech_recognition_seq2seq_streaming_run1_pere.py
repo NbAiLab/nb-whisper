@@ -487,10 +487,8 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
         batch["decoder_input_ids"] = decoder_input_ids
         batch["attention_mask"] = labels_batch.attention_mask  # Add attention_mask to the batch
         
-        #Adjusts the attention mask so that it is correct for the right shifted labels in decoder_token_ids
-        batch["attention_mask"][np.arange(batch["attention_mask"].shape[0]), np.argmax(batch["attention_mask"] == 0, axis=1)] = 1
-        
         breakpoint()
+        
         return batch
 
 
