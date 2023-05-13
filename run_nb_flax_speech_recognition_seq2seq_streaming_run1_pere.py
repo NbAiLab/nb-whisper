@@ -496,6 +496,7 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
         batch["decoder_input_ids"] = batch["decoder_input_ids"][:, 1:]
         batch["attention_mask"] = batch["attention_mask"][:, 1:]
         
+        print(len(batch["attention_mask"]))
         return batch
 
 
