@@ -22,7 +22,7 @@ python ../run_nb_flax_speech_recognition_seq2seq_streaming_run1_pere.py \
         --lr_scheduler_type linear \
         --eval_steps 500 \
         --learning_rate 9e-6 \
-        --preprocessing_num_workers 8 \
+        --preprocessing_num_workers 32 \
         --per_device_train_batch_size 32 \
         --per_device_eval_batch_size 4 \
         --predict_with_generate \
