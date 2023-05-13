@@ -874,7 +874,14 @@ def main():
             batch["labels"] = max_prev_tokens + batch["labels"]
         return batch
 
+    ## Temparary code for working with todays dataset
+    def process_example(example):
+        return {**example, prev_column_name: "" if example[prev_column_name] == "NPSC" else "[" + example[prev_column_name] + "]"}
     
+    if prev_column_name:
+        raw_datasets["train"] = raw_datasets["train"].map(process_example)
+        
+        
     # Make vecotrized datasets. 
     with training_args.main_process_first(desc="dataset map pre-processing"):
         vectorized_datasets = IterableDatasetDict() if data_args.streaming else DatasetDict()
