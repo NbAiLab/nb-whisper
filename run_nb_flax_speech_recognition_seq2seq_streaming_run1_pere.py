@@ -470,23 +470,8 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
             return_tensors="np",
         )
 
-        # if bos/prev token is appended in previous tokenization step,
-        # cut bos/prev token here as it's append later anyways
         labels = labels_batch["input_ids"]
-        if set(np.unique(labels[:, 0])) == {self.decoder_start_token_id, self.decoder_prev_token_id}:
-            decoder_token_ids = labels[:, 0]
-            labels = labels[:, 1:]
-            labels_batch.attention_mask = labels_batch.attention_mask[:, 1:]
-        else:
-            decoder_token_ids = labels[:, :]
-            # Rows that contain start token should start with prev token
-            decoder_token_ids[np.any(decoder_token_ids == self.decoder_start_token_id, axis=1), 0] = self.decoder_prev_token_id
-            # Rows that do not contain start token should start with start token
-            decoder_token_ids[np.all(decoder_token_ids != self.decoder_start_token_id, axis=1), 0] = self.decoder_start_token_id
-            decoder_token_ids = decoder_token_ids[:, 0]
-
-        decoder_input_ids = shift_tokens_right(
-            labels, decoder_token_ids)
+        decoder_input_ids = labels_batch["input_ids"]
 
         # replace padding with -100 to ignore correctly when computing the loss
         labels = np.ma.array(labels, mask=np.not_equal(
@@ -500,12 +485,12 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
 
         batch["labels"] = labels
         batch["decoder_input_ids"] = decoder_input_ids
-        batch["attention_mask"] = labels_batch.attention_mask.copy()  #Create a copy of the labels attention mask
+        batch["attention_mask"] = labels_batch.attention_mask  # Add attention_mask to the batch
+        
         #Adjusts the attention mask so that it is correct for the right shifted labels in decoder_token_ids
         batch["attention_mask"][np.arange(batch["attention_mask"].shape[0]), np.argmax(batch["attention_mask"] == 0, axis=1)] = 1
         
         breakpoint()
-        
         return batch
 
 
@@ -877,7 +862,12 @@ def main():
         input_str = batch[text_column_name].lower() if do_lower_case else batch[text_column_name]
         if do_remove_punctuation:
             input_str = normalizer(input_str).strip()
-        batch["labels"] = tokenizer(input_str, truncation=True, max_length=max_label_length).input_ids
+
+        # Add start token id
+        batch_labels = tokenizer(input_str, truncation=True, max_length=max_label_length - 1).input_ids
+        batch["labels"] = tokenizer.convert_tokens_to_ids(["<|startoftranscript|>"]) + batch_labels
+
+        # Prepend previous text tokens
         if add_previous_text and prev_column_name in batch and batch[prev_column_name].strip():
             prev_str = batch[prev_column_name].lower() if do_lower_case else batch[prev_column_name]
             if do_remove_punctuation:
