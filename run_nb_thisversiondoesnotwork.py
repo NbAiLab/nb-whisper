@@ -471,10 +471,6 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
         )
 
         labels = labels_batch["input_ids"]
-
-        
-        
-        
         decoder_input_ids = labels_batch["input_ids"]
 
         # replace padding with -100 to ignore correctly when computing the loss
@@ -495,7 +491,8 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
         batch["labels"] = batch["labels"][:, 1:]
         batch["decoder_input_ids"] = batch["decoder_input_ids"][:, 1:]
         batch["attention_mask"] = batch["attention_mask"][:, 1:]
-        
+  
+       
         return batch
 
 
@@ -920,6 +917,7 @@ def main():
                 remove_columns=raw_datasets_features
             )
 
+    breakpoint()
     # Filter training data with inputs longer than max_input_length
     def is_audio_in_length_range(length):
         return min_input_length < length < max_input_length

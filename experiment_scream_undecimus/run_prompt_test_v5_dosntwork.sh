@@ -2,7 +2,7 @@ export TOKENIZERS_PARALLELISM=false
 export CMALLOC_VERBOSE=0
 export TCMALLOC_VERBOSE=0
 export TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD=10000000000
-python ../run_nb_flax_speech_recognition_seq2seq_streaming_run1_pere_mergedexperiment.py \
+python ../run_nb_flax_speech_thisversiondoesnotwork.py \
         --model_name_or_path openai/whisper-small \
         --run_name "Scream - prompt test v4 run1" \
         --run_description "A Small Scream model. Prompt test 4 - run1" \
@@ -13,7 +13,7 @@ python ../run_nb_flax_speech_recognition_seq2seq_streaming_run1_pere_mergedexper
         --text_column_name text \
         --train_split_name train \
         --eval_split_name validation \
-        --output_dir ../../scream_prompt_test_v4_run1_pere8\
+        --output_dir ../../scream_prompt_test_v4_run1_pere10\
         --overwrite_output_dir\
         --warmup_steps 1000 \
         --do_train \
@@ -32,7 +32,7 @@ python ../run_nb_flax_speech_recognition_seq2seq_streaming_run1_pere_mergedexper
         --use_auth_token True \
         --dtype bfloat16 \
         --hub_private_repo True \
-        --hub_model_id NbAiLab/scream_prompt_test_v4_run1_pere8 \
+        --hub_model_id NbAiLab/scream_prompt_test_v4_run1_pere10 \
         --resume_from_checkpoint True \
         --num_beams 5 \
         --ignore_data_skip \
