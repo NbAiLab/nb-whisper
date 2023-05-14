@@ -760,11 +760,7 @@ def main():
         add_prefix_space=True,
     )
 
-    if data_args.whisper_model_class:
-        module, class_name = data_args.whisper_model_class.rsplit('.', 1)
-        FlaxWhisper = getattr(import_module(module), class_name)
-    else:
-        FlaxWhisper = FlaxAutoModelForSpeechSeq2Seq
+
     model = FlaxWhisper.from_pretrained(
         model_name_or_path,
         config=config,
