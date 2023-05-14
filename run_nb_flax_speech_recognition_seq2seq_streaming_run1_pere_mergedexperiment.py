@@ -778,14 +778,6 @@ def main():
         raise ValueError(
             "Make sure that `config.decoder_start_token_id` is correctly defined")
 
-    # Enable scan if necessary
-    if data_args.use_scan:
-        model.enable_scan()  # to enable scan in the nn.Module
-        # params = model.convert_unroll_to_scan(params)  # to convert the unrolled params to scan
-
-    # Activate gradient checkpointing if needed
-    if training_args.gradient_checkpointing:
-        model.enable_gradient_checkpointing()
 
     # Resample speech dataset: `datasets` takes care of automatically loading and resampling the audio,
     # so we just need to set the correct target sampling rate.
