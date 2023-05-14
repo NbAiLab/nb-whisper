@@ -1442,7 +1442,6 @@ def main():
                 training_summary["hyperparameters"]["steps_per_epoch"] = step // epoch
 
             batch = data_collator(samples)
-            breakpoint()
 
             batch = shard(batch.data)
                       
