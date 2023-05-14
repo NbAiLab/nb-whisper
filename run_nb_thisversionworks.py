@@ -319,19 +319,6 @@ class DataTrainingArguments:
         metadata={
             "help": "Whether to use streaming mode to load and pre-process the data."},
     )
-    use_scan: bool = field(
-        default=False,
-        metadata={
-            "help": "Whether to use scan in the nn.Module or not. Not implemented in transformers."},
-    )
-    whisper_model_class: Optional[str] = field(
-        default=None,
-        metadata={
-            "help": (
-                "Python path to custom FlaxWhisperForConditionalGeneration class."
-            )
-        },
-    )
     log_max_eval_predictions: Optional[int] = field(
         default=0,
         metadata={
@@ -469,33 +456,28 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
             pad_to_multiple_of=self.pad_target_to_multiple_of,
             return_tensors="np",
         )
-
+        # if bos token is appended in previous tokenization step,
+        # cut bos token here as it's append later anyways
         labels = labels_batch["input_ids"]
-
+        if (labels[:, 0] == self.decoder_start_token_id).all().item():
+            labels = labels[:, 1:]
+            labels_batch.attention_mask = labels_batch.attention_mask[:, 1:]
         
         
-        
-        decoder_input_ids = labels_batch["input_ids"]
+            
+        decoder_input_ids = shift_tokens_right(
+            labels, self.decoder_start_token_id)
 
         # replace padding with -100 to ignore correctly when computing the loss
         labels = np.ma.array(labels, mask=np.not_equal(
             labels_batch.attention_mask, 1))
         labels = labels.filled(fill_value=-100)
 
-        # Replace initial prompt tokens with -100 to they are ignore whem computing the loss
-        bos_index = np.argmax(labels==self.decoder_start_token_id, axis=1)
-        prompt_mask = np.arange(labels.shape[1]) < bos_index[:, np.newaxis]
-        labels = np.where(prompt_mask, -100, labels)
-
         batch["labels"] = labels
         batch["decoder_input_ids"] = decoder_input_ids
         batch["attention_mask"] = labels_batch.attention_mask  # Add attention_mask to the batch
-    
-        # Reduce the size with one in the beginning
-        batch["labels"] = batch["labels"][:, 1:]
-        batch["decoder_input_ids"] = batch["decoder_input_ids"][:, 1:]
-        batch["attention_mask"] = batch["attention_mask"][:, 1:]
         
+       
         return batch
 
 
@@ -769,21 +751,17 @@ def main():
         use_auth_token=True if model_args.use_auth_token else None,
     )
     # Work around for https://github.com/huggingface/transformers/issues/17391
-    #tokenizer_prefix_space = AutoTokenizer.from_pretrained(
-    #    model_args.tokenizer_name if model_args.tokenizer_name else model_name_or_path,
-    ##    cache_dir=model_args.cache_dir,
-    #   use_fast=model_args.use_fast_tokenizer,
-    #   revision=model_args.model_revision,
-    #    use_auth_token=True if model_args.use_auth_token else None,
-    #    add_prefix_space=True,
-    #)
+    tokenizer_prefix_space = AutoTokenizer.from_pretrained(
+        model_args.tokenizer_name if model_args.tokenizer_name else model_name_or_path,
+        cache_dir=model_args.cache_dir,
+        use_fast=model_args.use_fast_tokenizer,
+        revision=model_args.model_revision,
+        use_auth_token=True if model_args.use_auth_token else None,
+        add_prefix_space=True,
+    )
 
-    if data_args.whisper_model_class:
-        module, class_name = data_args.whisper_model_class.rsplit('.', 1)
-        FlaxWhisper = getattr(import_module(module), class_name)
-    else:
-        FlaxWhisper = FlaxAutoModelForSpeechSeq2Seq
-    model = FlaxWhisper.from_pretrained(
+
+    model = FlaxAutoModelForSpeechSeq2Seq.from_pretrained(
         model_name_or_path,
         config=config,
         dtype=getattr(jnp, model_args.dtype),
@@ -800,14 +778,6 @@ def main():
         raise ValueError(
             "Make sure that `config.decoder_start_token_id` is correctly defined")
 
-    # Enable scan if necessary
-    #if data_args.use_scan:
-    #    model.enable_scan()  # to enable scan in the nn.Module
-    #    # params = model.convert_unroll_to_scan(params)  # to convert the unrolled params to scan
-
-    # Activate gradient checkpointing if needed
-    #if training_args.gradient_checkpointing:
-    #    model.enable_gradient_checkpointing()
 
     # Resample speech dataset: `datasets` takes care of automatically loading and resampling the audio,
     # so we just need to set the correct target sampling rate.

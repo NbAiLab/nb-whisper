@@ -13,7 +13,7 @@ python ../run_nb_flax_speech_recognition_seq2seq_streaming_run1_pere_mergedexper
         --text_column_name text \
         --train_split_name train \
         --eval_split_name validation \
-        --output_dir ../../scream_prompt_test_v4_run1_pere5\
+        --output_dir ../../scream_prompt_test_v4_run1_pere6\
         --overwrite_output_dir\
         --warmup_steps 1000 \
         --do_train \
@@ -32,7 +32,7 @@ python ../run_nb_flax_speech_recognition_seq2seq_streaming_run1_pere_mergedexper
         --use_auth_token True \
         --dtype bfloat16 \
         --hub_private_repo True \
-        --hub_model_id NbAiLab/scream_prompt_test_v4_run1_pere5 \
+        --hub_model_id NbAiLab/scream_prompt_test_v4_run1_pere6 \
         --resume_from_checkpoint True \
         --num_beams 5 \
         --ignore_data_skip \
