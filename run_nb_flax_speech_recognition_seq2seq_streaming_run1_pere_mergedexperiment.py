@@ -761,7 +761,7 @@ def main():
     )
 
 
-    model = FlaxWhisper.from_pretrained(
+    model = FlaxAutoModelForSpeechSeq2Seq.from_pretrained(
         model_name_or_path,
         config=config,
         dtype=getattr(jnp, model_args.dtype),
