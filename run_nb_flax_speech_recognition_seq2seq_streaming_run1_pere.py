@@ -869,7 +869,7 @@ def main():
             input_str = normalizer(input_str).strip()
 
         # Add start token id
-        batch_labels = tokenizer(input_str, truncation=True, max_length=max_label_length - 1).input_ids
+        batch_labels = tokenizer(input_str, truncation=True, max_length=max_label_length).input_ids
         
         # Pere change
         #batch["labels"] = tokenizer.convert_tokens_to_ids(["<|startoftranscript|>"]) + batch_labels
