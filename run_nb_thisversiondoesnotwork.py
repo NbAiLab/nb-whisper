@@ -1417,7 +1417,6 @@ def main():
                 train_loader = data_loader(train_dataset, train_batch_size // num_of_hosts, num_workers=num_workers)
                 samples = next(train_loader)
             batch = data_collator(samples)
-            breakpoint()
             # batch = shard(batch.data)
     
     
@@ -1443,6 +1442,8 @@ def main():
                 training_summary["hyperparameters"]["steps_per_epoch"] = step // epoch
 
             batch = data_collator(samples)
+            breakpoint()
+
             batch = shard(batch.data)
                       
             state, train_metric = p_train_step(state, batch)
