@@ -356,6 +356,14 @@ class DataTrainingArguments:
             )
         },
     )
+    log_examples: Optional[int] = field(
+        default=100,
+        metadata={
+            "help": (
+                "Logs an example every n steps. Defaults to 0 which does not log any examples."
+            )
+        },
+    )
     log_test_predictions_fn: Optional[str] = field(
         default=None,
         metadata={
@@ -471,10 +479,6 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
         )
 
         labels = labels_batch["input_ids"]
-
-        
-        
-        
         decoder_input_ids = labels_batch["input_ids"]
 
         # replace padding with -100 to ignore correctly when computing the loss
@@ -490,11 +494,6 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
         batch["labels"] = labels
         batch["decoder_input_ids"] = decoder_input_ids
         batch["attention_mask"] = labels_batch.attention_mask  # Add attention_mask to the batch
-    
-        # Reduce the size with one in the beginning
-        batch["labels"] = batch["labels"][:, 1:]
-        batch["decoder_input_ids"] = batch["decoder_input_ids"][:, 1:]
-        batch["attention_mask"] = batch["attention_mask"][:, 1:]
         
         return batch
 
@@ -870,35 +869,20 @@ def main():
 
         # Add start token id
         batch_labels = tokenizer(input_str, truncation=True, max_length=max_label_length - 1).input_ids
-        
-        # Pere change
-        #batch["labels"] = tokenizer.convert_tokens_to_ids(["<|startoftranscript|>"]) + batch_labels
-        batch["labels"] = batch_labels
-        
-        # Disable to get testable example
-        
-        # Prepend previous text tokens
-        #if add_previous_text and prev_column_name in batch and batch[prev_column_name].strip():
-        #    prev_str = batch[prev_column_name].lower() if do_lower_case else batch[prev_column_name]
-        #    if do_remove_punctuation:
-        #        prev_str = normalizer(prev_str).strip()
-        #    prev_tokens = tokenizer_prefix_space(prev_str, truncation=False, add_special_tokens=False).input_ids
-        #    max_prev_str = tokenizer_prefix_space.decode(prev_tokens[-(max_label_length // 2 - 1):])
-        #    max_prev_tokens = tokenizer_prefix_space("<|startofprev|>", max_prev_str, add_special_tokens=False).input_ids
-           
+        batch["labels"] = tokenizer.convert_tokens_to_ids(["<|startoftranscript|>"]) + batch_labels
 
-        #    batch["labels"] = max_prev_tokens + batch["labels"]
-            
+        # Prepend previous text tokens
+        if add_previous_text and prev_column_name in batch and batch[prev_column_name].strip():
+            prev_str = batch[prev_column_name].lower() if do_lower_case else batch[prev_column_name]
+            if do_remove_punctuation:
+                prev_str = normalizer(prev_str).strip()
+            prev_tokens = tokenizer_prefix_space(prev_str, truncation=False, add_special_tokens=False).input_ids
+            max_prev_str = tokenizer_prefix_space.decode(prev_tokens[-(max_label_length // 2 - 1):])
+            max_prev_tokens = tokenizer_prefix_space("<|startofprev|>", max_prev_str, add_special_tokens=False).input_ids
+            batch["labels"] = max_prev_tokens + batch["labels"]
         return batch
 
-    ## Temparary code for working with todays dataset
-    #def process_example(example):
-    #    return {**example, prev_column_name: "" if example[prev_column_name] == "NPSC" else "[" + example[prev_column_name] + "]"}
     
-    #if prev_column_name:
-    #    raw_datasets["train"] = raw_datasets["train"].map(process_example)
-        
-        
     # Make vecotrized datasets. 
     with training_args.main_process_first(desc="dataset map pre-processing"):
         vectorized_datasets = IterableDatasetDict() if data_args.streaming else DatasetDict()
@@ -1445,6 +1429,8 @@ def main():
 
             batch = data_collator(samples)
             batch = shard(batch.data)
+            
+            breakpoint()
                       
             state, train_metric = p_train_step(state, batch)
             train_metrics.append(train_metric)

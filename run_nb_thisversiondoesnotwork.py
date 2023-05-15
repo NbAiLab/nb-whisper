@@ -490,6 +490,7 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
         
         # Reduce the size with one in the beginning
         batch["labels"] = batch["labels"][:, 1:]
+        # Reduce the size with one in the end
         batch["decoder_input_ids"] = batch["decoder_input_ids"][:, :-1]
         batch["attention_mask"] = batch["attention_mask"][:, :-1]
         
