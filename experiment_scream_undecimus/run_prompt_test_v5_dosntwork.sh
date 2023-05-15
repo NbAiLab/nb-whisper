@@ -13,7 +13,7 @@ python ../run_nb_thisversiondoesnotwork.py \
         --text_column_name text \
         --train_split_name train \
         --eval_split_name validation \
-        --output_dir ../../scream_prompt_test_v4_run1_pere10\
+        --output_dir ../../scream_prompt_test_v4_run1_pere_doesntwork\
         --overwrite_output_dir\
         --warmup_steps 1000 \
         --do_train \
@@ -32,7 +32,7 @@ python ../run_nb_thisversiondoesnotwork.py \
         --use_auth_token True \
         --dtype bfloat16 \
         --hub_private_repo True \
-        --hub_model_id NbAiLab/scream_prompt_test_v4_run1_pere10 \
+        --hub_model_id NbAiLab/scream_prompt_test_v4_run1_pere_doesntwork \
         --resume_from_checkpoint True \
         --num_beams 5 \
         --ignore_data_skip \

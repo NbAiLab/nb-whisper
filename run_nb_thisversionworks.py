@@ -491,7 +491,7 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
         batch["decoder_input_ids"] = decoder_input_ids
         batch["attention_mask"] = labels_batch.attention_mask  # Add attention_mask to the batch
         
-       
+        breakpoint()
         return batch
 
 
@@ -884,7 +884,6 @@ def main():
            
 
         #    batch["labels"] = max_prev_tokens + batch["labels"]
-            
         return batch
 
     ## Temparary code for working with todays dataset
@@ -1416,7 +1415,6 @@ def main():
                 train_loader = data_loader(train_dataset, train_batch_size // num_of_hosts, num_workers=num_workers)
                 samples = next(train_loader)
             batch = data_collator(samples)
-            
             # batch = shard(batch.data)
     
     
