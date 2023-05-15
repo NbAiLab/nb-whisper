@@ -1430,14 +1430,12 @@ def main():
             batch = data_collator(samples)
             
             
-            if data_args.log_examples % 100 == 0:
-                logger.info(f"Example decoder_input_ids at {step} step:")
-                logger.info(batch['decoder_input_ids'][0])
-                logger.info(f"Decoded example. \033[91m red words \033[0m are masked tokens:")
+            if step % data_args.log_examples == 0:
+                logger.info(f"Example of decoder_input_ids at step {step}:\n{batch['decoder_input_ids'][0]}")
+                
                 decoded_text = tokenizer.decode(batch['decoder_input_ids'][0], skip_special_tokens=False)
                 formatted_text = "".join([f'\033[91m{char}\033[0m' if mask == 0 else char for char, mask in zip(decoded_text, batch['attention_mask'][0])])
-
-                logger.info(formatted_text)
+                logger.info(f"Decoded example. \033[91m Red tokens \033[0m are masked by the attention_mask:\n{formatted_text}")
 
             
             batch = shard(batch.data)
