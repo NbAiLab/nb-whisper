@@ -1432,8 +1432,11 @@ def main():
             
             if data_args.log_examples % 100 == 0:
                 logger.info(f"Example decoder_input_ids at {step} step:")
-                logger.info(batch['decoder_input_ids'][0][0])    
-                
+                logger.info(batch['decoder_input_ids'][0][0])
+                logger.info(f"Decoded exsample:")
+                logger.info(tokenizer.decode(batch['decoder_input_ids'][0][0]))
+                breakpoint()
+
             
             batch = shard(batch.data)
             
