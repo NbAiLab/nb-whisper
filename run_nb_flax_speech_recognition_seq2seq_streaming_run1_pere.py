@@ -1431,7 +1431,7 @@ def main():
             
             # If logging is enabled, print decoder_input_ids and decoded text
             if step % data_args.log_examples == 0:
-                formatted_ids = [f'\033[91m{token_id}\033[0m' if mask == 0 else str(token_id) for token_id, mask in zip(token_ids, attention_mask)]
+                formatted_ids = [f'\033[91m{token_id}\033[0m' if mask == 0 else str(token_id) for token_id, mask in zip(batch['decoder_input_ids'][0], batch['attention_mask'][0])]
                 formatted_string = "\n".join(["\t".join(formatted_ids[i:i+20]) for i in range(0, len(formatted_ids), 20)])
                 logger.info(f"Example of decoder_input_ids at step {step}:. \033[91m Red tokens \033[0m are masked by the attention_mask:\n{formatted_string}")
                 decoded_text = tokenizer.decode(batch['decoder_input_ids'][0], skip_special_tokens=False)
