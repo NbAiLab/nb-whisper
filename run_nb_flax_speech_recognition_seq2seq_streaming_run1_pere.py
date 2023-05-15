@@ -1434,10 +1434,10 @@ def main():
                 logger.info(f"Example decoder_input_ids at {step} step:")
                 logger.info(batch['decoder_input_ids'][0])
                 logger.info(f"Decoded example. \033[91m red words \033[0m are masked tokens:")
-                tokenized_words = tokenizer.convert_ids_to_tokens(batch['decoder_input_ids'][0])
-                formatted_words = [f'\033[91m{word}\033[0m' if mask == 0 else word for word, mask in zip(tokenized_words, batch['attention_mask'][0])]
-                logger.info(' '.join(formatted_words))
-                breakpoint()
+                decoded_text = tokenizer.decode(batch['decoder_input_ids'][0], skip_special_tokens=False)
+                formatted_text = "".join([f'\033[91m{char}\033[0m' if mask == 0 else char for char, mask in zip(decoded_text, batch['attention_mask'][0])])
+
+                logger.info(formatted_text)
 
             
             batch = shard(batch.data)
