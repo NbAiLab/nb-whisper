@@ -1428,9 +1428,15 @@ def main():
                 training_summary["hyperparameters"]["steps_per_epoch"] = step // epoch
 
             batch = data_collator(samples)
+            
+            
+            if data_args.log_examples % 100 == 0:
+                logger.info(f"Example decoder_input_ids at {step} step:")
+                logger.info(batch['decoder_input_ids'][0][0])    
+                
+            
             batch = shard(batch.data)
             
-            breakpoint()
                       
             state, train_metric = p_train_step(state, batch)
             train_metrics.append(train_metric)
