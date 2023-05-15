@@ -1432,9 +1432,11 @@ def main():
             
             if data_args.log_examples % 100 == 0:
                 logger.info(f"Example decoder_input_ids at {step} step:")
-                logger.info(batch['decoder_input_ids'][0][0])
-                logger.info(f"Decoded exsample:")
-                logger.info(tokenizer.decode(batch['decoder_input_ids'][0][0]))
+                logger.info(batch['decoder_input_ids'][0])
+                logger.info(f"Decoded example. \033[91m red words \033[0m are masked tokens:")
+                tokenized_words = tokenizer.convert_ids_to_tokens(batch['decoder_input_ids'][0])
+                formatted_words = [f'\033[91m{word}\033[0m' if mask == 0 else word for word, mask in zip(tokenized_words, batch['attention_mask'][0])]
+                logger.info(' '.join(formatted_words))
                 breakpoint()
 
             
