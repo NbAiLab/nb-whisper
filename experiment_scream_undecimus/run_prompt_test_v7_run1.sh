@@ -37,7 +37,7 @@ python ../run_nb_flax_speech_recognition_seq2seq_streaming_run1.py \
         --num_beams 5 \
         --ignore_data_skip \
         --gradient_checkpointing True \
-        --prev_column_name "prompt" \
         --log_examples 20 \
-        --data_mapping_fn "data_mapping_scream.map_data" \
-        --push_to_hub
+        --push_to_hub 
+        #--prev_column_name "prompt" \
+        #--data_mapping_fn "data_mapping_scream.map_data" \
