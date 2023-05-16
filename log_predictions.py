@@ -4,6 +4,7 @@ import re
 import jax
 import pandas as pd
 
+
 logger = logging.getLogger(__name__)
 
 # Setting log level to screen and making sure only one processor per machine outputs logs

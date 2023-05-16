@@ -372,6 +372,14 @@ class DataTrainingArguments:
             )
         },
     )
+    data_mapping_fn: Optional[str] = field(
+        default=None,
+        metadata={
+            "help": (
+                "Python path to function to map and filter the dataset. Use like fn(dataset)."
+            )
+        },
+    )
     run_description: Optional[str] = field(
         default=None,
         metadata={
@@ -882,6 +890,14 @@ def main():
             batch["labels"] = max_prev_tokens + batch["labels"]
         return batch
 
+    
+    # Mapping and filtering of dataset
+    if data_args.data_mapping_fn:
+        module, fname = data_args.data_mapping_fn.rsplit('.', 1)
+        fn = getattr(import_module(module), fname)
+        raw_datasets["train"] = fn.map_data(raw_datasets["train"])
+
+    breakpoint()
     
     # Make vecotrized datasets. 
     with training_args.main_process_first(desc="dataset map pre-processing"):
