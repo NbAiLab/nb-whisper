@@ -228,6 +228,11 @@ class DataTrainingArguments:
         metadata={
             "help": "The name of the dataset column containing the previous text data. Defaults to 'None'"},
     )
+    timestamp_column_name: Optional[str] = field(
+        default=None,
+        metadata={
+            "help": "The name of the dataset column containing whether the data has timestamps or not. Defaults to 'None'"},
+    )
     max_duration_in_seconds: float = field(
         default=30.0,
         metadata={
@@ -241,7 +246,7 @@ class DataTrainingArguments:
     max_label_length: Optional[int] = field(
         default=256,
         metadata={
-            "help": "Truncate transcriptions that are longer `max_label_length` tokens."},
+            "help": "Truncate transcriptions that are longer than `max_label_length` tokens."},
     )
     max_prev_length: Optional[int] = field(
         default=16,
@@ -361,11 +366,27 @@ class DataTrainingArguments:
             )
         },
     )
+    log_examples: Optional[int] = field(
+        default=100,
+        metadata={
+            "help": (
+                "Logs an example every n steps. Defaults to 0 which does not log any examples."
+            )
+        },
+    )
     log_test_predictions_fn: Optional[str] = field(
         default=None,
         metadata={
             "help": (
                 "Python path to function for logging predictions when do_predict is passed. It can be an external function like fn(summary_writer, train_metrics, eval_metrics, train_time, step, predictions, labels)."
+            )
+        },
+    )
+    data_mapping_fn: Optional[str] = field(
+        default=None,
+        metadata={
+            "help": (
+                "Python path to function to map and filter the dataset. Use like fn(dataset)."
             )
         },
     )
@@ -779,6 +800,7 @@ def main():
         revision=model_args.model_revision,
         use_auth_token=True if model_args.use_auth_token else None,
     )
+
     # Work around for https://github.com/huggingface/transformers/issues/17391
     tokenizer_prefix_space = AutoTokenizer.from_pretrained(
         model_args.tokenizer_name if model_args.tokenizer_name else model_name_or_path,
@@ -844,6 +866,7 @@ def main():
     pad_input_to_multiple_of = data_args.pad_input_to_multiple_of
     pad_target_to_multiple_of = data_args.pad_target_to_multiple_of
     audio_column_name = data_args.audio_column_name
+    timestamp_column_name = data_args.timestamp_column_name
     num_workers = data_args.preprocessing_num_workers
     text_column_name = data_args.text_column_name
     prev_column_name = data_args.prev_column_name
@@ -851,6 +874,10 @@ def main():
     do_lower_case = data_args.do_lower_case
     do_remove_punctuation = data_args.do_remove_punctuation
     normalizer = BasicTextNormalizer()  # 'official' text normalizer from OpenAI
+
+    if timestamp_column_name:
+        tokenizer.add_tokens([f"<|{i * 0.02:.2f}|>" for i in range(1501)], special_tokens=True)
+        logging.info("Tokenizer: added 1500 timestamps tokens.")
 
     if data_args.language is not None:
         # We only need to set the task id when the language is specified (i.e. in a multilingual setting)
@@ -880,6 +907,11 @@ def main():
         if do_remove_punctuation:
             input_str = normalizer(input_str).strip()
 
+        if timestamp_column_name in batch and batch[timestamp_column_name]:
+            tokenizer.set_prefix_tokens(predict_timestamps=True)
+        else:
+            tokenizer.set_prefix_tokens(predict_timestamps=False)
+        
         batch["labels"] = tokenizer(input_str, truncation=True, max_length=max_label_length).input_ids
 
         # Prepend previous text tokens
@@ -893,7 +925,12 @@ def main():
             batch["labels"] = max_prev_tokens + batch["labels"]
         return batch
 
-    
+    # Mapping and filtering of dataset
+    if data_args.data_mapping_fn:
+        module, fname = data_args.data_mapping_fn.rsplit('.', 1)
+        fn = getattr(import_module(module), fname)
+        raw_datasets = fn(raw_datasets)
+
     # Make vecotrized datasets. 
     with training_args.main_process_first(desc="dataset map pre-processing"):
         vectorized_datasets = IterableDatasetDict() if data_args.streaming else DatasetDict()
@@ -1439,7 +1476,17 @@ def main():
                 training_summary["hyperparameters"]["steps_per_epoch"] = step // epoch
 
             batch = data_collator(samples)
+            
+            # If logging is enabled, print decoder_input_ids and decoded text
+            if step % data_args.log_examples == 0:
+                formatted_ids = [f'\033[91m{token_id}\033[0m' if mask == 0 else str(token_id) for token_id, mask in zip(batch['decoder_input_ids'][0], batch['attention_mask'][0])]
+                formatted_string = "\n".join(["\t".join(formatted_ids[i:i+20]) for i in range(0, len(formatted_ids), 20)])
+                logger.info(f"Example of decoder_input_ids at step {step}:. \033[91m Red tokens \033[0m are masked by the attention_mask:\n{formatted_string}")
+                decoded_text = tokenizer.decode(batch['decoder_input_ids'][0], skip_special_tokens=False)
+                logger.info(f"Decoded example. :\n{decoded_text}")
+            
             batch = shard(batch.data)
+            
                       
             state, train_metric = p_train_step(state, batch)
             train_metrics.append(train_metric)
@@ -1460,8 +1507,8 @@ def main():
             if data_args.max_eval_samples:
                 max_eval_steps_iter = range(1 + data_args.max_eval_samples // eval_batch_size)
             else:
-                max_eval_steps_iter = itertools.repeat(None)
-            for _ in tqdm(max_eval_steps_iter, desc="Evaluating...", position=2, leave=False):
+                max_eval_steps_iter = itertools.count()
+            for eval_step in tqdm(max_eval_steps_iter, desc="Evaluating...", position=2, leave=False):
                 # Model forward
                 try:
                     samples = next(eval_loader)
@@ -1469,6 +1516,15 @@ def main():
                     break
                 batch = data_collator(samples)
                 
+                if eval_step is None or eval_step % data_args.log_examples == 0:
+                    formatted_ids = [f'\033[91m{token_id}\033[0m' if mask == 0 else str(token_id) for token_id, mask in zip(batch['decoder_input_ids'][0], batch['attention_mask'][0])]
+                    formatted_string = "\n".join(["\t".join(formatted_ids[i:i+20]) for i in range(0, len(formatted_ids), 20)])
+                    logger.info(f"Example of decoder_input_ids at eval step {eval_step}:. \033[91m Red tokens \033[0m are masked by the attention_mask:\n{formatted_string}")
+                    decoded_text = tokenizer.decode(batch['decoder_input_ids'][0], skip_special_tokens=False)
+                    logger.info(f"Decoded example. :\n{decoded_text}")
+
+
+
                 labels = batch["labels"]
                 # del batch["id"]
                 
