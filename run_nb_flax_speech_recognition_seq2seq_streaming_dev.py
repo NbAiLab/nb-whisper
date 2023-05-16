@@ -499,7 +499,7 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
         # if bos/prev token is appended in previous tokenization step,
         # cut bos/prev token here as it's append later anyways
         labels = labels_batch["input_ids"]
-        if set(np.unique(labels[:, 0])) == {self.decoder_start_token_id, self.decoder_prev_token_id}:
+        if set(np.unique(labels[:, 0])).issubset({self.decoder_start_token_id, self.decoder_prev_token_id}):
             decoder_token_ids = labels[:, 0]
             labels = labels[:, 1:]
             labels_batch.attention_mask = labels_batch.attention_mask[:, 1:]
