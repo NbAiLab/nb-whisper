@@ -38,4 +38,5 @@ python ../run_nb_flax_speech_recognition_seq2seq_streaming_run1.py \
         --ignore_data_skip \
         --gradient_checkpointing True \
         --prev_column_name "source" \
+        --log_examples 100 \
         --push_to_hub

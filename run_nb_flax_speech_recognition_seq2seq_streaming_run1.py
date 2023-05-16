@@ -916,8 +916,6 @@ def main():
         fn = getattr(import_module(module), fname)
         raw_datasets["train"] = fn(raw_datasets["train"])
 
-    breakpoint()
-
     # Make vecotrized datasets. 
     with training_args.main_process_first(desc="dataset map pre-processing"):
         vectorized_datasets = IterableDatasetDict() if data_args.streaming else DatasetDict()
