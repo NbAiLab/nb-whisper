@@ -1492,8 +1492,8 @@ def main():
             if data_args.max_eval_samples:
                 max_eval_steps_iter = range(1 + data_args.max_eval_samples // eval_batch_size)
             else:
-                max_eval_steps_iter = itertools.repeat(None)
-            for estep in tqdm(max_eval_steps_iter, desc="Evaluating...", position=2, leave=False):
+                max_eval_steps_iter = itertools.count()
+            for eval_step in tqdm(max_eval_steps_iter, desc="Evaluating...", position=2, leave=False):
                 # Model forward
                 try:
                     samples = next(eval_loader)
@@ -1501,10 +1501,10 @@ def main():
                     break
                 batch = data_collator(samples)
                 
-                if estep is None or estep % data_args.log_examples == 0:
+                if eval_step is None or eval_step % data_args.log_examples == 0:
                     formatted_ids = [f'\033[91m{token_id}\033[0m' if mask == 0 else str(token_id) for token_id, mask in zip(batch['decoder_input_ids'][0], batch['attention_mask'][0])]
                     formatted_string = "\n".join(["\t".join(formatted_ids[i:i+20]) for i in range(0, len(formatted_ids), 20)])
-                    logger.info(f"Example of decoder_input_ids at eval step {estep}:. \033[91m Red tokens \033[0m are masked by the attention_mask:\n{formatted_string}")
+                    logger.info(f"Example of decoder_input_ids at eval step {eval_step}:. \033[91m Red tokens \033[0m are masked by the attention_mask:\n{formatted_string}")
                     decoded_text = tokenizer.decode(batch['decoder_input_ids'][0], skip_special_tokens=False)
                     logger.info(f"Decoded example. :\n{decoded_text}")
 
