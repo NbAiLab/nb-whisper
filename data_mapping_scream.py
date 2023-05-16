@@ -13,6 +13,8 @@ def make_style_tags(dataset: Dataset) -> Dataset:
         elif example['source'] == 'NST':
             text = example['text'].translate(str.maketrans('', '', string.punctuation)).lower()
             return {'prompt': f'[fv]', 'text': f'[{text}]'}
+        else:
+            breakpoint()
     
     return dataset.map(transform)
 
