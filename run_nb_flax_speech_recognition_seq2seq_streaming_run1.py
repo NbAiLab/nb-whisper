@@ -1501,7 +1501,7 @@ def main():
                     break
                 batch = data_collator(samples)
                 
-                if estep % data_args.log_examples == 0:
+                if estep is None or estep % data_args.log_examples == 0:
                     formatted_ids = [f'\033[91m{token_id}\033[0m' if mask == 0 else str(token_id) for token_id, mask in zip(batch['decoder_input_ids'][0], batch['attention_mask'][0])]
                     formatted_string = "\n".join(["\t".join(formatted_ids[i:i+20]) for i in range(0, len(formatted_ids), 20)])
                     logger.info(f"Example of decoder_input_ids at eval step {estep}:. \033[91m Red tokens \033[0m are masked by the attention_mask:\n{formatted_string}")
