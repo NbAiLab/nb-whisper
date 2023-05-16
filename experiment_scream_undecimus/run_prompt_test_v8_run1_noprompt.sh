@@ -13,7 +13,7 @@ python ../run_nb_flax_speech_recognition_seq2seq_streaming_run1.py \
         --text_column_name text \
         --train_split_name train \
         --eval_split_name validation \
-        --output_dir ../../scream_prompt_test_v4_run1_pere12\
+        --output_dir ../../scream_prompt_test_v8_noprompt\
         --overwrite_output_dir\
         --warmup_steps 1000 \
         --do_train \
@@ -26,17 +26,17 @@ python ../run_nb_flax_speech_recognition_seq2seq_streaming_run1.py \
         --per_device_train_batch_size 32 \
         --per_device_eval_batch_size 4 \
         --predict_with_generate \
-        --log_max_eval_predictions 100 \
+        --log_max_eval_predictions 20 \
         --log_eval_predictions_fn "log_predictions.write_predictions" \
         --streaming True \
         --use_auth_token True \
         --dtype bfloat16 \
         --hub_private_repo True \
-        --hub_model_id NbAiLab/scream_prompt_test_v4_run1_pere12 \
+        --hub_model_id NbAiLab/scream_prompt_test_v8_noprompt \
         --resume_from_checkpoint True \
         --num_beams 5 \
         --ignore_data_skip \
         --gradient_checkpointing True \
-        --prev_column_name "source" \
-        --log_examples 100 \
+        --log_examples 20 \
         --push_to_hub
+        

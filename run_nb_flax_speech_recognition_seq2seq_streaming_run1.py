@@ -914,7 +914,7 @@ def main():
     if data_args.data_mapping_fn:
         module, fname = data_args.data_mapping_fn.rsplit('.', 1)
         fn = getattr(import_module(module), fname)
-        raw_datasets["train"] = fn(raw_datasets["train"])
+        raw_datasets = fn(raw_datasets)
 
     # Make vecotrized datasets. 
     with training_args.main_process_first(desc="dataset map pre-processing"):
