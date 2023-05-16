@@ -39,5 +39,5 @@ python ../run_nb_flax_speech_recognition_seq2seq_streaming_run1_pere.py \
         --gradient_checkpointing True \
         --prev_column_name "source" \
         --log_examples 100 \
-        --data_mapping_fn "data_mapping_test" \
+        --data_mapping_fn "data_mapping_test.map_data" \
         --push_to_hub
