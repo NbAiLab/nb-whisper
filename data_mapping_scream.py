@@ -14,6 +14,7 @@ def make_style_tags(dataset: Dataset) -> Dataset:
             text = example['text'].translate(str.maketrans('', '', string.punctuation)).lower()
             return {'prompt': f'[fv]', 'text': f'[{text}]'}
         else:
+            print("There is potentially an error in the dataset. Please check the example below:")
             print(example)
             return {'prompt': ''}
     
