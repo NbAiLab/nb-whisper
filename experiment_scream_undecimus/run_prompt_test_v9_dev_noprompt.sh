@@ -20,7 +20,7 @@ python ../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
         --do_eval \
         --num_train_steps 20000 \
         --lr_scheduler_type linear \
-        --eval_steps 500 \
+        --eval_steps 250 \
         --learning_rate 9e-6 \
         --preprocessing_num_workers 32 \
         --per_device_train_batch_size 32 \
