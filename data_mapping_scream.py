@@ -6,9 +6,9 @@ def make_style_tags(dataset: Dataset) -> Dataset:
     def transform(example):
         if example['source'] == 'NPSC' or example['source'] == 'Fleurs':
             return {'prompt': ''}
-        elif example['verbosity'] <= 2 and example['source'] == 'NRK':
+        elif example['verbosity'] <= 2 and example['source'] == 'NRK TV':
             return {'prompt': '[rv]'}
-        elif example['verbosity'] >= 3 and example['source'] == 'NRK':
+        elif example['verbosity'] >= 3 and example['source'] == 'NRK TV':
             return {'prompt': '[nv]'}
         elif example['source'] == 'NST':
             text = example['text'].translate(str.maketrans('', '', string.punctuation)).lower()
