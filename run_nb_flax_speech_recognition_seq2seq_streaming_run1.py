@@ -847,7 +847,7 @@ def main():
     max_label_length = (
         data_args.max_label_length if data_args.max_label_length is not None else model.config.max_length
     )
-    max_prev_length = data_args.max_prev_length
+    max_prev_length = data_args.max_prev_length or 0
     pad_input_to_multiple_of = data_args.pad_input_to_multiple_of
     pad_target_to_multiple_of = data_args.pad_target_to_multiple_of
     audio_column_name = data_args.audio_column_name
@@ -1070,7 +1070,7 @@ def main():
         target_padding="longest",
         max_target_length=max_label_length,
         pad_input_to_multiple_of=pad_input_to_multiple_of,
-        pad_target_to_multiple_of=pad_target_to_multiple_of if pad_target_to_multiple_of else max_label_length,
+        pad_target_to_multiple_of=pad_target_to_multiple_of if pad_target_to_multiple_of else max_label_length + max_prev_length,
     )
 
     # Enable tensorboard only on the master node
