@@ -223,10 +223,10 @@ class DataTrainingArguments:
         metadata={
             "help": "The name of the dataset column containing the text data. Defaults to 'text'"},
     )
-    prev_column_name: str = field(
-        default="prev",
+    prev_column_name: Optional[str] = field(
+        default="None",
         metadata={
-            "help": "The name of the dataset column containing the previous text data. Defaults to 'prev'"},
+            "help": "The name of the dataset column containing the previous text data. Defaults to 'None'"},
     )
     max_duration_in_seconds: float = field(
         default=30.0,
@@ -242,6 +242,11 @@ class DataTrainingArguments:
         default=256,
         metadata={
             "help": "Truncate transcriptions that are longer `max_label_length` tokens."},
+    )
+    max_prev_length: Optional[int] = field(
+        default=16,
+        metadata={
+            "help": "Truncate previous text (initial prompt) on the left if they are longer than `max_prev_length` tokens."},
     )
     pad_input_to_multiple_of: Optional[int] = field(
         default=None,
@@ -835,6 +840,7 @@ def main():
     max_label_length = (
         data_args.max_label_length if data_args.max_label_length is not None else model.config.max_length
     )
+    max_prev_length = data_args.max_prev_length or 0
     pad_input_to_multiple_of = data_args.pad_input_to_multiple_of
     pad_target_to_multiple_of = data_args.pad_target_to_multiple_of
     audio_column_name = data_args.audio_column_name
@@ -873,13 +879,16 @@ def main():
         input_str = batch[text_column_name].lower() if do_lower_case else batch[text_column_name]
         if do_remove_punctuation:
             input_str = normalizer(input_str).strip()
+
         batch["labels"] = tokenizer(input_str, truncation=True, max_length=max_label_length).input_ids
-        if add_previous_text and prev_column_name in batch and batch[prev_column_name].strip():
+
+        # Prepend previous text tokens
+        if max_prev_length and add_previous_text and prev_column_name in batch and batch[prev_column_name].strip():
             prev_str = batch[prev_column_name].lower() if do_lower_case else batch[prev_column_name]
             if do_remove_punctuation:
                 prev_str = normalizer(prev_str).strip()
             prev_tokens = tokenizer_prefix_space(prev_str, truncation=False, add_special_tokens=False).input_ids
-            max_prev_str = tokenizer_prefix_space.decode(prev_tokens[-(max_label_length // 2 - 1):])
+            max_prev_str = tokenizer_prefix_space.decode(prev_tokens[-(max_prev_length - 1):])
             max_prev_tokens = tokenizer_prefix_space("<|startofprev|>", max_prev_str, add_special_tokens=False).input_ids
             batch["labels"] = max_prev_tokens + batch["labels"]
         return batch
@@ -1035,9 +1044,9 @@ def main():
         decoder_prev_token_id=tokenizer.convert_tokens_to_ids("<|startofprev|>"),
         input_padding="longest",
         target_padding="longest",
-        max_target_length=max_label_length,
+        max_target_length=max_label_length + max_prev_length,
         pad_input_to_multiple_of=pad_input_to_multiple_of,
-        pad_target_to_multiple_of=pad_target_to_multiple_of if pad_target_to_multiple_of else max_label_length,
+        pad_target_to_multiple_of=pad_target_to_multiple_of if pad_target_to_multiple_of else max_label_length + max_prev_length,
     )
 
     # Enable tensorboard only on the master node

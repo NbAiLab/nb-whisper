@@ -223,10 +223,10 @@ class DataTrainingArguments:
         metadata={
             "help": "The name of the dataset column containing the text data. Defaults to 'text'"},
     )
-    prev_column_name: str = field(
-        default="prev",
+    prev_column_name: Optional[str] = field(
+        default="None",
         metadata={
-            "help": "The name of the dataset column containing the previous text data. Defaults to 'prev'"},
+            "help": "The name of the dataset column containing the previous text data. Defaults to 'None'"},
     )
     timestamp_column_name: Optional[str] = field(
         default=None,
@@ -1066,7 +1066,7 @@ def main():
         decoder_prev_token_id=tokenizer.convert_tokens_to_ids("<|startofprev|>"),
         input_padding="longest",
         target_padding="longest",
-        max_target_length=max_label_length,
+        max_target_length=max_label_length + max_prev_length,
         pad_input_to_multiple_of=pad_input_to_multiple_of,
         pad_target_to_multiple_of=pad_target_to_multiple_of if pad_target_to_multiple_of else max_label_length + max_prev_length,
     )
