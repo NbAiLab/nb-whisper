@@ -5,7 +5,7 @@ export TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD=10000000000
 python ../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
         --model_name_or_path openai/whisper-small \
         --run_name "Scream - prompt test v4 run1" \
-        --run_description "A Small Scream model. Prompt test 12 large bs" \
+        --run_description "A Small Scream model. Prompt test 13 - large bs high lr" \
         --wandb_entity "nbailab" \
         --wandb_project "Scream - undecimus" \
         --dataset_name NbAiLab/NCC_speech_all_v5 \
@@ -13,7 +13,7 @@ python ../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
         --text_column_name text \
         --train_split_name train \
         --eval_split_name validation \
-        --output_dir ../../scream_prompt_largebs\
+        --output_dir ../../scream_prompt_largebs_hlr\
         --overwrite_output_dir\
         --warmup_steps 5000 \
         --do_train \
@@ -21,7 +21,7 @@ python ../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
         --num_train_steps 50000 \
         --lr_scheduler_type linear \
         --eval_steps 2500 \
-        --learning_rate 1e-5 \
+        --learning_rate 5e-5 \
         --preprocessing_num_workers 32 \
         --per_device_train_batch_size 32 \
         --per_device_eval_batch_size 4 \
@@ -32,7 +32,7 @@ python ../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
         --use_auth_token True \
         --dtype bfloat16 \
         --hub_private_repo True \
-        --hub_model_id NbAiLab/scream_prompt_largebs \
+        --hub_model_id NbAiLab/scream_prompt_largebs_hlr \
         --resume_from_checkpoint True \
         --num_beams 5 \
         --ignore_data_skip \
