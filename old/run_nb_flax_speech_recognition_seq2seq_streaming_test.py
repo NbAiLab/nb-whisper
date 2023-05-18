@@ -165,9 +165,6 @@ class ModelArguments:
     decoder_dropout: Optional[float] = field(
         default=None, metadata={"help": "The dropout ratio for the decoder layer dropout probabilities."}
     )
-    bpe_dropout: float = field(
-        default=0.0, metadata={"help": "The dropout ratio for the tokenizer."}
-    )
 
 @flax.struct.dataclass
 class DataTrainingArguments:
@@ -226,16 +223,6 @@ class DataTrainingArguments:
         metadata={
             "help": "The name of the dataset column containing the text data. Defaults to 'text'"},
     )
-    prev_column_name: Optional[str] = field(
-        default="None",
-        metadata={
-            "help": "The name of the dataset column containing the previous text data. Defaults to 'None'"},
-    )
-    timestamp_column_name: Optional[str] = field(
-        default=None,
-        metadata={
-            "help": "The name of the dataset column containing whether the data has timestamps or not. Defaults to 'None'"},
-    )
     max_duration_in_seconds: float = field(
         default=30.0,
         metadata={
@@ -249,12 +236,7 @@ class DataTrainingArguments:
     max_label_length: Optional[int] = field(
         default=256,
         metadata={
-            "help": "Truncate transcriptions that are longer than `max_label_length` tokens."},
-    )
-    max_prev_length: Optional[int] = field(
-        default=16,
-        metadata={
-            "help": "Truncate previous text (initial prompt) on the left if they are longer than `max_prev_length` tokens."},
+            "help": "Truncate transcriptions that are longer `max_label_length` tokens."},
     )
     pad_input_to_multiple_of: Optional[int] = field(
         default=None,
@@ -332,19 +314,6 @@ class DataTrainingArguments:
         metadata={
             "help": "Whether to use streaming mode to load and pre-process the data."},
     )
-    use_scan: bool = field(
-        default=False,
-        metadata={
-            "help": "Whether to use scan in the nn.Module or not. Not implemented in transformers."},
-    )
-    whisper_model_class: Optional[str] = field(
-        default=None,
-        metadata={
-            "help": (
-                "Python path to custom FlaxWhisperForConditionalGeneration class."
-            )
-        },
-    )
     log_max_eval_predictions: Optional[int] = field(
         default=0,
         metadata={
@@ -369,27 +338,11 @@ class DataTrainingArguments:
             )
         },
     )
-    log_examples: Optional[int] = field(
-        default=100,
-        metadata={
-            "help": (
-                "Logs an example every n steps. Defaults to 0 which does not log any examples."
-            )
-        },
-    )
     log_test_predictions_fn: Optional[str] = field(
         default=None,
         metadata={
             "help": (
                 "Python path to function for logging predictions when do_predict is passed. It can be an external function like fn(summary_writer, train_metrics, eval_metrics, train_time, step, predictions, labels)."
-            )
-        },
-    )
-    data_mapping_fn: Optional[str] = field(
-        default=None,
-        metadata={
-            "help": (
-                "Python path to function to map and filter the dataset. Use like fn(dataset)."
             )
         },
     )
@@ -419,7 +372,7 @@ class DataTrainingArguments:
     )
 
 
-def shift_tokens_right(label_ids: np.array, decoder_start_token_id: Union[int, np.ndarray]) -> np.ndarray:
+def shift_tokens_right(label_ids: np.array, decoder_start_token_id: int) -> np.ndarray:
     """
     Shift label ids one token to the right.
     """
@@ -439,8 +392,6 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
             The processor used for proccessing the data.
         decoder_start_token_id (:obj: `int`)
             The begin-of-sentence of the decoder.
-        decoder_prev_token_id (:obj: `int`)
-            The previous token id of the decoder.
         input_padding (:obj:`bool`, :obj:`str` or :class:`~transformers.tokenization_utils_base.PaddingStrategy`, `optional`, defaults to :obj:`True`):
             Select a strategy to pad the returned input sequences (according to the model's padding side and padding index)
             among:
@@ -469,7 +420,6 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
 
     processor: Any
     decoder_start_token_id: int
-    decoder_prev_token_id: int
     input_padding: Union[bool, str] = "longest"
     target_padding: Union[bool, str] = "max_length"
     max_input_length: Optional[float] = None
@@ -499,33 +449,22 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
             return_tensors="np",
         )
 
-        # if bos/prev token is appended in previous tokenization step,
-        # cut bos/prev token here as it's append later anyways
+        # if bos token is appended in previous tokenization step,
+        # cut bos token here as it's append later anyways
         labels = labels_batch["input_ids"]
-        if set(np.unique(labels[:, 0])).issubset({self.decoder_start_token_id, self.decoder_prev_token_id}):
-            decoder_token_ids = labels[:, 0]
+        if (labels[:, 0] == self.decoder_start_token_id).all().item():
             labels = labels[:, 1:]
             labels_batch.attention_mask = labels_batch.attention_mask[:, 1:]
-        else:
-            decoder_token_ids = labels[:, :]
-            # Rows that contain start token should start with prev token
-            decoder_token_ids[np.any(decoder_token_ids == self.decoder_start_token_id, axis=1), 0] = self.decoder_prev_token_id
-            # Rows that do not contain start token should start with start token
-            decoder_token_ids[np.all(decoder_token_ids != self.decoder_start_token_id, axis=1), 0] = self.decoder_start_token_id
-            decoder_token_ids = decoder_token_ids[:, 0]
-
+        
+        
+            
         decoder_input_ids = shift_tokens_right(
-            labels, decoder_token_ids)
+            labels, self.decoder_start_token_id)
 
         # replace padding with -100 to ignore correctly when computing the loss
         labels = np.ma.array(labels, mask=np.not_equal(
             labels_batch.attention_mask, 1))
         labels = labels.filled(fill_value=-100)
-
-        # Replace initial prompt tokens with -100 to they are ignore whem computing the loss
-        bos_index = np.argmax(labels==self.decoder_start_token_id, axis=1)
-        prompt_mask = np.arange(labels.shape[1]) < bos_index[:, np.newaxis]
-        labels = np.where(prompt_mask, -100, labels)
 
         batch["labels"] = labels
         batch["decoder_input_ids"] = decoder_input_ids
@@ -796,23 +735,15 @@ def main():
         revision=model_args.model_revision,
         use_auth_token=True if model_args.use_auth_token else None,
     )
-    # Setting add_prefix_space=True, cf. https://github.com/huggingface/transformers/issues/17391
     tokenizer = AutoTokenizer.from_pretrained(
         model_args.tokenizer_name if model_args.tokenizer_name else model_name_or_path,
         cache_dir=model_args.cache_dir,
         use_fast=model_args.use_fast_tokenizer,
         revision=model_args.model_revision,
         use_auth_token=True if model_args.use_auth_token else None,
-        add_prefix_space=True,
-        dropout=model_args.bpe_dropout,
     )
 
-    if data_args.whisper_model_class:
-        module, class_name = data_args.whisper_model_class.rsplit('.', 1)
-        FlaxWhisper = getattr(import_module(module), class_name)
-    else:
-        FlaxWhisper = FlaxAutoModelForSpeechSeq2Seq
-    model = FlaxWhisper.from_pretrained(
+    model = FlaxAutoModelForSpeechSeq2Seq.from_pretrained(
         model_name_or_path,
         config=config,
         dtype=getattr(jnp, model_args.dtype),
@@ -828,15 +759,6 @@ def main():
     if model.config.decoder_start_token_id is None:
         raise ValueError(
             "Make sure that `config.decoder_start_token_id` is correctly defined")
-
-    # Enable scan if necessary
-    if data_args.use_scan:
-        model.enable_scan()  # to enable scan in the nn.Module
-        # params = model.convert_unroll_to_scan(params)  # to convert the unrolled params to scan
-
-    # Activate gradient checkpointing if needed
-    if training_args.gradient_checkpointing:
-        model.enable_gradient_checkpointing()
 
     # Resample speech dataset: `datasets` takes care of automatically loading and resampling the audio,
     # so we just need to set the correct target sampling rate.
@@ -858,51 +780,16 @@ def main():
     max_label_length = (
         data_args.max_label_length if data_args.max_label_length is not None else model.config.max_length
     )
-    max_prev_length = data_args.max_prev_length or 0
     pad_input_to_multiple_of = data_args.pad_input_to_multiple_of
     pad_target_to_multiple_of = data_args.pad_target_to_multiple_of
     audio_column_name = data_args.audio_column_name
-    timestamp_column_name = data_args.timestamp_column_name
     num_workers = data_args.preprocessing_num_workers
     text_column_name = data_args.text_column_name
-    prev_column_name = data_args.prev_column_name
     model_input_name = feature_extractor.model_input_names[0]
     do_lower_case = data_args.do_lower_case
     do_remove_punctuation = data_args.do_remove_punctuation
     normalizer = BasicTextNormalizer()  # 'official' text normalizer from OpenAI
 
-    if timestamp_column_name:
-        tokens_added = tokenizer.add_tokens([f"<|{i * 0.02:.2f}|>" for i in range(1501)], special_tokens=True)
-        logging.info(f"Tokenizer: added {tokens_added} timestamps tokens.")
-
-    # BPE dropout only added for training
-    inference_tokenizer = tokenizer
-    if training_args.do_train and model_args.bpe_dropout:
-        if not model_args.use_fast_tokenizer:
-            logging.warn("BPE Dropout can only be used with fast tokenizers. Try enabling --use_fast_tokenizer")
-        else:
-            # Workaround to enable BPE dropout, cf. https://github.com/huggingface/tokenizers/issues/201#issuecomment-720392299
-            inference_tokenizer = AutoTokenizer.from_pretrained(
-                model_args.tokenizer_name if model_args.tokenizer_name else model_name_or_path,
-                cache_dir=model_args.cache_dir,
-                use_fast=model_args.use_fast_tokenizer,
-                revision=model_args.model_revision,
-                use_auth_token=True if model_args.use_auth_token else None,
-                add_prefix_space=True,
-                dropout=model_args.bpe_dropout,
-            )
-            inference_tokenizer_files = inference_tokenizer._tokenizer.model.save(
-                model_args.cache_dir, "inference_tokenizer"
-            )
-            inference_tokenizer._tokenizer.model = type(inference_tokenizer._tokenizer.model)(
-                *inference_tokenizer_files, dropout=model_args.bpe_dropout
-            )
-
-    if data_args.language is not None:
-        # We only need to set the task id when the language is specified (i.e. in a multilingual setting)
-        tokenizer.set_prefix_tokens(
-            language=data_args.language, task=data_args.task)
-    
     if training_args.do_train and data_args.max_train_samples is not None:
         raw_datasets["train"] = raw_datasets["train"].select(range(data_args.max_train_samples))
 
@@ -912,7 +799,13 @@ def main():
     if training_args.do_predict and data_args.max_predict_samples is not None:
         raw_datasets["test"] = raw_datasets["test"].select(range(data_args.max_predict_samples))
 
-    def prepare_dataset(batch, tokenizer, add_previous_text=True):
+    if data_args.language is not None:
+        # We only need to set the task id when the language is specified (i.e. in a multilingual setting)
+        tokenizer.set_prefix_tokens(
+            language=data_args.language, task=data_args.task)
+    
+    
+    def prepare_dataset(batch):
         # Process audio
         sample = batch[audio_column_name]
         inputs = feature_extractor(
@@ -922,55 +815,19 @@ def main():
         batch["input_length"] = len(sample["array"])
 
         # Process targets
-        input_str = batch[text_column_name].lower() if do_lower_case else batch[text_column_name]
+        input_str = batch[text_column_name].lower(
+        ) if do_lower_case else batch[text_column_name]
         if do_remove_punctuation:
             input_str = normalizer(input_str).strip()
-
-        if timestamp_column_name in batch and batch[timestamp_column_name]:
-            tokenizer.set_prefix_tokens(predict_timestamps=True)
-        else:
-            tokenizer.set_prefix_tokens(predict_timestamps=False)
-        
         batch["labels"] = tokenizer(input_str, truncation=True, max_length=max_label_length).input_ids
-
-        # Prepend previous text tokens
-        if max_prev_length and add_previous_text and prev_column_name in batch and batch[prev_column_name].strip():
-            prev_str = batch[prev_column_name].lower() if do_lower_case else batch[prev_column_name]
-            if do_remove_punctuation:
-                prev_str = normalizer(prev_str).strip()
-            prev_tokens = tokenizer(prev_str, truncation=False, add_special_tokens=False).input_ids
-            max_prev_str = tokenizer.decode(prev_tokens[-(max_prev_length - 1):])
-            max_prev_tokens = tokenizer("<|startofprev|>", max_prev_str, add_special_tokens=False).input_ids
-            batch["labels"] = max_prev_tokens + batch["labels"]
         return batch
 
-    # Mapping and filtering of dataset
-    if data_args.data_mapping_fn:
-        module, fname = data_args.data_mapping_fn.rsplit('.', 1)
-        fn = getattr(import_module(module), fname)
-        raw_datasets = fn(raw_datasets)
-
-    # Make vecotrized datasets. 
     with training_args.main_process_first(desc="dataset map pre-processing"):
-        vectorized_datasets = IterableDatasetDict() if data_args.streaming else DatasetDict()
-        if training_args.do_train:
-            vectorized_datasets["train"] = raw_datasets["train"].map(
-                partial(prepare_dataset, tokenizer=tokenizer, add_previous_text=True),
-                remove_columns=raw_datasets_features
-            )
-
-        if training_args.do_eval:
-            vectorized_datasets["eval"] = raw_datasets["eval"].map(
-                partial(prepare_dataset, tokenizer=inference_tokenizer, add_previous_text=False),
-                remove_columns=raw_datasets_features
-            )
-
-        if training_args.do_predict:
-            vectorized_datasets["test"] = raw_datasets["test"].map(
-                partial(prepare_dataset, tokenizer=inference_tokenizer, add_previous_text=False),
-                remove_columns=raw_datasets_features
-            )
-
+        vectorized_datasets = raw_datasets.map(
+            prepare_dataset,
+            remove_columns=raw_datasets_features,
+        )
+        
     # Filter training data with inputs longer than max_input_length
     def is_audio_in_length_range(length):
         return min_input_length < length < max_input_length
@@ -1097,12 +954,11 @@ def main():
     data_collator = FlaxDataCollatorSpeechSeq2SeqWithPadding(
         processor=processor,
         decoder_start_token_id=model.config.decoder_start_token_id,
-        decoder_prev_token_id=tokenizer.convert_tokens_to_ids("<|startofprev|>"),
         input_padding="longest",
         target_padding="longest",
-        max_target_length=max_label_length + max_prev_length,
+        max_target_length=max_label_length,
         pad_input_to_multiple_of=pad_input_to_multiple_of,
-        pad_target_to_multiple_of=pad_target_to_multiple_of if pad_target_to_multiple_of else max_label_length + max_prev_length,
+        pad_target_to_multiple_of=pad_target_to_multiple_of if pad_target_to_multiple_of else max_label_length,
     )
 
     # Enable tensorboard only on the master node
@@ -1360,12 +1216,10 @@ def main():
     if training_state['step'] > 0:
         logger.info(f"  ↪ Starting at {training_state['step']:,} and finishing at {data_args.num_train_steps:,}")
 
-    if model_args.dropout or model_args.bpe_dropout or model_args.attention_dropout or model_args.activation_dropout or model_args.encoder_dropout or model_args.decoder_dropout:
+    if model_args.dropout or model_args.attention_dropout or model_args.activation_dropout or model_args.encoder_dropout or model_args.decoder_dropout:
         logger.info("  Dropout = True")
         if model_args.dropout:
             logger.info(f"  ↪ Dropout probability = {model_args.dropout}")
-        if model_args.bpe_dropout:
-            logger.info(f"  ↪ BPE Dropout probability = {model_args.bpe_dropout}")
         if model_args.attention_dropout:
             logger.info(f"  ↪ Attention dropout probability = {model_args.attention_dropout}")
         if model_args.activation_dropout:
@@ -1424,8 +1278,6 @@ def main():
         training_summary["hyperparameters"]["dropout"] = True
         if model_args.dropout:
             training_summary["hyperparameters"]["dropout_probability"] = model_args.dropout
-        if model_args.bpe_dropout:
-            training_summary["hyperparameters"]["bpe_dropout_probability"] = model_args.bpe_dropout
         if model_args.attention_dropout:
             training_summary["hyperparameters"]["attention_dropout_probability"] = model_args.attention_dropout
         if model_args.activation_dropout:
@@ -1499,17 +1351,7 @@ def main():
                 training_summary["hyperparameters"]["steps_per_epoch"] = step // epoch
 
             batch = data_collator(samples)
-            
-            # If logging is enabled, print decoder_input_ids and decoded text
-            if step % data_args.log_examples == 0:
-                formatted_ids = [f'\033[91m{token_id}\033[0m' if mask == 0 else str(token_id) for token_id, mask in zip(batch['decoder_input_ids'][0], batch['attention_mask'][0])]
-                formatted_string = "\n".join(["\t".join(formatted_ids[i:i+20]) for i in range(0, len(formatted_ids), 20)])
-                logger.info(f"Example of decoder_input_ids at step {step}:. \033[91m Red tokens \033[0m are masked by the attention_mask:\n{formatted_string}")
-                decoded_text = tokenizer.decode(batch['decoder_input_ids'][0], skip_special_tokens=False)
-                logger.info(f"Decoded example. :\n{decoded_text}")
-            
             batch = shard(batch.data)
-            
                       
             state, train_metric = p_train_step(state, batch)
             train_metrics.append(train_metric)
@@ -1530,8 +1372,8 @@ def main():
             if data_args.max_eval_samples:
                 max_eval_steps_iter = range(1 + data_args.max_eval_samples // eval_batch_size)
             else:
-                max_eval_steps_iter = itertools.count()
-            for eval_step in tqdm(max_eval_steps_iter, desc="Evaluating...", position=2, leave=False):
+                max_eval_steps_iter = itertools.repeat(None)
+            for _ in tqdm(max_eval_steps_iter, desc="Evaluating...", position=2, leave=False):
                 # Model forward
                 try:
                     samples = next(eval_loader)
@@ -1539,19 +1381,8 @@ def main():
                     break
                 batch = data_collator(samples)
                 
-                if eval_step is None or eval_step % data_args.log_examples == 0:
-                    formatted_ids = [f'\033[91m{token_id}\033[0m' if mask == 0 else str(token_id) for token_id, mask in zip(batch['decoder_input_ids'][0], batch['attention_mask'][0])]
-                    formatted_string = "\n".join(["\t".join(formatted_ids[i:i+20]) for i in range(0, len(formatted_ids), 20)])
-                    logger.info(f"Example of decoder_input_ids at eval step {eval_step}:. \033[91m Red tokens \033[0m are masked by the attention_mask:\n{formatted_string}")
-                    decoded_text = tokenizer.decode(batch['decoder_input_ids'][0], skip_special_tokens=False)
-                    logger.info(f"Decoded example. :\n{decoded_text}")
-
-
-
                 labels = batch["labels"]
-                # del batch["id"]
-                
-                
+
                 metrics = pad_shard_unpad(p_eval_step, static_return=True)(
                     state.params, batch.data, min_device_batch=training_args.per_device_eval_batch_size
                 )
@@ -1692,9 +1523,6 @@ def main():
 
         # Save final metrics in json
         if current_host_idx == 0:
-            if has_wandb:
-                wandb.log({"successful_run": 1})
-
             pred_metrics = {f"test_{metric_name}": value for metric_name, value in metric_values.items()}
             (output_dir / "test_results.json").write_text(
                 json.dumps(pred_metrics, indent=4, sort_keys=True)

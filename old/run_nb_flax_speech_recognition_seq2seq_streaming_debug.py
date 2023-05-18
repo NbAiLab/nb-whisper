@@ -1,13 +1,6 @@
 #!/usr/bin/env python
 # coding=utf-8
-# Original code Copyright 2023 The HuggingFace Inc. team. All rights reserved.
-# Additions and modifications Copyright 2023 National Library of Norway. All rights reserved.
-#
-# This code is based on the original script developed by HuggingFace Inc.
-# Substantial additions and modifications have been made by the AiLab at the
-# National Library of Norway, with contributions from Per Egil Kummervold
-# and Javier de la Rosa, including TPU Pod support, Dataset Streaming, 
-# performance enhancements, and support for new features.
+# Copyright 2023 The HuggingFace Inc. team. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,7 +10,7 @@
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# WITHOUT WARRANTIES OR COND    ITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
@@ -25,10 +18,10 @@ Fine-tuning the Flax library models for sequence to sequence speech recognition.
 """
 # You can also adapt this script on your own sequence to sequence task. Pointers for this are left as comments.
 
-import os
 import itertools
 import json
 import logging
+import os
 import shutil
 import socket
 import sys
@@ -85,8 +78,9 @@ from flax.training import checkpoints
 check_min_version("4.27.0.dev0")
 
 require_version("datasets>=1.18.2",
-                "To fix: pip install datasets>=1.18.2")
+                "To fix: pip install -r examples/flax/speech-recogintion/requirements.txt")
 
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 logger = logging.getLogger(__name__)
 
@@ -150,24 +144,7 @@ class ModelArguments:
             )
         },
     )
-    dropout: Optional[float] = field(
-        default=None, metadata={"help": "The dropout ratio for the dropout layer probabilities."}
-    )
-    attention_dropout: Optional[float] = field(
-        default=None, metadata={"help": "The dropout ratio for the attention probabilities."}
-    )
-    activation_dropout: Optional[float] = field(
-        default=None, metadata={"help": "The dropout ratio for activations inside the fully connected layer."}
-    )
-    encoder_dropout: Optional[float] = field(
-        default=None, metadata={"help": "The dropout ratio for the encoder layer dropout probabilities."}
-    )
-    decoder_dropout: Optional[float] = field(
-        default=None, metadata={"help": "The dropout ratio for the decoder layer dropout probabilities."}
-    )
-    bpe_dropout: float = field(
-        default=0.0, metadata={"help": "The dropout ratio for the tokenizer."}
-    )
+
 
 @flax.struct.dataclass
 class DataTrainingArguments:
@@ -210,12 +187,6 @@ class DataTrainingArguments:
             "value if set."
         },
     )
-    max_predict_samples: Optional[int] = field(
-        default=None,
-        metadata={
-            "help": "Truncate the number of prediction examples (test set) to this value if set."
-        },
-    )
     audio_column_name: str = field(
         default="audio",
         metadata={
@@ -225,16 +196,6 @@ class DataTrainingArguments:
         default="text",
         metadata={
             "help": "The name of the dataset column containing the text data. Defaults to 'text'"},
-    )
-    prev_column_name: Optional[str] = field(
-        default="None",
-        metadata={
-            "help": "The name of the dataset column containing the previous text data. Defaults to 'None'"},
-    )
-    timestamp_column_name: Optional[str] = field(
-        default=None,
-        metadata={
-            "help": "The name of the dataset column containing whether the data has timestamps or not. Defaults to 'None'"},
     )
     max_duration_in_seconds: float = field(
         default=30.0,
@@ -249,12 +210,7 @@ class DataTrainingArguments:
     max_label_length: Optional[int] = field(
         default=256,
         metadata={
-            "help": "Truncate transcriptions that are longer than `max_label_length` tokens."},
-    )
-    max_prev_length: Optional[int] = field(
-        default=16,
-        metadata={
-            "help": "Truncate previous text (initial prompt) on the left if they are longer than `max_prev_length` tokens."},
+            "help": "Truncate transcriptions that are longer `max_label_length` tokens."},
     )
     pad_input_to_multiple_of: Optional[int] = field(
         default=None,
@@ -280,12 +236,6 @@ class DataTrainingArguments:
         default="validation",
         metadata={
             "help": "The name of the evaluation data set split to use (via the datasets library). Defaults to 'validation'"
-        },
-    )
-    test_split_name: str = field(
-        default="test",
-        metadata={
-            "help": "The name of the prediction data set split to use (via the datasets library). Defaults to 'test'"
         },
     )
     do_lower_case: bool = field(
@@ -332,19 +282,6 @@ class DataTrainingArguments:
         metadata={
             "help": "Whether to use streaming mode to load and pre-process the data."},
     )
-    use_scan: bool = field(
-        default=False,
-        metadata={
-            "help": "Whether to use scan in the nn.Module or not. Not implemented in transformers."},
-    )
-    whisper_model_class: Optional[str] = field(
-        default=None,
-        metadata={
-            "help": (
-                "Python path to custom FlaxWhisperForConditionalGeneration class."
-            )
-        },
-    )
     log_max_eval_predictions: Optional[int] = field(
         default=0,
         metadata={
@@ -358,38 +295,6 @@ class DataTrainingArguments:
         metadata={
             "help": (
                 "Python path to function for logging evaluation predictions. It can be an external function like fn(summary_writer, train_metrics, eval_metrics, train_time, step, predictions, labels)."
-            )
-        },
-    )
-    log_max_test_predictions: Optional[int] = field(
-        default=0,
-        metadata={
-            "help": (
-                "Number of label and prediction pairs to write to the summary at prediction time when do_predict is passed."
-            )
-        },
-    )
-    log_examples: Optional[int] = field(
-        default=100,
-        metadata={
-            "help": (
-                "Logs an example every n steps. Defaults to 0 which does not log any examples."
-            )
-        },
-    )
-    log_test_predictions_fn: Optional[str] = field(
-        default=None,
-        metadata={
-            "help": (
-                "Python path to function for logging predictions when do_predict is passed. It can be an external function like fn(summary_writer, train_metrics, eval_metrics, train_time, step, predictions, labels)."
-            )
-        },
-    )
-    data_mapping_fn: Optional[str] = field(
-        default=None,
-        metadata={
-            "help": (
-                "Python path to function to map and filter the dataset. Use like fn(dataset)."
             )
         },
     )
@@ -419,7 +324,7 @@ class DataTrainingArguments:
     )
 
 
-def shift_tokens_right(label_ids: np.array, decoder_start_token_id: Union[int, np.ndarray]) -> np.ndarray:
+def shift_tokens_right(label_ids: np.array, decoder_start_token_id: int) -> np.ndarray:
     """
     Shift label ids one token to the right.
     """
@@ -439,8 +344,6 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
             The processor used for proccessing the data.
         decoder_start_token_id (:obj: `int`)
             The begin-of-sentence of the decoder.
-        decoder_prev_token_id (:obj: `int`)
-            The previous token id of the decoder.
         input_padding (:obj:`bool`, :obj:`str` or :class:`~transformers.tokenization_utils_base.PaddingStrategy`, `optional`, defaults to :obj:`True`):
             Select a strategy to pad the returned input sequences (according to the model's padding side and padding index)
             among:
@@ -469,7 +372,6 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
 
     processor: Any
     decoder_start_token_id: int
-    decoder_prev_token_id: int
     input_padding: Union[bool, str] = "longest"
     target_padding: Union[bool, str] = "max_length"
     max_input_length: Optional[float] = None
@@ -499,33 +401,22 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
             return_tensors="np",
         )
 
-        # if bos/prev token is appended in previous tokenization step,
-        # cut bos/prev token here as it's append later anyways
+        # if bos token is appended in previous tokenization step,
+        # cut bos token here as it's append later anyways
         labels = labels_batch["input_ids"]
-        if set(np.unique(labels[:, 0])).issubset({self.decoder_start_token_id, self.decoder_prev_token_id}):
-            decoder_token_ids = labels[:, 0]
+        if (labels[:, 0] == self.decoder_start_token_id).all().item():
             labels = labels[:, 1:]
             labels_batch.attention_mask = labels_batch.attention_mask[:, 1:]
-        else:
-            decoder_token_ids = labels[:, :]
-            # Rows that contain start token should start with prev token
-            decoder_token_ids[np.any(decoder_token_ids == self.decoder_start_token_id, axis=1), 0] = self.decoder_prev_token_id
-            # Rows that do not contain start token should start with start token
-            decoder_token_ids[np.all(decoder_token_ids != self.decoder_start_token_id, axis=1), 0] = self.decoder_start_token_id
-            decoder_token_ids = decoder_token_ids[:, 0]
-
+        
+        
+            
         decoder_input_ids = shift_tokens_right(
-            labels, decoder_token_ids)
+            labels, self.decoder_start_token_id)
 
         # replace padding with -100 to ignore correctly when computing the loss
         labels = np.ma.array(labels, mask=np.not_equal(
             labels_batch.attention_mask, 1))
         labels = labels.filled(fill_value=-100)
-
-        # Replace initial prompt tokens with -100 to they are ignore whem computing the loss
-        bos_index = np.argmax(labels==self.decoder_start_token_id, axis=1)
-        prompt_mask = np.arange(labels.shape[1]) < bos_index[:, np.newaxis]
-        labels = np.where(prompt_mask, -100, labels)
 
         batch["labels"] = labels
         batch["decoder_input_ids"] = decoder_input_ids
@@ -559,7 +450,6 @@ def load_maybe_streaming_dataset(dataset_name, dataset_config_name, split="train
 
 def collate_batch(samples):
     return {key: [feature[key] for feature in samples] for key in samples[0]}
-
 
 def data_loader(
     dataset: Dataset,
@@ -634,7 +524,14 @@ def main():
         datefmt="%m/%d/%Y %H:%M:%S",
         handlers=[logging.StreamHandler(sys.stdout)],
     )
+    # Set the verbosity to info of the Transformers logger.
+    # We only want one process per machine to log things on the screen.
 
+    # logger.setLevel(logging.INFO if jax.local_devices()[0].id%jax.local_device_count() == 0 else logging.ERROR)
+
+    # logger.setLevel(logging.INFO if jax.process_index()
+    #                == 0 else logging.ERROR)
+    
     # Number of hosts
     num_of_hosts = jax.process_count()
     current_host_idx = jax.process_index()
@@ -676,7 +573,6 @@ def main():
       
     # Handle the repository creation
     output_dir = Path(training_args.output_dir)
-    repo_name = ""
     if training_args.push_to_hub:
         if training_args.hub_model_id is None:
             repo_name = get_full_repo_name(
@@ -741,19 +637,9 @@ def main():
             use_auth_token=True if model_args.use_auth_token else None,
         )
 
-    if training_args.do_predict:
-        raw_datasets["test"] = load_maybe_streaming_dataset(
-            data_args.dataset_name,
-            data_args.dataset_config_name,
-            split=data_args.test_split_name,
-            cache_dir=data_args.dataset_cache_dir,
-            streaming=data_args.streaming,
-            use_auth_token=True if model_args.use_auth_token else None,
-        )
-
-    if not training_args.do_train and not training_args.do_eval and not training_args.do_predict:
+    if not training_args.do_train and not training_args.do_eval:
         raise ValueError(
-            "There is nothing to do. Please pass `do_train`, `do_eval` and/or `do_predict`."
+            "Cannot not train and not do evaluation. At least one of training or evaluation has to be performed."
         )
 
     raw_datasets_features = list(
@@ -780,39 +666,21 @@ def main():
         revision=model_args.model_revision,
         use_auth_token=True if model_args.use_auth_token else None,
     )
-       
-    # Update config with arguments. Use values set by model_args if they are not None, otherwise use values from config
-    config.update({
-        "dropout": model_args.dropout or getattr(config, "dropout", 0.0),
-        "attention_dropout": model_args.attention_dropout or getattr(config, "attention_dropout", 0.0),
-        "activation_dropout": model_args.activation_dropout or getattr(config, "activation_dropout", 0.0),
-        "decoder_layerdrop": model_args.decoder_dropout or getattr(config, "decoder_dropout", 0.0),
-        "encoder_layerdrop": model_args.encoder_dropout or getattr(config, "encoder_dropout", 0.0),
-    })
-    
     feature_extractor = AutoFeatureExtractor.from_pretrained(
         model_args.feature_extractor_name if model_args.feature_extractor_name else model_name_or_path,
         cache_dir=model_args.cache_dir,
         revision=model_args.model_revision,
         use_auth_token=True if model_args.use_auth_token else None,
     )
-    # Setting add_prefix_space=True, cf. https://github.com/huggingface/transformers/issues/17391
     tokenizer = AutoTokenizer.from_pretrained(
         model_args.tokenizer_name if model_args.tokenizer_name else model_name_or_path,
         cache_dir=model_args.cache_dir,
         use_fast=model_args.use_fast_tokenizer,
         revision=model_args.model_revision,
         use_auth_token=True if model_args.use_auth_token else None,
-        add_prefix_space=True,
-        dropout=model_args.bpe_dropout,
     )
 
-    if data_args.whisper_model_class:
-        module, class_name = data_args.whisper_model_class.rsplit('.', 1)
-        FlaxWhisper = getattr(import_module(module), class_name)
-    else:
-        FlaxWhisper = FlaxAutoModelForSpeechSeq2Seq
-    model = FlaxWhisper.from_pretrained(
+    model = FlaxAutoModelForSpeechSeq2Seq.from_pretrained(
         model_name_or_path,
         config=config,
         dtype=getattr(jnp, model_args.dtype),
@@ -820,7 +688,10 @@ def main():
         revision=model_args.model_revision,
         use_auth_token=True if model_args.use_auth_token else None,
     )
+    
 
+    
+    
     logger.info(
         f"Successfully loaded the model '{model_name_or_path}'."
     )
@@ -828,15 +699,6 @@ def main():
     if model.config.decoder_start_token_id is None:
         raise ValueError(
             "Make sure that `config.decoder_start_token_id` is correctly defined")
-
-    # Enable scan if necessary
-    if data_args.use_scan:
-        model.enable_scan()  # to enable scan in the nn.Module
-        # params = model.convert_unroll_to_scan(params)  # to convert the unrolled params to scan
-
-    # Activate gradient checkpointing if needed
-    if training_args.gradient_checkpointing:
-        model.enable_gradient_checkpointing()
 
     # Resample speech dataset: `datasets` takes care of automatically loading and resampling the audio,
     # so we just need to set the correct target sampling rate.
@@ -858,61 +720,23 @@ def main():
     max_label_length = (
         data_args.max_label_length if data_args.max_label_length is not None else model.config.max_length
     )
-    max_prev_length = data_args.max_prev_length or 0
     pad_input_to_multiple_of = data_args.pad_input_to_multiple_of
     pad_target_to_multiple_of = data_args.pad_target_to_multiple_of
     audio_column_name = data_args.audio_column_name
-    timestamp_column_name = data_args.timestamp_column_name
     num_workers = data_args.preprocessing_num_workers
     text_column_name = data_args.text_column_name
-    prev_column_name = data_args.prev_column_name
     model_input_name = feature_extractor.model_input_names[0]
     do_lower_case = data_args.do_lower_case
     do_remove_punctuation = data_args.do_remove_punctuation
     normalizer = BasicTextNormalizer()  # 'official' text normalizer from OpenAI
-
-    if timestamp_column_name:
-        tokens_added = tokenizer.add_tokens([f"<|{i * 0.02:.2f}|>" for i in range(1501)], special_tokens=True)
-        logging.info(f"Tokenizer: added {tokens_added} timestamps tokens.")
-
-    # BPE dropout only added for training
-    inference_tokenizer = tokenizer
-    if training_args.do_train and model_args.bpe_dropout:
-        if not model_args.use_fast_tokenizer:
-            logging.warn("BPE Dropout can only be used with fast tokenizers. Try enabling --use_fast_tokenizer")
-        else:
-            # Workaround to enable BPE dropout, cf. https://github.com/huggingface/tokenizers/issues/201#issuecomment-720392299
-            inference_tokenizer = AutoTokenizer.from_pretrained(
-                model_args.tokenizer_name if model_args.tokenizer_name else model_name_or_path,
-                cache_dir=model_args.cache_dir,
-                use_fast=model_args.use_fast_tokenizer,
-                revision=model_args.model_revision,
-                use_auth_token=True if model_args.use_auth_token else None,
-                add_prefix_space=True,
-                dropout=model_args.bpe_dropout,
-            )
-            inference_tokenizer_files = inference_tokenizer._tokenizer.model.save(
-                model_args.cache_dir, "inference_tokenizer"
-            )
-            inference_tokenizer._tokenizer.model = type(inference_tokenizer._tokenizer.model)(
-                *inference_tokenizer_files, dropout=model_args.bpe_dropout
-            )
 
     if data_args.language is not None:
         # We only need to set the task id when the language is specified (i.e. in a multilingual setting)
         tokenizer.set_prefix_tokens(
             language=data_args.language, task=data_args.task)
     
-    if training_args.do_train and data_args.max_train_samples is not None:
-        raw_datasets["train"] = raw_datasets["train"].select(range(data_args.max_train_samples))
-
-    if training_args.do_eval and data_args.max_eval_samples is not None:
-        raw_datasets["eval"] = raw_datasets["eval"].select(range(data_args.max_eval_samples))
-
-    if training_args.do_predict and data_args.max_predict_samples is not None:
-        raw_datasets["test"] = raw_datasets["test"].select(range(data_args.max_predict_samples))
-
-    def prepare_dataset(batch, tokenizer, add_previous_text=True):
+    
+    def prepare_dataset(batch):
         # Process audio
         sample = batch[audio_column_name]
         inputs = feature_extractor(
@@ -922,54 +746,18 @@ def main():
         batch["input_length"] = len(sample["array"])
 
         # Process targets
-        input_str = batch[text_column_name].lower() if do_lower_case else batch[text_column_name]
+        input_str = batch[text_column_name].lower(
+        ) if do_lower_case else batch[text_column_name]
         if do_remove_punctuation:
             input_str = normalizer(input_str).strip()
-
-        if timestamp_column_name in batch and batch[timestamp_column_name]:
-            tokenizer.set_prefix_tokens(predict_timestamps=True)
-        else:
-            tokenizer.set_prefix_tokens(predict_timestamps=False)
-        
-        batch["labels"] = tokenizer(input_str, truncation=True, max_length=max_label_length).input_ids
-
-        # Prepend previous text tokens
-        if max_prev_length and add_previous_text and prev_column_name in batch and batch[prev_column_name].strip():
-            prev_str = batch[prev_column_name].lower() if do_lower_case else batch[prev_column_name]
-            if do_remove_punctuation:
-                prev_str = normalizer(prev_str).strip()
-            prev_tokens = tokenizer(prev_str, truncation=False, add_special_tokens=False).input_ids
-            max_prev_str = tokenizer.decode(prev_tokens[-(max_prev_length - 1):])
-            max_prev_tokens = tokenizer("<|startofprev|>", max_prev_str, add_special_tokens=False).input_ids
-            batch["labels"] = max_prev_tokens + batch["labels"]
+        batch["labels"] = tokenizer(input_str,truncation=True, max_length=max_label_length).input_ids
         return batch
 
-    # Mapping and filtering of dataset
-    if data_args.data_mapping_fn:
-        module, fname = data_args.data_mapping_fn.rsplit('.', 1)
-        fn = getattr(import_module(module), fname)
-        raw_datasets = fn(raw_datasets)
-
-    # Make vecotrized datasets. 
     with training_args.main_process_first(desc="dataset map pre-processing"):
-        vectorized_datasets = IterableDatasetDict() if data_args.streaming else DatasetDict()
-        if training_args.do_train:
-            vectorized_datasets["train"] = raw_datasets["train"].map(
-                partial(prepare_dataset, tokenizer=tokenizer, add_previous_text=True),
-                remove_columns=raw_datasets_features
-            )
-
-        if training_args.do_eval:
-            vectorized_datasets["eval"] = raw_datasets["eval"].map(
-                partial(prepare_dataset, tokenizer=inference_tokenizer, add_previous_text=False),
-                remove_columns=raw_datasets_features
-            )
-
-        if training_args.do_predict:
-            vectorized_datasets["test"] = raw_datasets["test"].map(
-                partial(prepare_dataset, tokenizer=inference_tokenizer, add_previous_text=False),
-                remove_columns=raw_datasets_features
-            )
+        vectorized_datasets = raw_datasets.map(
+            prepare_dataset,
+            remove_columns=raw_datasets_features,
+        )
 
     # Filter training data with inputs longer than max_input_length
     def is_audio_in_length_range(length):
@@ -983,12 +771,6 @@ def main():
 
     if training_args.do_eval:
         vectorized_datasets["eval"] = vectorized_datasets["eval"].filter(
-            is_audio_in_length_range,
-            input_columns=["input_length"],
-        )
-
-    if training_args.do_predict:
-        vectorized_datasets["test"] = vectorized_datasets["test"].filter(
             is_audio_in_length_range,
             input_columns=["input_length"],
         )
@@ -1021,7 +803,7 @@ def main():
 
         wer = 100 * metric_wer.compute(predictions=pred_str, references=label_str)
         cer = 100 * metric_cer.compute(predictions=pred_str, references=label_str)
-            
+
         if return_preds_labels:
             return {"wer": wer, "cer": cer}, predictions, labels
         else:
@@ -1051,25 +833,18 @@ def main():
         eval_lines.append(eval_metrics_dict)
         return {**state, "eval_lines": eval_lines}
 
-    def write_metric(summary_writer, train_metrics, eval_metrics, train_time, step, predictions=None, labels=None, do_predict=False):
-        if not do_predict:
-            summary_writer.scalar("train_time", train_time, step)
+    def write_metric(summary_writer, train_metrics, eval_metrics, train_time, step, predictions=None, labels=None):
+        summary_writer.scalar("train_time", train_time, step)
 
-            train_metrics = get_metrics(train_metrics)
-            for key, vals in train_metrics.items():
-                tag = f"train_{key}"
-                for i, val in enumerate(vals):
-                    summary_writer.scalar(tag, val, step - len(vals) + i + 1)
-
-            predictions_fn = data_args.log_eval_predictions_fn
-            summary_prefix = "eval"
-        else:
-            predictions_fn = data_args.log_test_predictions_fn or data_args.log_eval_predictions_fn
-            summary_prefix = "test"
+        train_metrics = get_metrics(train_metrics)
+        for key, vals in train_metrics.items():
+            tag = f"train_{key}"
+            for i, val in enumerate(vals):
+                summary_writer.scalar(tag, val, step - len(vals) + i + 1)
 
         for metric_name, value in eval_metrics.items():
-            summary_writer.scalar(f"{summary_prefix}_{metric_name}", value, step)
-
+            summary_writer.scalar(f"eval_{metric_name}", value, step)
+        
         # Log evaluation predictions
         if predictions and labels:
             df = pd.DataFrame({
@@ -1080,12 +855,12 @@ def main():
             df["cer"] = df.apply(lambda row: metric_cer.compute(predictions=[row["predictions"]], references=[row["references"]]), axis=1)
             markdown_table = df.to_markdown(index=False)
             eval_metrics_table = pd.DataFrame.from_dict([{"step": step, **eval_metrics}]).to_markdown(index=False)
-            summary_writer.text(f"{summary_prefix}_predictions", eval_metrics_table + "\n\n" + markdown_table, step)
+            summary_writer.text("eval_predictions", eval_metrics_table + "\n\n" + markdown_table, step)
             # External logging function
-            if predictions_fn:
-                module, fname = predictions_fn.rsplit('.', 1)
+            if data_args.log_eval_predictions_fn:
+                module, fname = data_args.log_eval_predictions_fn.rsplit('.', 1)
                 fn = getattr(import_module(module), fname)
-                fn(summary_writer, train_metrics, eval_metrics, train_time, step, predictions=predictions, labels=labels, training_args=training_args, do_predict=do_predict)
+                fn(summary_writer, train_metrics, eval_metrics, train_time, step, predictions=predictions, labels=labels, training_args=training_args)
 
     # Save feature extractor, tokenizer and config
     feature_extractor.save_pretrained(training_args.output_dir)
@@ -1097,12 +872,11 @@ def main():
     data_collator = FlaxDataCollatorSpeechSeq2SeqWithPadding(
         processor=processor,
         decoder_start_token_id=model.config.decoder_start_token_id,
-        decoder_prev_token_id=tokenizer.convert_tokens_to_ids("<|startofprev|>"),
         input_padding="longest",
         target_padding="longest",
-        max_target_length=max_label_length + max_prev_length,
+        max_target_length=max_label_length,
         pad_input_to_multiple_of=pad_input_to_multiple_of,
-        pad_target_to_multiple_of=pad_target_to_multiple_of if pad_target_to_multiple_of else max_label_length + max_prev_length,
+        pad_target_to_multiple_of=pad_target_to_multiple_of if pad_target_to_multiple_of else max_label_length,
     )
 
     # Enable tensorboard only on the master node
@@ -1143,11 +917,10 @@ def main():
                 f"Unable to display metrics through TensorBoard because some packages are not installed: {ie}"
             )
     else:
-        if current_host_idx == 0:
-            logger.warning(
-                "Unable to display metrics through TensorBoard because the package is not installed: "
-                "Please run pip install tensorboard to enable."
-            )
+        logger.warning(
+            "Unable to display metrics through TensorBoard because the package is not installed: "
+            "Please run pip install tensorboard to enable."
+        )
 
     # Initialize our training
     rng = jax.random.PRNGKey(training_args.seed)
@@ -1190,8 +963,8 @@ def main():
     # The mask is True for parameters that should be decayed.
     def decay_mask_fn(params):
         flat_params = traverse_util.flatten_dict(params)
-        # find out all LayerNorm parameters
-        layer_norm_candidates = ["layer_norm", "self_attn_layer_norm", "final_layer_norm", "encoder_attn_layer_norm"]
+        # Find out all LayerNorm parameters
+        layer_norm_candidates = ["layernorm", "layer_norm", "ln"]
         layer_norm_named_params = set(
             [
                 layer[-2:]
@@ -1200,11 +973,12 @@ def main():
                 if layer_norm_name in "".join(layer).lower()
             ]
         )
-        flat_mask = {path: (path[-1] != "bias" and path[-2:] not in layer_norm_named_params) for path in flat_params}
+        flat_mask = {path: (path[-1] != "bias" and path[-2:]
+                            not in layer_norm_named_params) for path in flat_params}
         return traverse_util.unflatten_dict(flat_mask)
-        
+    
     # Create adam optimizer
-    optimizer = optax.adamw(
+    adamw = optax.adamw(
         learning_rate=linear_decay_lr_schedule_fn,
         b1=training_args.adam_beta1,
         b2=training_args.adam_beta2,
@@ -1212,14 +986,10 @@ def main():
         weight_decay=training_args.weight_decay,
         mask=decay_mask_fn,
     )
-    if training_args.gradient_accumulation_steps > 1:
-        optimizer = optax.MultiSteps(
-            optimizer, training_args.gradient_accumulation_steps
-        )
 
     # Setup train state
     state = TrainState.create(
-        apply_fn=model.__call__, params=model.params, tx=optimizer, dropout_rng=dropout_rng)
+        apply_fn=model.__call__, params=model.params, tx=adamw, dropout_rng=dropout_rng)
 
     # Label smoothed cross entropy
     def loss_fn(logits, labels, label_smoothing_factor=0.0):
@@ -1324,11 +1094,6 @@ def main():
     # Logging
     logger.info("***** Running training *****")
     logger.info(
-        f"  Original model = {model_args.model_name_or_path}")
-    if training_args.push_to_hub:
-        logger.info(
-        f"  Hub model id = {training_args.hub_model_id}")
-    logger.info(
         f"  Dataset name = {data_args.dataset_name}")
     logger.info(
         f"  Dataset config name = {data_args.dataset_config_name}")
@@ -1337,43 +1102,21 @@ def main():
     logger.info(
         f"  Scheduler = {training_args.lr_scheduler_type}")
     logger.info(
-        f"  Num examples = {data_args.num_train_steps * train_batch_size:,}")
-    if model_args.num_beams:
-        logger.info(
-        f"  Num beams evaluation = {model_args.num_beams}")
-    logger.info(
-        f"  Number of hosts = {num_of_hosts}")
+        f"  Num examples = {data_args.num_train_steps * train_batch_size}")
     if num_of_hosts > 1:
+        logger.info(
+            f"  Number of hosts = {num_of_hosts}")
         logger.info(
             f"  Current host idx = {current_host_idx}")
     logger.info(
         f"  Instantaneous batch size per device = {training_args.per_device_train_batch_size}")
     logger.info(
-        f"  Total train batch size per node (w. parallel & distributed) = {train_batch_size // num_of_hosts:,}")
+        f"  Total train batch size per node (w. parallel & distributed) = {train_batch_size // num_of_hosts}")
     logger.info(
         f"  Total train batch size (w. parallel & distributed) = {train_batch_size}")
-    if training_args.gradient_accumulation_steps > 1:
-        logger.info(
-            f"  Gradient accumulation steps = {training_args.gradient_accumulation_steps}")
-        logger.info(f"  ↪ Effective total batch size = {train_batch_size * training_args.gradient_accumulation_steps:,}")
-    logger.info(f"  Total optimization steps = {data_args.num_train_steps - training_state['step']:,}")
+    logger.info(f"  Total optimization steps = {data_args.num_train_steps - training_state['step']}")
     if training_state['step'] > 0:
-        logger.info(f"  ↪ Starting at {training_state['step']:,} and finishing at {data_args.num_train_steps:,}")
-
-    if model_args.dropout or model_args.bpe_dropout or model_args.attention_dropout or model_args.activation_dropout or model_args.encoder_dropout or model_args.decoder_dropout:
-        logger.info("  Dropout = True")
-        if model_args.dropout:
-            logger.info(f"  ↪ Dropout probability = {model_args.dropout}")
-        if model_args.bpe_dropout:
-            logger.info(f"  ↪ BPE Dropout probability = {model_args.bpe_dropout}")
-        if model_args.attention_dropout:
-            logger.info(f"  ↪ Attention dropout probability = {model_args.attention_dropout}")
-        if model_args.activation_dropout:
-            logger.info(f"  ↪ Activation dropout probability = {model_args.activation_dropout}")
-        if model_args.encoder_dropout:
-            logger.info(f"  ↪ Encoder dropout probability = {model_args.encoder_dropout}")
-        if model_args.decoder_dropout:
-            logger.info(f"  ↪ Decoder dropout probability = {model_args.decoder_dropout}")
+        logger.info(f"  ↪ Starting at {str(training_state['step'])} and finishing at {str(data_args.num_train_steps)}")
 
     train_time = 0
 
@@ -1386,7 +1129,7 @@ def main():
         elif len(language) == 2:
             language_code = language
     training_summary = {
-        "model_name": repo_name.split("/")[-1] if repo_name else model_name_or_path,
+        "model_name": repo_name.split("/")[-1],
         "language": language_code,
         "tags": ["audio", "asr", "automatic-speech-recognition", "hf-asr-leaderboard"],
         "license": "apache-2.0",
@@ -1403,38 +1146,16 @@ def main():
             "per_device_train_batch_size": training_args.per_device_train_batch_size,
             "total_train_batch_size_per_node": train_batch_size // num_of_hosts,
             "total_train_batch_size": train_batch_size,
-            "total_optimization_steps": f"{(data_args.num_train_steps - training_state['step']):,}",
-            "starting_optimization_step": f"{training_state['step']:,}" if training_state['step'] > 0 else None,
-            "finishing_optimization_step": f"{data_args.num_train_steps:,}",
+            "total_optimization_steps": data_args.num_train_steps - training_state['step'],
+            "starting_optimization_step": training_state['step'] if training_state['step'] > 0 else None,
+            "finishing_optimization_step": data_args.num_train_steps,
             "num_train_dataset_workers": f"{num_workers}",
-            "num_hosts": f"{num_of_hosts}",
-            "total_num_training_examples": f"{data_args.num_train_steps * train_batch_size:,}",
-            "steps_per_epoch": "_To be computed after first epoch_",
-            "num_beams": model_args.num_beams,
+            "total_num_training_examples": data_args.num_train_steps * train_batch_size,
         },
         # TODO: Adapt https://github.com/huggingface/transformers/blob/main/src/transformers/modelcard.py#L855
         # "hyperparameters": training_args.to_sanitized_dict()
-    }   
-        
-    if training_args.gradient_accumulation_steps > 1:
-        training_summary["hyperparameters"]["gradient_accumulation_steps"] = f"{training_args.gradient_accumulation_steps:,}"
-        training_summary["hyperparameters"]["effective_total_train_batch_size"] = f"{train_batch_size * training_args.gradient_accumulation_steps:,}"
+    }
     
-    if model_args.dropout or model_args.attention_dropout or model_args.activation_dropout or model_args.encoder_dropout or model_args.decoder_dropout:
-        training_summary["hyperparameters"]["dropout"] = True
-        if model_args.dropout:
-            training_summary["hyperparameters"]["dropout_probability"] = model_args.dropout
-        if model_args.bpe_dropout:
-            training_summary["hyperparameters"]["bpe_dropout_probability"] = model_args.bpe_dropout
-        if model_args.attention_dropout:
-            training_summary["hyperparameters"]["attention_dropout_probability"] = model_args.attention_dropout
-        if model_args.activation_dropout:
-            training_summary["hyperparameters"]["activation_dropout_probability"] = model_args.activation_dropout
-        if model_args.encoder_dropout:
-            training_summary["hyperparameters"]["encoder_dropout_probability"] = model_args.encoder_dropout
-        if model_args.decoder_dropout:
-            training_summary["hyperparameters"]["decoder_dropout_probability"] = model_args.decoder_dropout
-
     # Create README if it does not exist
     readme = output_dir / "README.md"
     if not readme.exists():
@@ -1445,21 +1166,20 @@ def main():
 
     train_metrics = []
     epoch = 0
-    if training_args.do_train:
-        train_dataset = vectorized_datasets["train"].shuffle(seed=training_args.seed, buffer_size=data_args.shuffle_buffer_size)
-        # Split by node
-        train_dataset = split_dataset_by_node(train_dataset, rank=current_host_idx, world_size=num_of_hosts)   
+    train_dataset = vectorized_datasets["train"].shuffle(seed=training_args.seed, buffer_size=data_args.shuffle_buffer_size)
     
-        if train_dataset.n_shards < data_args.preprocessing_num_workers:
-            num_workers = train_dataset.n_shards
-
-        logger.info(f"  Number of train dataset workers = {num_workers} {'(Capped by the number of dataset shards)' if train_dataset.n_shards < data_args.preprocessing_num_workers else ''} {'(ADVICE: In most cases you will speed up training considerably if you increase the value of --preprocessing_num_workers!)' if num_workers < 10 else ''}")
-        train_loader = data_loader(train_dataset, train_batch_size // num_of_hosts, num_workers=num_workers)
-
-    if training_args.do_eval:
-        eval_dataset = vectorized_datasets["eval"]
+    # Split by node
+    train_dataset = split_dataset_by_node(train_dataset, rank=current_host_idx, world_size=num_of_hosts)   
     
-    if training_args.do_train and not training_args.ignore_data_skip and training_state["step"] > 0:
+    if train_dataset.n_shards < data_args.preprocessing_num_workers:
+        num_workers = train_dataset.n_shards
+
+    logger.info(f"  Number of train dataset workers = {num_workers} {'(Capped by the number of dataset shards)' if train_dataset.n_shards < data_args.preprocessing_num_workers else ''} {'(ADVICE: In most cases you will speed up training considerably if you increase the value of --preprocessing_num_workers!)' if num_workers < 10 else ''}")
+ 
+    eval_dataset = vectorized_datasets["eval"]
+    train_loader = data_loader(train_dataset, train_batch_size // num_of_hosts, num_workers=num_workers)
+    
+    if not training_args.ignore_data_skip and training_state["step"] > 0:
         logger.info(
             f"  Will skip the first {training_state['step']} steps. If this takes a lot of time,"
             " you can add the `--ignore_data_skip` flag to your launch command, but you will resume the"
@@ -1478,48 +1198,34 @@ def main():
     
     
     for step in tqdm(range(data_args.num_train_steps), desc="Training...", position=1, leave=False):
-        
         # Skip initial steps if these are specified. 
         if step < training_state["step"]:
             continue
         
         # =========================== Training ===========================
-        if training_args.do_train:
-            try:
-                samples = next(train_loader)
-            except StopIteration:
-                epoch += 1
-                train_dataset.set_epoch(epoch)
-                train_loader = data_loader(train_dataset, train_batch_size // num_of_hosts, num_workers=num_workers)
-                samples = next(train_loader)
-                logger.info(
-                    f"Completed epoch ({epoch} | Loss: {train_metric['loss']}, Learning Rate:"
-                    f" {train_metric['learning_rate']})"
-                )
-                training_summary["hyperparameters"]["steps_per_epoch"] = step // epoch
-
-            batch = data_collator(samples)
-            
-            # If logging is enabled, print decoder_input_ids and decoded text
-            if step % data_args.log_examples == 0:
-                formatted_ids = [f'\033[91m{token_id}\033[0m' if mask == 0 else str(token_id) for token_id, mask in zip(batch['decoder_input_ids'][0], batch['attention_mask'][0])]
-                formatted_string = "\n".join(["\t".join(formatted_ids[i:i+20]) for i in range(0, len(formatted_ids), 20)])
-                logger.info(f"Example of decoder_input_ids at step {step}:. \033[91m Red tokens \033[0m are masked by the attention_mask:\n{formatted_string}")
-                decoded_text = tokenizer.decode(batch['decoder_input_ids'][0], skip_special_tokens=False)
-                logger.info(f"Decoded example. :\n{decoded_text}")
-            
-            batch = shard(batch.data)
-            
-                      
-            state, train_metric = p_train_step(state, batch)
-            train_metrics.append(train_metric)
-
-            train_time += time.time() - train_start
-            train_metric = unreplicate(train_metric)
+        try:
+            samples = next(train_loader)
+        except StopIteration:
+            epoch += 1
+            train_dataset.set_epoch(epoch)
+            train_loader = data_loader(train_dataset, train_batch_size // num_of_hosts, num_workers=num_workers)
+            samples = next(train_loader)
+            logger.info(
+                f"Completed epoch ({epoch} | Loss: {train_metric['loss']}, Learning Rate:"
+                f" {train_metric['learning_rate']})"
+            )
+        
+        batch = data_collator(samples)
+        batch = shard(batch.data)
+        state, train_metric = p_train_step(state, batch)
+        train_metrics.append(train_metric)
+                
+        train_time += time.time() - train_start
+        train_metric = unreplicate(train_metric)
 
         # ========================== Evaluating ==========================
         # Evaluate at each eval_steps, and at the end of training at num_train_steps
-        if training_args.do_eval and (step % training_args.eval_steps == 0 or step == data_args.num_train_steps - 1):
+        if step % training_args.eval_steps == 0 or step == data_args.num_train_steps - 1:
             logger.info(
                 f"Starting evaluation at step {step} of num_training_step {data_args.num_train_steps} steps. Planned evaluation every {training_args.eval_steps} steps." 
             )
@@ -1530,8 +1236,8 @@ def main():
             if data_args.max_eval_samples:
                 max_eval_steps_iter = range(1 + data_args.max_eval_samples // eval_batch_size)
             else:
-                max_eval_steps_iter = itertools.count()
-            for eval_step in tqdm(max_eval_steps_iter, desc="Evaluating...", position=2, leave=False):
+                max_eval_steps_iter = itertools.repeat(None)
+            for _ in tqdm(max_eval_steps_iter, desc="Evaluating...", position=2, leave=False):
                 # Model forward
                 try:
                     samples = next(eval_loader)
@@ -1539,19 +1245,8 @@ def main():
                     break
                 batch = data_collator(samples)
                 
-                if eval_step is None or eval_step % data_args.log_examples == 0:
-                    formatted_ids = [f'\033[91m{token_id}\033[0m' if mask == 0 else str(token_id) for token_id, mask in zip(batch['decoder_input_ids'][0], batch['attention_mask'][0])]
-                    formatted_string = "\n".join(["\t".join(formatted_ids[i:i+20]) for i in range(0, len(formatted_ids), 20)])
-                    logger.info(f"Example of decoder_input_ids at eval step {eval_step}:. \033[91m Red tokens \033[0m are masked by the attention_mask:\n{formatted_string}")
-                    decoded_text = tokenizer.decode(batch['decoder_input_ids'][0], skip_special_tokens=False)
-                    logger.info(f"Decoded example. :\n{decoded_text}")
-
-
-
                 labels = batch["labels"]
-                # del batch["id"]
-                
-                
+
                 metrics = pad_shard_unpad(p_eval_step, static_return=True)(
                     state.params, batch.data, min_device_batch=training_args.per_device_eval_batch_size
                 )
@@ -1621,88 +1316,6 @@ def main():
                 if training_args.push_to_hub:
                     repo.push_to_hub(
                         commit_message=f"Saving weights and logs of step {step} - epoch {epoch}", blocking=False)
-
-    # ======================== Prediction loop ==============================
-    if training_args.do_predict:
-        logger.info("***** Runing prediction *****")
-        predict_dataset = vectorized_datasets["test"]
-        
-        pred_metrics = []
-        pred_preds = []
-        pred_labels = []
-        pred_loader = data_loader(predict_dataset, eval_batch_size, drop_last=False)
-        if data_args.max_predict_samples:
-            max_pred_steps_iter = range(1 + data_args.max_predict_samples // eval_batch_size)
-        else:
-            max_pred_steps_iter = itertools.repeat(None)
-        for _ in tqdm(max_pred_steps_iter, desc="Predicting...", position=2, leave=False):
-            # Model forward
-            try:
-                samples = next(pred_loader)
-            except StopIteration:
-                break
-            batch = data_collator(samples)
-            
-            labels = batch["labels"]
-
-            metrics = pad_shard_unpad(p_eval_step, static_return=True)(
-                state.params, batch.data, min_device_batch=training_args.per_device_eval_batch_size
-            )
-            pred_metrics.append(metrics)
-
-            # Generation
-            if training_args.predict_with_generate:
-                generated_ids = pad_shard_unpad(
-                    p_generate_step)(state.params, batch.data)
-                pred_preds.extend(jax.device_get(
-                    generated_ids.reshape(-1, gen_kwargs["max_length"])))
-                pred_labels.extend(labels)
-                
-        # Normalize eval metrics
-        pred_metrics = get_metrics(pred_metrics)
-        pred_metrics = jax.tree_util.tree_map(jnp.mean, pred_metrics)
-
-        # Compute metrics
-        metric_desc = ""
-        if training_args.predict_with_generate:
-            metric_values, pred_str, label_str = compute_metrics(
-                pred_preds, pred_labels, return_preds_labels=True
-            )
-            pred_metrics.update(metric_values)
-            metric_desc = " | ".join(
-                [f"Predict {key}: {value}" for key, value in metric_values.items()])
-
-        # Print metrics
-        desc = f"Predict Loss: {pred_metrics['loss']} | {metric_desc})"
-        logger.info(desc)
-
-        # Save metrics
-        if has_tensorboard and current_host_idx == 0:
-            log_max_predictions = data_args.log_max_test_predictions if data_args.log_max_test_predictions else 0
-            write_metric(
-                summary_writer,
-                [],
-                pred_metrics,
-                0,
-                0,
-                predictions=pred_str[:log_max_predictions],
-                labels=label_str[:log_max_predictions],
-                do_predict=True,
-            )
-
-        # Save final metrics in json
-        if current_host_idx == 0:
-            if has_wandb:
-                wandb.log({"successful_run": 1})
-
-            pred_metrics = {f"test_{metric_name}": value for metric_name, value in metric_values.items()}
-            (output_dir / "test_results.json").write_text(
-                json.dumps(pred_metrics, indent=4, sort_keys=True)
-            )
-            if training_args.push_to_hub:
-                repo.push_to_hub(
-                    commit_message=f"Saving test results", blocking=False)
-
 
 if __name__ == "__main__":
     main()
