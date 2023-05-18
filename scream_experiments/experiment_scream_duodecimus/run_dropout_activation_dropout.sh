@@ -27,7 +27,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
         --per_device_eval_batch_size 4 \
         --predict_with_generate \
         --log_max_eval_predictions 50 \
-        --log_eval_predictions_fn "./utils/log_predictions.write_predictions" \
+        --log_eval_predictions_fn "log_predictions.write_predictions" \
         --streaming True \
         --use_auth_token True \
         --dtype bfloat16 \
@@ -39,7 +39,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
         --gradient_checkpointing True \
         --prev_column_name "prompt" \
         --log_examples 100 \
-        --data_mapping_fn "./utils/data_mapping_scream.map_data" \
+        --data_mapping_fn "data_mapping_scream.map_data" \
         --activation_dropout 0.1 \
         --push_to_hub
         
