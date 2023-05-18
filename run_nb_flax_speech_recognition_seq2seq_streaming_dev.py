@@ -165,6 +165,9 @@ class ModelArguments:
     decoder_dropout: Optional[float] = field(
         default=None, metadata={"help": "The dropout ratio for the decoder layer dropout probabilities."}
     )
+    bpe_dropout: float = field(
+        default=0.0, metadata={"help": "The dropout ratio for the tokenizer."}
+    )
 
 @flax.struct.dataclass
 class DataTrainingArguments:
@@ -793,22 +796,15 @@ def main():
         revision=model_args.model_revision,
         use_auth_token=True if model_args.use_auth_token else None,
     )
+    # Setting add_prefix_space=True, cf. https://github.com/huggingface/transformers/issues/17391
     tokenizer = AutoTokenizer.from_pretrained(
         model_args.tokenizer_name if model_args.tokenizer_name else model_name_or_path,
         cache_dir=model_args.cache_dir,
         use_fast=model_args.use_fast_tokenizer,
         revision=model_args.model_revision,
         use_auth_token=True if model_args.use_auth_token else None,
-    )
-
-    # Work around for https://github.com/huggingface/transformers/issues/17391
-    tokenizer_prefix_space = AutoTokenizer.from_pretrained(
-        model_args.tokenizer_name if model_args.tokenizer_name else model_name_or_path,
-        cache_dir=model_args.cache_dir,
-        use_fast=model_args.use_fast_tokenizer,
-        revision=model_args.model_revision,
-        use_auth_token=True if model_args.use_auth_token else None,
         add_prefix_space=True,
+        dropout=model_args.bpe_dropout,
     )
 
     if data_args.whisper_model_class:
@@ -876,8 +872,31 @@ def main():
     normalizer = BasicTextNormalizer()  # 'official' text normalizer from OpenAI
 
     if timestamp_column_name:
-        tokenizer.add_tokens([f"<|{i * 0.02:.2f}|>" for i in range(1501)], special_tokens=True)
-        logging.info("Tokenizer: added 1500 timestamps tokens.")
+        tokens_added = tokenizer.add_tokens([f"<|{i * 0.02:.2f}|>" for i in range(1501)], special_tokens=True)
+        logging.info(f"Tokenizer: added {tokens_added} timestamps tokens.")
+
+    # BPE dropout only added for training
+    inference_tokenizer = tokenizer
+    if training_args.do_train and model_args.bpe_dropout:
+        if not model_args.use_fast_tokenizer:
+            logging.warn("BPE Dropout can only be used with fast tokenizers. Try enabling --use_fast_tokenizer")
+        else:
+            # Workaround to enable BPE dropout, cf. https://github.com/huggingface/tokenizers/issues/201#issuecomment-720392299
+            inference_tokenizer = AutoTokenizer.from_pretrained(
+                model_args.tokenizer_name if model_args.tokenizer_name else model_name_or_path,
+                cache_dir=model_args.cache_dir,
+                use_fast=model_args.use_fast_tokenizer,
+                revision=model_args.model_revision,
+                use_auth_token=True if model_args.use_auth_token else None,
+                add_prefix_space=True,
+                dropout=model_args.bpe_dropout,
+            )
+            inference_tokenizer_files = inference_tokenizer._tokenizer.model.save(
+                model_args.cache_dir, "inference_tokenizer"
+            )
+            inference_tokenizer._tokenizer.model = type(inference_tokenizer._tokenizer.model)(
+                *inference_tokenizer_files, dropout=model_args.bpe_dropout
+            )
 
     if data_args.language is not None:
         # We only need to set the task id when the language is specified (i.e. in a multilingual setting)
@@ -893,7 +912,7 @@ def main():
     if training_args.do_predict and data_args.max_predict_samples is not None:
         raw_datasets["test"] = raw_datasets["test"].select(range(data_args.max_predict_samples))
 
-    def prepare_dataset(batch, add_previous_text=True):
+    def prepare_dataset(batch, tokenizer, add_previous_text=True):
         # Process audio
         sample = batch[audio_column_name]
         inputs = feature_extractor(
@@ -919,9 +938,9 @@ def main():
             prev_str = batch[prev_column_name].lower() if do_lower_case else batch[prev_column_name]
             if do_remove_punctuation:
                 prev_str = normalizer(prev_str).strip()
-            prev_tokens = tokenizer_prefix_space(prev_str, truncation=False, add_special_tokens=False).input_ids
-            max_prev_str = tokenizer_prefix_space.decode(prev_tokens[-(max_prev_length - 1):])
-            max_prev_tokens = tokenizer_prefix_space("<|startofprev|>", max_prev_str, add_special_tokens=False).input_ids
+            prev_tokens = tokenizer(prev_str, truncation=False, add_special_tokens=False).input_ids
+            max_prev_str = tokenizer.decode(prev_tokens[-(max_prev_length - 1):])
+            max_prev_tokens = tokenizer("<|startofprev|>", max_prev_str, add_special_tokens=False).input_ids
             batch["labels"] = max_prev_tokens + batch["labels"]
         return batch
 
@@ -936,19 +955,19 @@ def main():
         vectorized_datasets = IterableDatasetDict() if data_args.streaming else DatasetDict()
         if training_args.do_train:
             vectorized_datasets["train"] = raw_datasets["train"].map(
-                prepare_dataset,
+                partial(prepare_dataset, tokenizer=tokenizer, add_previous_text=True),
                 remove_columns=raw_datasets_features
             )
 
         if training_args.do_eval:
             vectorized_datasets["eval"] = raw_datasets["eval"].map(
-                partial(prepare_dataset, add_previous_text=False),
+                partial(prepare_dataset, tokenizer=inference_tokenizer, add_previous_text=False),
                 remove_columns=raw_datasets_features
             )
 
         if training_args.do_predict:
             vectorized_datasets["test"] = raw_datasets["test"].map(
-                partial(prepare_dataset, add_previous_text=False),
+                partial(prepare_dataset, tokenizer=inference_tokenizer, add_previous_text=False),
                 remove_columns=raw_datasets_features
             )
 
@@ -1341,10 +1360,12 @@ def main():
     if training_state['step'] > 0:
         logger.info(f"  ↪ Starting at {training_state['step']:,} and finishing at {data_args.num_train_steps:,}")
 
-    if model_args.dropout or model_args.attention_dropout or model_args.activation_dropout or model_args.encoder_dropout or model_args.decoder_dropout:
+    if model_args.dropout or model_args.bpe_dropout or model_args.attention_dropout or model_args.activation_dropout or model_args.encoder_dropout or model_args.decoder_dropout:
         logger.info("  Dropout = True")
         if model_args.dropout:
             logger.info(f"  ↪ Dropout probability = {model_args.dropout}")
+        if model_args.bpe_dropout:
+            logger.info(f"  ↪ BPE Dropout probability = {model_args.bpe_dropout}")
         if model_args.attention_dropout:
             logger.info(f"  ↪ Attention dropout probability = {model_args.attention_dropout}")
         if model_args.activation_dropout:
@@ -1403,6 +1424,8 @@ def main():
         training_summary["hyperparameters"]["dropout"] = True
         if model_args.dropout:
             training_summary["hyperparameters"]["dropout_probability"] = model_args.dropout
+        if model_args.bpe_dropout:
+            training_summary["hyperparameters"]["bpe_dropout_probability"] = model_args.bpe_dropout
         if model_args.attention_dropout:
             training_summary["hyperparameters"]["attention_dropout_probability"] = model_args.attention_dropout
         if model_args.activation_dropout:
