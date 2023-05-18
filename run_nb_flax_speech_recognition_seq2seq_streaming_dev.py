@@ -804,7 +804,7 @@ def main():
         revision=model_args.model_revision,
         use_auth_token=True if model_args.use_auth_token else None,
         add_prefix_space=True,
-        dropout=model_args.bpe_dropout,
+        # dropout=model_args.bpe_dropout,
     )
 
     if data_args.whisper_model_class:
@@ -882,7 +882,7 @@ def main():
             logging.warn("BPE Dropout can only be used with fast tokenizers. Try enabling --use_fast_tokenizer")
         else:
             # Workaround to enable BPE dropout, cf. https://github.com/huggingface/tokenizers/issues/201#issuecomment-720392299
-            inference_tokenizer = AutoTokenizer.from_pretrained(
+            tokenizer = AutoTokenizer.from_pretrained(
                 model_args.tokenizer_name if model_args.tokenizer_name else model_name_or_path,
                 cache_dir=model_args.cache_dir,
                 use_fast=model_args.use_fast_tokenizer,
@@ -891,11 +891,11 @@ def main():
                 add_prefix_space=True,
                 dropout=model_args.bpe_dropout,
             )
-            inference_tokenizer_files = inference_tokenizer._tokenizer.model.save(
-                model_args.cache_dir, "inference_tokenizer"
+            tokenizer_files = tokenizer._tokenizer.model.save(
+                model_args.cache_dir or training_args.output_dir, "training_tokenizer"
             )
-            inference_tokenizer._tokenizer.model = type(inference_tokenizer._tokenizer.model)(
-                *inference_tokenizer_files, dropout=model_args.bpe_dropout
+            tokenizer._tokenizer.model = type(tokenizer._tokenizer.model)(
+                *tokenizer_files, dropout=model_args.bpe_dropout
             )
 
     if data_args.language is not None:
