@@ -2,7 +2,7 @@ export TOKENIZERS_PARALELLISM=false
 export CMALLOC_VERBOSE=0
 export TCMALLOC_VERBOSE=0
 export TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD=10000000000
-python ../../run_nb_flax_speech_recognition_seq2seq_streaming_test.py \
+python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --model_name_or_path NbAiLab/scream_non_large_1e06_beams5_constantlr_long \
     --run_name "Scream - non_large_1e06_verbosity3" \
     --run_description "A Large Whisper Scream model with 5 batch size. Timestamp test" \
