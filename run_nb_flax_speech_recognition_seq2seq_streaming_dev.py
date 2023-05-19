@@ -902,7 +902,7 @@ def main():
     if data_args.language is not None:
         # We only need to set the task id when the language is specified (i.e. in a multilingual setting)
         tokenizer.set_prefix_tokens(
-            language=data_args.language, task=data_args.task)
+            language=data_args.language, task=data_args.task, predict_timestamps=True)
     
     if training_args.do_train and data_args.max_train_samples is not None:
         raw_datasets["train"] = raw_datasets["train"].select(range(data_args.max_train_samples))
@@ -928,11 +928,9 @@ def main():
             input_str = normalizer(input_str).strip()
 
         if timestamp_column_name in batch and batch[timestamp_column_name]:
-            tokenizer.set_prefix_tokens(predict_timestamps=True)
+            batch["labels"] = tokenizer("<|notimestamps|>", input_str, truncation=True, max_length=max_label_length).input_ids
         else:
-            tokenizer.set_prefix_tokens(predict_timestamps=False)
-        
-        batch["labels"] = tokenizer(input_str, truncation=True, max_length=max_label_length).input_ids
+            batch["labels"] = tokenizer(input_str, truncation=True, max_length=max_label_length).input_ids
 
         # Prepend previous text tokens
         if max_prev_length and add_previous_text and prev_column_name in batch and batch[prev_column_name].strip():
