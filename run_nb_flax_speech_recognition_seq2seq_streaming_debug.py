@@ -507,6 +507,7 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
             labels = labels[:, 1:]
             labels_batch.attention_mask = labels_batch.attention_mask[:, 1:]
         else:
+            logger.warn("Missing start or prev token id at the begining of a batch")
             decoder_token_ids = labels[:, :]
             # Rows that contain start token should start with prev token
             decoder_token_ids[np.any(decoder_token_ids == self.decoder_start_token_id, axis=1), 0] = self.decoder_prev_token_id
@@ -804,7 +805,7 @@ def main():
         revision=model_args.model_revision,
         use_auth_token=True if model_args.use_auth_token else None,
         add_prefix_space=True,
-        dropout=model_args.bpe_dropout,
+        # dropout=model_args.bpe_dropout,
     )
 
     if data_args.whisper_model_class:
@@ -882,7 +883,7 @@ def main():
             logging.warn("BPE Dropout can only be used with fast tokenizers. Try enabling --use_fast_tokenizer")
         else:
             # Workaround to enable BPE dropout, cf. https://github.com/huggingface/tokenizers/issues/201#issuecomment-720392299
-            inference_tokenizer = AutoTokenizer.from_pretrained(
+            tokenizer = AutoTokenizer.from_pretrained(
                 model_args.tokenizer_name if model_args.tokenizer_name else model_name_or_path,
                 cache_dir=model_args.cache_dir,
                 use_fast=model_args.use_fast_tokenizer,
@@ -891,17 +892,17 @@ def main():
                 add_prefix_space=True,
                 dropout=model_args.bpe_dropout,
             )
-            inference_tokenizer_files = inference_tokenizer._tokenizer.model.save(
-                model_args.cache_dir, "inference_tokenizer"
+            tokenizer_files = tokenizer._tokenizer.model.save(
+                model_args.cache_dir or training_args.output_dir, "training_tokenizer"
             )
-            inference_tokenizer._tokenizer.model = type(inference_tokenizer._tokenizer.model)(
-                *inference_tokenizer_files, dropout=model_args.bpe_dropout
+            tokenizer._tokenizer.model = type(tokenizer._tokenizer.model)(
+                *tokenizer_files, dropout=model_args.bpe_dropout
             )
 
     if data_args.language is not None:
         # We only need to set the task id when the language is specified (i.e. in a multilingual setting)
         tokenizer.set_prefix_tokens(
-            language=data_args.language, task=data_args.task)
+            language=data_args.language, task=data_args.task, predict_timestamps=True)
     
     if training_args.do_train and data_args.max_train_samples is not None:
         raw_datasets["train"] = raw_datasets["train"].select(range(data_args.max_train_samples))
@@ -927,11 +928,11 @@ def main():
             input_str = normalizer(input_str).strip()
 
         if timestamp_column_name in batch and batch[timestamp_column_name]:
-            tokenizer.set_prefix_tokens(predict_timestamps=True)
+            batch["labels"] = tokenizer("<|notimestamps|>", input_str, truncation=True, max_length=max_label_length).input_ids
         else:
-            tokenizer.set_prefix_tokens(predict_timestamps=False)
-        
-        batch["labels"] = tokenizer(input_str, truncation=True, max_length=max_label_length).input_ids
+            batch["labels"] = tokenizer(input_str, truncation=True, max_length=max_label_length).input_ids
+
+        breakpoint()
 
         # Prepend previous text tokens
         if max_prev_length and add_previous_text and prev_column_name in batch and batch[prev_column_name].strip():
