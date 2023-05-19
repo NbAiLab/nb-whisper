@@ -36,5 +36,6 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --resume_from_checkpoint True \
     --ignore_data_skip \
     --num_beams 5 \
+    --gradient_checkpointing True \
     --timestamp_column_name "timestamp" \
     --push_to_hub
