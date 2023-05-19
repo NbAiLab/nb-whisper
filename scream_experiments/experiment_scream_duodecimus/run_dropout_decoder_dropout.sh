@@ -5,7 +5,7 @@ export TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD=10000000000
 python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
         --model_name_or_path openai/whisper-small \
         --run_name "Scream - prompt test v4 run1" \
-        --run_description "A Small Scream model. Duodecimus. Dropout test - encode dropout" \
+        --run_description "A Small Scream model. Duodecimus. Dropout test - decode dropout" \
         --wandb_entity "nbailab" \
         --wandb_project "Scream - duodecimus" \
         --dataset_name NbAiLab/NCC_speech_all_v5 \
@@ -13,7 +13,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
         --text_column_name text \
         --train_split_name train \
         --eval_split_name validation \
-        --output_dir ../../../scream_duo_dropout_encode_dropout\
+        --output_dir ../../../scream_duo_dropout_decode_dropout\
         --overwrite_output_dir\
         --warmup_steps 2000 \
         --do_train \
@@ -32,7 +32,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
         --use_auth_token True \
         --dtype bfloat16 \
         --hub_private_repo True \
-        --hub_model_id NbAiLab/scream_duo_dropout_encode_dropout \
+        --hub_model_id NbAiLab/scream_duo_dropout_decode_dropout \
         --resume_from_checkpoint True \
         --num_beams 5 \
         --ignore_data_skip \
@@ -40,6 +40,6 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
         --prev_column_name "prompt" \
         --log_examples 100 \
         --data_mapping_fn "data_mapping_scream.map_data" \
-        --encode_dropout 0.1 \
+        --decoder_dropout 0.1 \
         --push_to_hub
         
