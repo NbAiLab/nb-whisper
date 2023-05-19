@@ -928,11 +928,10 @@ def main():
             input_str = normalizer(input_str).strip()
 
         if timestamp_column_name in batch and batch[timestamp_column_name]:
-            batch["labels"] = tokenizer("<|notimestamps|>", input_str, truncation=True, max_length=max_label_length).input_ids
+            tokenizer.set_prefix_tokens(predict_timestamps=True)
         else:
-            batch["labels"] = tokenizer(input_str, truncation=True, max_length=max_label_length).input_ids
-
-        breakpoint()
+            tokenizer.set_prefix_tokens(predict_timestamps=False)
+        
 
         # Prepend previous text tokens
         if max_prev_length and add_previous_text and prev_column_name in batch and batch[prev_column_name].strip():
