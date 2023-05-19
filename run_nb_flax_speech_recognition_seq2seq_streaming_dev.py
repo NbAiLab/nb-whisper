@@ -797,7 +797,7 @@ def main():
         revision=model_args.model_revision,
         use_auth_token=True if model_args.use_auth_token else None,
     )
-    # Setting add_prefix_space=True, cf. https://github.com/huggingface/transformers/issues/17391
+    # Setting add_prefix_space=True, cf. https://github.com/huggingface/transformers/issues/17391
     tokenizer = AutoTokenizer.from_pretrained(
         model_args.tokenizer_name if model_args.tokenizer_name else model_name_or_path,
         cache_dir=model_args.cache_dir,
@@ -833,7 +833,7 @@ def main():
     # Enable scan if necessary
     if data_args.use_scan:
         model.enable_scan()  # to enable scan in the nn.Module
-        # params = model.convert_unroll_to_scan(params)  # to convert the unrolled params to scan
+        # params = model.convert_unroll_to_scan(params)  # to convert the unrolled params to scan
 
     # Activate gradient checkpointing if needed
     if training_args.gradient_checkpointing:
@@ -876,13 +876,13 @@ def main():
         tokens_added = tokenizer.add_tokens([f"<|{i * 0.02:.2f}|>" for i in range(1501)], special_tokens=True)
         logging.info(f"Tokenizer: added {tokens_added} timestamps tokens.")
 
-    # BPE dropout only added for training
+    # BPE dropout only added for training
     inference_tokenizer = tokenizer
     if training_args.do_train and model_args.bpe_dropout:
         if not model_args.use_fast_tokenizer:
             logging.warn("BPE Dropout can only be used with fast tokenizers. Try enabling --use_fast_tokenizer")
         else:
-            # Workaround to enable BPE dropout, cf. https://github.com/huggingface/tokenizers/issues/201#issuecomment-720392299
+            # Workaround to enable BPE dropout, cf. https://github.com/huggingface/tokenizers/issues/201#issuecomment-720392299
             tokenizer = AutoTokenizer.from_pretrained(
                 model_args.tokenizer_name if model_args.tokenizer_name else model_name_or_path,
                 cache_dir=model_args.cache_dir,
@@ -902,7 +902,7 @@ def main():
     if data_args.language is not None:
         # We only need to set the task id when the language is specified (i.e. in a multilingual setting)
         tokenizer.set_prefix_tokens(
-            language=data_args.language, task=data_args.task, predict_timestamps=True)
+            language=data_args.language, task=data_args.task)
     
     if training_args.do_train and data_args.max_train_samples is not None:
         raw_datasets["train"] = raw_datasets["train"].select(range(data_args.max_train_samples))
@@ -928,11 +928,13 @@ def main():
             input_str = normalizer(input_str).strip()
 
         if timestamp_column_name in batch and batch[timestamp_column_name]:
-            batch["labels"] = tokenizer("<|notimestamps|>", input_str, truncation=True, max_length=max_label_length).input_ids
+            tokenizer.set_prefix_tokens(predict_timestamps=True)
         else:
-            batch["labels"] = tokenizer(input_str, truncation=True, max_length=max_label_length).input_ids
+            tokenizer.set_prefix_tokens(predict_timestamps=False)
+        
+        batch["labels"] = tokenizer(input_str, truncation=True, max_length=max_label_length).input_ids
 
-        # Prepend previous text tokens
+        # Prepend previous text tokens
         if max_prev_length and add_previous_text and prev_column_name in batch and batch[prev_column_name].strip():
             prev_str = batch[prev_column_name].lower() if do_lower_case else batch[prev_column_name]
             if do_remove_punctuation:
@@ -1108,7 +1110,7 @@ def main():
     has_tensorboard = is_tensorboard_available()
     if has_tensorboard and current_host_idx == 0:
         try:
-            # TODO: Decouple wandb from tensorboard
+            # TODO: Decouple wandb from tensorboard
             import wandb
 
             has_wandb = True
@@ -1320,7 +1322,7 @@ def main():
     # Replicate the train state on each device
     state = state.replicate()
     
-    # Logging
+    # Logging
     logger.info("***** Running training *****")
     logger.info(
         f"  Original model = {model_args.model_name_or_path}")
@@ -1411,7 +1413,7 @@ def main():
             "steps_per_epoch": "_To be computed after first epoch_",
             "num_beams": model_args.num_beams,
         },
-        # TODO: Adapt https://github.com/huggingface/transformers/blob/main/src/transformers/modelcard.py#L855
+        # TODO: Adapt https://github.com/huggingface/transformers/blob/main/src/transformers/modelcard.py#L855
         # "hyperparameters": training_args.to_sanitized_dict()
     }   
         
@@ -1582,7 +1584,7 @@ def main():
             desc = f"Step: {step} | Epoch: {epoch} (Eval Loss: {eval_metrics['loss']} | {metric_desc})"
             logger.info(desc)
 
-            # Update training state
+            # Update training state
             training_state = update_training_state(
                 training_state,
                 train_metrics,
@@ -1609,7 +1611,7 @@ def main():
                     jax.tree_util.tree_map(lambda x: x[0], state.params))
                 model.save_pretrained(training_args.output_dir, params=params)
                 tokenizer.save_pretrained(training_args.output_dir)
-                # Report eval results if training is done
+                # Report eval results if training is done
                 if step == data_args.num_train_steps - 1:
                     training_summary["eval_results"] = training_state["eval_lines"][-1]
                 else:
