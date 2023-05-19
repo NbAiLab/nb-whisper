@@ -518,6 +518,9 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
         decoder_input_ids = shift_tokens_right(
             labels, decoder_token_ids)
 
+        labels_batch.attention_mask = shift_tokens_right(
+            labels_batch.attention_mask, 1)
+
         # replace padding with -100 to ignore correctly when computing the loss
         labels = np.ma.array(labels, mask=np.not_equal(
             labels_batch.attention_mask, 1))
