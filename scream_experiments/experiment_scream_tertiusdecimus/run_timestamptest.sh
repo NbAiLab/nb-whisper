@@ -8,12 +8,12 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_debug.py \
     --run_description "A Large Whisper Scream model with 5 batch size. Timestamp test" \
     --wandb_entity "nbailab" \
     --wandb_project "Scream - tertius decimus" \
-    --dataset_name NbAiLab/NCC_speech_all_v5 \
+    --dataset_name NbAiLab/NCC_whisper_both_timestamp \
     --language Norwegian \
     --text_column_name text \
     --train_split_name train\
     --eval_split_name validation\
-    --output_dir ../../../scream_non_large_timestamp_test\
+    --output_dir ../../../scream_non_large_timestamp_test \
     --overwrite_output_dir\
     --warmup_steps 500 \
     --do_train \
