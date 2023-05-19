@@ -13,7 +13,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
         --text_column_name text \
         --train_split_name train \
         --eval_split_name validation \
-        --output_dir ../../scream_duo_dropout_activation_dropout\
+        --output_dir ../../../scream_duo_dropout_activation_dropout\
         --overwrite_output_dir\
         --warmup_steps 2000 \
         --do_train \
