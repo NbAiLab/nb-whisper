@@ -13,7 +13,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev_shifted_attn.p
         --text_column_name text \
         --train_split_name train \
         --eval_split_name validation \
-        --output_dir ../../../scream_duo_dropout_dropout_shited_attn\
+        --output_dir ../../../scream_duo_noprompt_dropout_shited_attn\
         --overwrite_output_dir\
         --warmup_steps 2000 \
         --do_train \
@@ -32,7 +32,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev_shifted_attn.p
         --use_auth_token True \
         --dtype bfloat16 \
         --hub_private_repo True \
-        --hub_model_id NbAiLab/scream_duo_dropout_dropout_shifted_attn \
+        --hub_model_id NbAiLab/scream_duo_noprompt_dropout_shifted_attn \
         --resume_from_checkpoint True \
         --num_beams 5 \
         --ignore_data_skip \
