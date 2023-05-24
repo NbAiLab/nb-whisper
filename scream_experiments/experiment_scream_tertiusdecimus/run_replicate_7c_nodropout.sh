@@ -2,10 +2,10 @@ export TOKENIZERS_PARALLELISM=false
 export CMALLOC_VERBOSE=0
 export TCMALLOC_VERBOSE=0
 export TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD=10000000000
-python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
+python ../../run_nb_flax_speech_recognition_seq2seq_streaming_debug2.py \
         --model_name_or_path openai/whisper-small \
-        --run_name "Scream - tertius_dropout_replicate_test7d" \
-        --run_description "A Small Scream model. Duodecimus. Tag is added after tokens." \
+        --run_name "Scream - tertius_dropout_replicate_test7c_nodropout" \
+        --run_description "A Small Scream model. Duodecimus. Dropout test - dropout" \
         --wandb_entity "nbailab" \
         --wandb_project "Scream - duodecimus" \
         --dataset_name NbAiLab/NCC_speech_all_v5 \
@@ -13,7 +13,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
         --text_column_name text \
         --train_split_name train \
         --eval_split_name validation \
-        --output_dir ../../../scream_tertius_dropout_replicate_test7d\
+        --output_dir ../../../scream_tertius_dropout_replicate_test7c_nodropout\
         --overwrite_output_dir\
         --warmup_steps 2000 \
         --do_train \
@@ -32,14 +32,13 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
         --use_auth_token True \
         --dtype bfloat16 \
         --hub_private_repo True \
-        --hub_model_id NbAiLab/scream_tertius_dropout_replicate_test7d\
+        --hub_model_id NbAiLab/scream_tertius_dropout_replicate_test7c_nodropout\
         --resume_from_checkpoint True \
         --num_beams 5 \
         --ignore_data_skip \
         --gradient_checkpointing True \
         --prev_column_name "prompt" \
         --log_examples 100 \
-        --data_mapping_fn "data_mapping_scream_debug.map_data" \
-        --dropout 0.1 \
+        --data_mapping_fn "data_mapping_scream.map_data" \
         --push_to_hub
         
