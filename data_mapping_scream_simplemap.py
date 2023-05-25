@@ -3,19 +3,12 @@ from datasets import Dataset, DatasetDict
 import string
 
 def make_style_tags(example):
-    if example['source'] == 'NPSC' or example['source'] == 'Fleurs':
+    if example['source'] == 'Fleurs':
         return {**example, 'prompt': ''}
-    elif example['verbosity'] <= 2 and example['source'] == 'NRK TV':
-        return {**example, 'prompt': '[rv]'}
-    elif example['verbosity'] >= 3 and example['source'] == 'NRK TV':
-        return {**example, 'prompt': '[nv]'}
-    elif example['source'] == 'NST':
-        text = example['text'].translate(str.maketrans('', '', string.punctuation)).lower()
-        return {**example, 'prompt': f'[fv]', 'text': f'{text}'}
+    elif example['verbosity'] == 6:
+        return {**example, 'prompt': ''}
     else:
-        print("There is potentially an error in the dataset. Please check the example below:")
-        print(example)
-        return {**example, 'prompt': ''}
+        return {**example, 'prompt': '#'}
 
 # Should now handle both datasets and dataset dictionaries
 def map_data(data: Union[Dataset, DatasetDict]) -> Union[Dataset, DatasetDict]:

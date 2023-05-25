@@ -5,7 +5,7 @@ export TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD=10000000000
 python ../../run_nb_flax_speech_recognition_seq2seq_streaming_debug2.py \
         --model_name_or_path openai/whisper-small \
         --run_name "Scream - tertius_dropout_replicate_test7c" \
-        --run_description "A Small Scream model. Duodecimus. Dropout test - dropout" \
+        --run_description "A Small Scream model. First token is not masked for loss" \
         --wandb_entity "nbailab" \
         --wandb_project "Scream - duodecimus" \
         --dataset_name NbAiLab/NCC_speech_all_v5 \
