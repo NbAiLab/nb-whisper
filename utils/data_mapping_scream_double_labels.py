@@ -4,7 +4,8 @@ import string
 
 def make_style_tags(batch):
     new_examples = []
-    for example in batch:
+    for i in range(len(batch['source'])):  # Here we iterate over the examples in the batch
+        example = {key: value[i] for key, value in batch.items()}  # We reconstruct each example from the batch
         if example['source'] == 'NST':
             new_examples.append({**example, 'prompt': ''})
             new_examples.append({**example, 'prompt': '[READING]'})
@@ -18,7 +19,10 @@ def make_style_tags(batch):
             print("There is potentially an error in the dataset. Please check the example below:")
             print(example)
             new_examples.append({**example, 'prompt': ''})
-    return new_examples
+    return {'source': [ex['source'] for ex in new_examples],
+            'verbosity': [ex['verbosity'] for ex in new_examples],
+            'prompt': [ex['prompt'] for ex in new_examples]}  # Please adjust this to include all fields present in your dataset
+
 
 # Should now handle both datasets and dataset dictionaries
 def map_data(data: Union[Dataset, DatasetDict]) -> Union[Dataset, DatasetDict]:
