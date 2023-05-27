@@ -1,24 +1,25 @@
 from typing import Union
-from datasets import Dataset, DatasetDict, concatenate_datasets
+from datasets import Dataset, DatasetDict
+import string
 
 def make_style_tags(example):
     if example['source'] == 'NST':
-        return [{'prompt': ''}, {'prompt': '[READING]'}]
+        return {'prompt': ''} if random.random() < 0.5 else {'prompt': '[READING]'}
     elif example['source'] == 'Fleurs':
-        return [{'prompt': ''}]
+        return {**example, 'prompt': ''}
     elif example['source'] == 'NPSC':
-        return [{'prompt': '[PROCEEDING]'}]
+        return {**example, 'prompt': '[PROCEEDING]'}
     elif example['source'] == 'NRK TV':
-        return [{'prompt': '[SUBTITLE]'}]
+        return {**example, 'prompt': '[SUBTITLE]'}
     else:
         print("There is potentially an error in the dataset. Please check the example below:")
         print(example)
-        return [{'prompt': ''}]
+        return {**example, 'prompt': ''}
 
+# Should now handle both datasets and dataset dictionaries
 def map_data(data: Union[Dataset, DatasetDict]) -> Union[Dataset, DatasetDict]:
-    if isinstance(data, DatasetDict):
-        return DatasetDict({key: concatenate_datasets([Dataset.from_dict(ex) for ex in dataset.map(make_style_tags, remove_columns=dataset.column_names)]) for key, dataset in data.items()})
-    elif isinstance(data, Dataset):
-        return concatenate_datasets([Dataset.from_dict(ex) for ex in data.map(make_style_tags, remove_columns=data.column_names)])
+    # Check if this is a dataset or a dataset dictionary
+    if isinstance(data, dict):
+        return {key: dataset.map(make_style_tags) for key, dataset in data.items()}
     else:
-        raise TypeError(f"Unsupported data type: {type(data)}. This function expects a Dataset or DatasetDict.")
+        return data.map(make_style_tags)
