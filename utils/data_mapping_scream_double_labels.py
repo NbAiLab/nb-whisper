@@ -1,33 +1,25 @@
 from typing import Union
 from datasets import Dataset, DatasetDict
-import string
+import pandas as pd
 
-def make_style_tags(batch):
-    new_examples = []
-    for i in range(len(batch['source'])):  # Here we iterate over the examples in the batch
-        example = {key: value[i] for key, value in batch.items()}  # We reconstruct each example from the batch
-        if example['source'] == 'NST':
-            new_examples.append({**example, 'prompt': ''})
-            new_examples.append({**example, 'prompt': '[READING]'})
-        elif example['source'] == 'Fleurs':
-            new_examples.append({**example, 'prompt': ''})
-        elif example['source'] == 'NPSC':
-            new_examples.append({**example, 'prompt': '[PROCEEDING]'})
-        elif example['source'] == 'NRK TV':
-            new_examples.append({**example, 'prompt': '[SUBTITLE]'})
-        else:
-            print("There is potentially an error in the dataset. Please check the example below:")
-            print(example)
-            new_examples.append({**example, 'prompt': ''})
-    return {'source': [ex['source'] for ex in new_examples],
-            'verbosity': [ex['verbosity'] for ex in new_examples],
-            'prompt': [ex['prompt'] for ex in new_examples]}  # Please adjust this to include all fields present in your dataset
-
-
-# Should now handle both datasets and dataset dictionaries
-def map_data(data: Union[Dataset, DatasetDict]) -> Union[Dataset, DatasetDict]:
-    # Check if this is a dataset or a dataset dictionary
-    if isinstance(data, dict):
-        return {key: dataset.map(make_style_tags, batched=True) for key, dataset in data.items()}
+def make_style_tags(example):
+    if example['source'] == 'NST':
+        return [{**example, 'prompt': ''}, {**example, 'prompt': '[READING]'}]
+    elif example['source'] == 'Fleurs':
+        return [{**example, 'prompt': ''}]
+    elif example['source'] == 'NPSC':
+        return [{**example, 'prompt': '[PROCEEDING]'}]
+    elif example['source'] == 'NRK TV':
+        return [{**example, 'prompt': '[SUBTITLE]'}]
     else:
-        return data.map(make_style_tags, batched=True)
+        print("There is potentially an error in the dataset. Please check the example below:")
+        print(example)
+        return [{**example, 'prompt': ''}]
+
+def map_data(data: Union[Dataset, DatasetDict]) -> Union[Dataset, DatasetDict]:
+    if isinstance(data, DatasetDict):
+        return DatasetDict({key: Dataset.from_pandas(pd.DataFrame(make_style_tags(dataset))) for key, dataset in data.items()})
+    elif isinstance(data, Dataset):
+        return Dataset.from_pandas(pd.DataFrame(make_style_tags(data)))
+    else:
+        raise TypeError(f"Unsupported data type: {type(data)}. This function expects a Dataset or DatasetDict.")
