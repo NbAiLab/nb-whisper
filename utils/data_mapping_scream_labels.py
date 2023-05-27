@@ -5,9 +5,9 @@ import string
 def make_style_tags(example):
     if example['source'] == 'NST' or example['source'] == 'Fleurs':
         return {**example, 'prompt': ''}
-    elif example['verbosity'] <= 2 and example['source'] == 'NPSC':
+    elif example['source'] == 'NPSC':
         return {**example, 'prompt': '[PROCEEDING]'}
-    elif example['verbosity'] >= 3 and example['source'] == 'NRK TV':
+    elif example['source'] == 'NRK TV':
         return {**example, 'prompt': '[SUBTITLE]'}
     else:
         print("There is potentially an error in the dataset. Please check the example below:")
