@@ -11,9 +11,9 @@ def make_style_tags(batch):
             new_examples.append({**example, 'prompt': '[READING]'})
         elif example['source'] == 'Fleurs':
             new_examples.append({**example, 'prompt': ''})
-        elif example['verbosity'] <= 2 and example['source'] == 'NPSC':
+        elif example['source'] == 'NPSC':
             new_examples.append({**example, 'prompt': '[PROCEEDING]'})
-        elif example['verbosity'] >= 3 and example['source'] == 'NRK TV':
+        elif example['source'] == 'NRK TV':
             new_examples.append({**example, 'prompt': '[SUBTITLE]'})
         else:
             print("There is potentially an error in the dataset. Please check the example below:")
