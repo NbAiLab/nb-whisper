@@ -27,14 +27,13 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
         --per_device_eval_batch_size 4 \
         --predict_with_generate \
         --log_max_eval_predictions 50 \
-        --log_eval_predictions_fn "log_predictions.write_predictions" \
+        --log_eval_predictions_fn "utils.log_predictions.write_predictions" \
         --streaming True \
         --use_auth_token True \
         --dtype bfloat16 \
         --hub_private_repo True \
         --hub_model_id NbAiLab/scream_scan_23\
         --resume_from_checkpoint True \
-        --num_beams 5 \
         --ignore_data_skip \
         --gradient_checkpointing True \
         --use_scan True \
