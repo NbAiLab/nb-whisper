@@ -2,7 +2,7 @@ export TOKENIZERS_PARALLELISM=false
 export CMALLOC_VERBOSE=0
 export TCMALLOC_VERBOSE=0
 export TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD=10000000000
-python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
+python ../../run_nb_flax_speech_recognition_seq2seq_streaming_debug2.py \
         --model_name_or_path openai/whisper-small \
         --run_name "Scream - tertius_simplemap_labels bpe and activation" \
         --run_description "A Small Scream model. Labels" \
@@ -13,7 +13,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
         --text_column_name text \
         --train_split_name train \
         --eval_split_name validation \
-        --output_dir ../../../scream_tertius_simplemap_labels_proceeding_allminus100_bpedropout_activation_highlr\
+        --output_dir ../../../scream_tertius_simplemap_labels_proceeding_nominus100_bpedropout_activation\
         --overwrite_output_dir\
         --warmup_steps 2000 \
         --do_train \
@@ -21,7 +21,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
         --num_train_steps 20000 \
         --lr_scheduler_type linear \
         --eval_steps 1000 \
-        --learning_rate 5e-5 \
+        --learning_rate 2e-5 \
         --preprocessing_num_workers 32 \
         --per_device_train_batch_size 32 \
         --per_device_eval_batch_size 4 \
@@ -32,7 +32,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
         --use_auth_token True \
         --dtype bfloat16 \
         --hub_private_repo True \
-        --hub_model_id NbAiLab/scream_tertius_simplemap_labels_proceeding_allminus100_bpedropout_activation_highlr\
+        --hub_model_id NbAiLab/scream_tertius_simplemap_labels_proceeding_nominus100_bpedropout_activation\
         --resume_from_checkpoint True \
         --num_beams 5 \
         --ignore_data_skip \

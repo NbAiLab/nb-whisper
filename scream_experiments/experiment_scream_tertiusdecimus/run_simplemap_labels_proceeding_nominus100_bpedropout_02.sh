@@ -2,9 +2,9 @@ export TOKENIZERS_PARALLELISM=false
 export CMALLOC_VERBOSE=0
 export TCMALLOC_VERBOSE=0
 export TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD=10000000000
-python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
+python ../../run_nb_flax_speech_recognition_seq2seq_streaming_debug2.py \
         --model_name_or_path openai/whisper-small \
-        --run_name "Scream - tertius_simplemap_labels bpe and activation" \
+        --run_name "Scream - tertius_simplemap_labels bpe dropout 02" \
         --run_description "A Small Scream model. Labels" \
         --wandb_entity "nbailab" \
         --wandb_project "Scream - duodecimus" \
@@ -13,7 +13,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
         --text_column_name text \
         --train_split_name train \
         --eval_split_name validation \
-        --output_dir ../../../scream_tertius_simplemap_labels_proceeding_allminus100_bpedropout_activation\
+        --output_dir ../../../scream_tertius_simplemap_labels_proceeding_nominus100_bpedropout_02\
         --overwrite_output_dir\
         --warmup_steps 2000 \
         --do_train \
@@ -32,7 +32,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
         --use_auth_token True \
         --dtype bfloat16 \
         --hub_private_repo True \
-        --hub_model_id NbAiLab/scream_tertius_simplemap_labels_proceeding_allminus100_bpedropout_activation\
+        --hub_model_id NbAiLab/scream_tertius_simplemap_labels_proceeding_nominus100_bpedropout_02\
         --resume_from_checkpoint True \
         --num_beams 5 \
         --ignore_data_skip \
@@ -40,7 +40,6 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
         --prev_column_name "prompt" \
         --log_examples 100 \
         --data_mapping_fn "utils.data_mapping_scream_labels_proceeding.map_data" \
-        --bpe_dropout 0.1 \
-        --activation_dropout 0.1 \
+        --bpe_dropout 0.2 \
         --push_to_hub
         
