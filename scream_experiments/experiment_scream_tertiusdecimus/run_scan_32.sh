@@ -3,7 +3,7 @@ export CMALLOC_VERBOSE=0
 export TCMALLOC_VERBOSE=0
 export TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD=10000000000
 python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
-        --model_name_or_path openai/whisper-tiny \
+        --model_name_or_path openai/whisper-large \
         --run_name "Scream - tertius_scan_test" \
         --run_description "A Small Scream model. Duodecimus. Scan test" \
         --wandb_entity "nbailab" \
@@ -13,7 +13,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
         --text_column_name text \
         --train_split_name train \
         --eval_split_name validation \
-        --output_dir ../../../scream_scan_32\
+        --output_dir ../../../scream_scan_46\
         --overwrite_output_dir\
         --warmup_steps 2000 \
         --do_train \
