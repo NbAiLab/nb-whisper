@@ -12,7 +12,7 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#
+## 
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
@@ -831,9 +831,10 @@ def main():
             "Make sure that `config.decoder_start_token_id` is correctly defined")
 
     # Enable scan if necessary
+    params = model.params
     if data_args.use_scan:
         model.enable_scan()  # to enable scan in the nn.Module
-        # params = model.convert_unroll_to_scan(params)  # to convert the unrolled params to scan
+        params = model.convert_unroll_to_scan(params)  # to convert the unrolled params to scan
 
     # Activate gradient checkpointing if needed
     if training_args.gradient_checkpointing:
@@ -1220,7 +1221,7 @@ def main():
 
     # Setup train state
     state = TrainState.create(
-        apply_fn=model.__call__, params=model.params, tx=optimizer, dropout_rng=dropout_rng)
+        apply_fn=model.__call__, params=params, tx=optimizer, dropout_rng=dropout_rng)
 
     # Label smoothed cross entropy
     def loss_fn(logits, labels, label_smoothing_factor=0.0):
