@@ -37,8 +37,6 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
         --num_beams 5 \
         --ignore_data_skip \
         --gradient_checkpointing True \
-        --use_scan True \
-        --whisper_model_class modeling_flax_whisper.FlaxWhisperForConditionalGeneration \
         --prev_column_name "prompt" \
         --log_examples 100 \
         --data_mapping_fn "utils.data_mapping_scream_simplemap.map_data" \
