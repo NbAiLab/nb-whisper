@@ -385,6 +385,14 @@ class DataTrainingArguments:
             )
         },
     )
+    dataset_load_fn: Optional[str] = field(
+        default=None,
+        metadata={
+            "help": (
+                "Python path to function to load a dataset. Use like fn(dataset_name, dataset_config_name, split, streaming)."
+            )
+        },
+    )
     data_mapping_fn: Optional[str] = field(
         default=None,
         metadata={
@@ -720,10 +728,15 @@ def main():
     
     
     # Load dataset
+    if data_args.dataset_load_fn:
+        module, fname = data_args.dataset_load_fn.rsplit('.', 1)
+        dataset_load = getattr(import_module(module), fname)
+    else:
+        dataset_load = load_maybe_streaming_dataset
     raw_datasets = IterableDatasetDict() if data_args.streaming else DatasetDict()
 
     if training_args.do_train:
-        raw_datasets["train"] = load_maybe_streaming_dataset(
+        raw_datasets["train"] = dataset_load(
             data_args.dataset_name,
             data_args.dataset_config_name,
             split=data_args.train_split_name,
@@ -733,7 +746,7 @@ def main():
         )
 
     if training_args.do_eval:
-        raw_datasets["eval"] = load_maybe_streaming_dataset(
+        raw_datasets["eval"] = dataset_load(
             data_args.dataset_name,
             data_args.dataset_config_name,
             split=data_args.eval_split_name,
@@ -743,7 +756,7 @@ def main():
         )
 
     if training_args.do_predict:
-        raw_datasets["test"] = load_maybe_streaming_dataset(
+        raw_datasets["test"] = dataset_load(
             data_args.dataset_name,
             data_args.dataset_config_name,
             split=data_args.test_split_name,
@@ -952,7 +965,7 @@ def main():
         fn = getattr(import_module(module), fname)
         raw_datasets = fn(raw_datasets)
 
-    # Make vecotrized datasets. 
+    # Make vecotrized datasets
     with training_args.main_process_first(desc="dataset map pre-processing"):
         vectorized_datasets = IterableDatasetDict() if data_args.streaming else DatasetDict()
         if training_args.do_train:
