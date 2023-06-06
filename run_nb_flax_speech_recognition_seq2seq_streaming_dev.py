@@ -940,17 +940,28 @@ def main():
         input_str = batch[text_column_name].lower() if do_lower_case else batch[text_column_name]
         if do_remove_punctuation:
             input_str = normalizer(input_str).strip()
-
-        if (timestamp_column_name in batch and batch[timestamp_column_name]
-                and input_str not in ("<|nocaptions|>", "<|nospeech|>")):
-            tokenizer.set_prefix_tokens(predict_timestamps=True)
-        else:
-            tokenizer.set_prefix_tokens(predict_timestamps=False)
         
+        # Process prefix tokens
+        prefix_timestamps = (
+            batch.get(timestamp_column_name, "").strip()
+            and input_str not in ("<|nocaptions|>", "<|nospeech|>")
+        )
+        prefix_task = (batch["task"]
+            if batch.get("task")
+            else data_args.task
+        )
+        prefix_language = (
+            batch["language"]
+            if batch.get("language")
+            else data_args.language
+        )
+        tokenizer.set_prefix_tokens(language=prefix_language, task=prefix_task, predict_timestamps=prefix_timestamps)
+
+        # Tokenize labels
         batch["labels"] = tokenizer(input_str, truncation=True, max_length=max_label_length).input_ids
 
         # Prepend previous text tokens
-        if max_prev_length and add_previous_text and prev_column_name in batch and batch[prev_column_name].strip():
+        if max_prev_length and add_previous_text and batch.get(prev_column_name, "").strip():
             prev_str = batch[prev_column_name].lower() if do_lower_case else batch[prev_column_name]
             if do_remove_punctuation:
                 prev_str = normalizer(prev_str).strip()
