@@ -941,7 +941,8 @@ def main():
         if do_remove_punctuation:
             input_str = normalizer(input_str).strip()
 
-        if timestamp_column_name in batch and batch[timestamp_column_name]:
+        if (timestamp_column_name in batch and batch[timestamp_column_name]
+                and input_str not in ("<|nocaptions|>", "<|nospeech|>")):
             tokenizer.set_prefix_tokens(predict_timestamps=True)
         else:
             tokenizer.set_prefix_tokens(predict_timestamps=False)
@@ -965,7 +966,7 @@ def main():
         fn = getattr(import_module(module), fname)
         raw_datasets = fn(raw_datasets)
 
-    # Make vecotrized datasets
+    # Make vectorized datasets
     with training_args.main_process_first(desc="dataset map pre-processing"):
         vectorized_datasets = IterableDatasetDict() if data_args.streaming else DatasetDict()
         if training_args.do_train:
