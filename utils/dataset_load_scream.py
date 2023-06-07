@@ -1,36 +1,55 @@
+import random
 import datasets
 
 
-def load_normal(ds):
-    ds = ds.filter(lambda sample: sample["source"].upper() in ("NPSC", "NST", "FLEURS", "AUDIO BOOK"))
-    return ds
+def processor_normal(sample):
+    if sample["source"].upper() in ("NPSC", "NST", "FLEURS", "AUDIO BOOK"):
+        return {**sample, "previous_text": None, "timestamped_text": None}
 
 
-def load_normal_no(ds):
-    ds = load_normal(ds)
-    ds = ds.filter(lambda sample: sample["text_language"] == "no")
-    return ds
+def processor_normal_no(sample):
+    sample = processor_normal(sample)
+    if sample and sample["text_language"] == "no":
+        return sample
 
 
-def load_normal_nn(ds):
-    ds = load_normal(ds)
-    ds = ds.filter(lambda sample: sample["text_language"] == "nn")
-    return ds
+def processor_normal_nn(sample):
+    sample = processor_normal(sample)
+    if sample and sample["text_language"] == "nn":
+        return sample
 
 
-def load_timestamps(ds):
-    ds = ds.filter(lambda sample: sample["timestamped_text"] is not None)
-    ds = ds.map(lambda sample: {**sample, "text": sample["timestamped_text"], "has_timestamps": True})
-    return ds
+def processor_timestamps(sample):
+    if sample["timestamped_text"] is not None:
+        return {**sample, "text": sample["timestamped_text"], "previous_text": None, "timestamped_text": None}
 
 
-def load_previous_text_prompts(ds):
-    ds = ds.filter(lambda sample: sample["previous_text"] is not None)
-    ds = ds.map(lambda sample: {**sample, "prompt": sample["previous_text"]})
-    return ds
+def processor_previous_text_prompts(sample):
+    if sample["previous_text"] is not None:
+        return {**sample, "previous_text": sample["previous_text"], "timestamped_text": None}
 
 
-def load_style_prompts(ds):
+def processor_translate_to_english(sample):
+    if sample["translated_text_en"] is not None:
+        return {**sample, "text": sample["translated_text_en"], "task": "translate", "language": "no"}
+
+
+def processor_en_transcribe(sample):
+    if sample["translated_text_en"] is not None:
+        return {**sample, "text": sample["translated_text_en"], "language": "en"}
+
+
+def processor_nn_transcribe(sample):
+    if sample["translated_text_nn"] is not None:
+        return {**sample, "text": sample["translated_text_nn"], "language": "nn"}
+
+
+def processor_es_transcribe(sample):
+    if sample["translated_text_es"] is not None:
+        return {**sample, "text": sample["translated_text_es"], "language": "es"}
+
+
+def processor_style_prompts(sample):
     mapping = {
         "NRK TV": "[SUBTITLE]",
         "NRK TV TRANSLATE": "[SUBTITLE]",
@@ -39,48 +58,23 @@ def load_style_prompts(ds):
         "FLEURS": "[TEXT]",
         "AUDIO BOOK": "[TEXT]",
     }
-    # ds = ds.filter()
-    ds = ds.map(lambda sample: {**sample, "prompt": mapping.get(sample["source"].upper(), "")})
-    return ds
-
-
-def load_translate_to_english(ds):
-    ds = ds.filter(lambda sample: sample["translated_text_en"] is not None)
-    ds = ds.map(lambda sample: {**sample, "text": sample["translated_text_en"], "task": "translate", "language": "no"})
-    return ds
-
-
-def load_en_transcribe(ds):
-     ds = ds.filter(lambda sample: sample["translated_text_en"] is not None)
-     ds = ds.map(lambda sample: {**sample, "text": sample["translated_text_en"], "language": "en"})
-
-
-def load_nn_transcribe(ds):
-     ds = ds.filter(lambda sample: sample["translated_text_nn"] is not None)
-     ds = ds.map(lambda sample: {**sample, "text": sample["translated_text_nn"], "language": "nn"})
-
-
-def load_es_transcribe(ds):
-     ds = ds.filter(lambda sample: sample["translated_text_es"] is not None)
-     ds = ds.map(lambda sample: {**sample, "text": sample["translated_text_es"], "language": "es"})
+    return {**sample, "previous_text": mapping.get(sample["source"].upper(), ""), "timestamped_text": None}
 
 
 def load_dataset_scream(dataset_name, dataset_config_name=None, split="train", streaming=True, **kwargs):
-    loaders = [
-        (load_normal, .31),
-        (load_normal_no, .1),
-        (load_normal_nn, .1),
-        (load_timestamps, .1),
-        (load_previous_text_prompts, .1),
-        (load_style_prompts, .1),
-        # (load_translate_to_english, .1),
-        # (load_en_transcribe, 0.03),
-        # (load_nn_transcribe, 0.03),
-        # (load_es_transcribe, 0.03),
-    ]
-    return datasets.interleave_datasets(
-        [loader(
-            datasets.load_dataset(dataset_name, dataset_config_name, split=split, streaming=streaming, **kwargs)
-        ) for loader, _ in loaders],
-        probabilities=[probability for _, probability in loaders],
-    )
+    if split == "train":
+        processors = [
+            processor_normal,
+            processor_normal_no,
+            processor_normal_nn,
+            processor_timestamps,
+            processor_previous_text_prompts,
+            processor_style_prompts,
+            # processor_translate_to_english,
+            # processor_en_transcribe,
+            # processor_nn_transcribe,
+            # processor_es_transcribe,
+        ]
+    else:
+        processors = None
+    return datasets.load_dataset(dataset_name, dataset_config_name, split=split, streaming=streaming, post_processors=processors, **kwargs)
