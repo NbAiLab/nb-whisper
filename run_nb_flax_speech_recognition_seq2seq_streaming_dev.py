@@ -226,6 +226,16 @@ class DataTrainingArguments:
         metadata={
             "help": "The name of the dataset column containing the text data. Defaults to 'text'"},
     )
+    task_column_name: str = field(
+        default="text",
+        metadata={
+            "help": "The name of the dataset column specifying the task. Defaults to 'task'"},
+    )
+    language_column_name: str = field(
+        default="text",
+        metadata={
+            "help": "The name of the dataset column specifying the language. Defaults to 'language'"},
+    )
     prev_column_name: Optional[str] = field(
         default="None",
         metadata={
