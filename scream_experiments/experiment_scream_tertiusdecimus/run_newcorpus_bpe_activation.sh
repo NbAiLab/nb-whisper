@@ -39,7 +39,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_debug2.py \
         --gradient_checkpointing True \
         --prev_column_name "prompt" \
         --log_examples 100 \
-        --data_mapping_fn "utils.data_mapping_scream_labels_proceeding.map_data" \
+        --data_mapping_fn "utils.data_mapping_scream_labels_proceeding_newds.map_data" \
         --bpe_dropout 0.1 \
         --activation_dropout 0.1 \
         --push_to_hub
