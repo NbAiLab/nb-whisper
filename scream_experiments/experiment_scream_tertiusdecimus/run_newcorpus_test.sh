@@ -18,6 +18,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_debug2.py \
         --warmup_steps 2000 \
         --do_train \
         --do_eval \
+        --do_predict False \
         --num_train_steps 20000 \
         --lr_scheduler_type linear \
         --eval_steps 1000 \
