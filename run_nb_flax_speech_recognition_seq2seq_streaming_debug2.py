@@ -759,7 +759,7 @@ def main():
         raise ValueError(
             "There is nothing to do. Please pass `do_train`, `do_eval` and/or `do_predict`."
         )
-
+    breakpoint()
     raw_datasets_features = list(next(iter(raw_datasets.values())).features.keys())
 
     if data_args.audio_column_name not in raw_datasets_features:
