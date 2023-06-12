@@ -252,17 +252,17 @@ class DataTrainingArguments:
             "help": "The name of the dataset column containing the text data. Defaults to 'text'"},
     )
     task_column_name: str = field(
-        default="text",
+        default="task",
         metadata={
             "help": "The name of the dataset column specifying the task. Defaults to 'task'"},
     )
     language_column_name: str = field(
-        default="text",
+        default="language",
         metadata={
             "help": "The name of the dataset column specifying the language. Defaults to 'language'"},
     )
     prev_column_name: Optional[str] = field(
-        default="None",
+        default=None,
         metadata={
             "help": "The name of the dataset column containing the previous text data. Defaults to 'None'"},
     )
@@ -1052,11 +1052,11 @@ def main():
             input_columns=["input_length"],
         )
 
-    if training_args.do_predict:
-        vectorized_datasets["test"] = vectorized_datasets["test"].filter(
-            is_audio_in_length_range,
-            input_columns=["input_length"],
-        )
+    # if training_args.do_predict:
+    #     vectorized_datasets["test"] = vectorized_datasets["test"].filter(
+    #         is_audio_in_length_range,
+    #         input_columns=["input_length"],
+    #     )
 
     # Load metrics and write stats
     metric_wer = evaluate.load("wer")
