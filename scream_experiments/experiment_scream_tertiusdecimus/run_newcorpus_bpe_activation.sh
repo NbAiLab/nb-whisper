@@ -8,7 +8,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_debug2.py \
         --run_description "A Small Scream model. Labels" \
         --wandb_entity "nbailab" \
         --wandb_project "Scream - duodecimus" \
-        --dataset_name NbAiLab/NCC_speech5 \
+        --dataset_name NbAiLab/NCC_speech \
         --language Norwegian \
         --text_column_name text \
         --train_split_name train \
