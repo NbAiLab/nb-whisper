@@ -32,6 +32,7 @@ import logging
 import shutil
 import socket
 import sys
+import re
 import tempfile
 import time
 from dataclasses import field
@@ -47,6 +48,7 @@ import jax.numpy as jnp
 import numpy as np
 import optax
 import pandas as pd
+import regex
 import torch
 # from jax.experimental.compilation_cache import compilation_cache; compilation_cache.initialize_cache(tempfile.gettempdir())
 from flax import jax_utils, traverse_util
@@ -73,7 +75,7 @@ from transformers import (
     is_tensorboard_available,
 )
 from transformers.modelcard import TrainingSummary
-from transformers.models.whisper.english_normalizer import BasicTextNormalizer
+from transformers.models.whisper.english_normalizer import BasicTextNormalizer, remove_symbols_and_diacritics, remove_symbols
 from transformers.models.whisper.tokenization_whisper import TO_LANGUAGE_CODE
 from transformers.file_utils import get_full_repo_name
 from transformers.utils import check_min_version, send_example_telemetry
@@ -89,6 +91,29 @@ require_version("datasets>=1.18.2",
 
 
 logger = logging.getLogger(__name__)
+
+
+class SimpleTextNormalizer:
+    def __init__(self, remove_diacritics: bool = False, split_letters: bool = False):
+        self.clean = (
+            remove_symbols_and_diacritics if remove_diacritics else remove_symbols
+        )
+        self.split_letters = split_letters
+
+    def __call__(self, s: str):
+        s = s.lower()
+        # s = re.sub(r"[<\[][^>\]]*[>\]]", "", s)  # remove words between brackets
+        # s = re.sub(r"\(([^)]+?)\)", "", s)  # remove words between parenthesis
+        s = self.clean(s).lower()
+
+        if self.split_letters:
+            s = " ".join(regex.findall(r"\X", s, regex.U))
+
+        s = re.sub(
+            r"\s+", " ", s
+        )  # replace any successive whitespace characters with a space
+
+        return s
 
 
 @flax.struct.dataclass
@@ -887,6 +912,8 @@ def main():
     pad_input_to_multiple_of = data_args.pad_input_to_multiple_of
     pad_target_to_multiple_of = data_args.pad_target_to_multiple_of
     audio_column_name = data_args.audio_column_name
+    task_column_name = data_args.task_column_name
+    language_column_name = data_args.language_column_name
     timestamp_column_name = data_args.timestamp_column_name
     num_workers = data_args.preprocessing_num_workers
     text_column_name = data_args.text_column_name
@@ -894,7 +921,8 @@ def main():
     model_input_name = feature_extractor.model_input_names[0]
     do_lower_case = data_args.do_lower_case
     do_remove_punctuation = data_args.do_remove_punctuation
-    normalizer = BasicTextNormalizer()  # 'official' text normalizer from OpenAI
+    # normalizer = BasicTextNormalizer()  # 'official' text normalizer from OpenAI
+    normalizer = SimpleTextNormalizer()
 
     if timestamp_column_name:
         tokens_added = tokenizer.add_tokens([f"<|{i * 0.02:.2f}|>" for i in range(1501)], special_tokens=True)
@@ -953,16 +981,16 @@ def main():
         
         # Process prefix tokens
         prefix_timestamps = (
-            batch.get(timestamp_column_name, "").strip()
-            and input_str not in ("<|nocaptions|>", "<|nospeech|>")
+            batch.get(timestamp_column_name)
+            and input_str.strip() not in ("<|nocaptions|>", "<|nospeech|>")
         )
-        prefix_task = (batch["task"]
-            if batch.get("task")
+        prefix_task = (batch[task_column_name]
+            if batch.get(task_column_name)
             else data_args.task
         )
         prefix_language = (
-            batch["language"]
-            if batch.get("language")
+            batch[language_column_name]
+            if batch.get(language_column_name)
             else data_args.language
         )
         tokenizer.set_prefix_tokens(language=prefix_language, task=prefix_task, predict_timestamps=prefix_timestamps)
@@ -971,7 +999,7 @@ def main():
         batch["labels"] = tokenizer(input_str, truncation=True, max_length=max_label_length).input_ids
 
         # Prepend previous text tokens
-        if max_prev_length and add_previous_text and batch.get(prev_column_name, "").strip():
+        if max_prev_length and add_previous_text and batch.get(prev_column_name):
             prev_str = batch[prev_column_name].lower() if do_lower_case else batch[prev_column_name]
             if do_remove_punctuation:
                 prev_str = normalizer(prev_str).strip()
