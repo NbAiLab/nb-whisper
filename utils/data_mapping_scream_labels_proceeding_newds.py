@@ -3,11 +3,11 @@ from datasets import Dataset, DatasetDict
 import string
 
 def make_style_tags(example):
-    if example['source'] == 'stortinget' or example['source'] == 'fleurs':
+    if example['source'] == 'stortinget' or example['source'] == 'audio_books' or example['source'] == 'nrk_tv_silence' or example['source'] == 'fleurs':
         return {**example, 'prompt': ''}
     elif example['source'] == 'nst':
         return {**example, 'prompt': '[verbatim]'}
-    elif example['source'] == 'nrk tv':
+    elif example['source'] == 'nrk_tv' or example['source'] == 'nrk_tv_translate':
         return {**example, 'prompt': '[subtitle]'}
     else:
         print("There is potentially an error in the dataset. Please check the example below:")
