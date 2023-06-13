@@ -983,7 +983,7 @@ def main():
         
         # Process prefix tokens
         prefix_timestamps = (
-            batch.get(timestamp_column_name)
+            bool(batch.get(timestamp_column_name))
             and input_str.strip() not in ("<|nocaptions|>", "<|nospeech|>")
         )
         prefix_task = (batch[task_column_name]
