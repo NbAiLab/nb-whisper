@@ -915,6 +915,8 @@ def main():
     task_column_name = data_args.task_column_name
     language_column_name = data_args.language_column_name
     timestamp_column_name = data_args.timestamp_column_name
+    data_task = data_args.task
+    data_language = data_args.language
     num_workers = data_args.preprocessing_num_workers
     text_column_name = data_args.text_column_name
     prev_column_name = data_args.prev_column_name
@@ -986,12 +988,12 @@ def main():
         )
         prefix_task = (batch[task_column_name]
             if batch.get(task_column_name)
-            else data_args.task
+            else data_task
         )
         prefix_language = (
             batch[language_column_name]
             if batch.get(language_column_name)
-            else data_args.language
+            else data_language
         )
         tokenizer.set_prefix_tokens(language=prefix_language, task=prefix_task, predict_timestamps=prefix_timestamps)
 
@@ -1071,26 +1073,44 @@ def main():
         predictions = tokenizer.batch_decode(pred_ids, skip_special_tokens=True)
         # We do not want to group tokens when computing the metrics
         labels = tokenizer.batch_decode(label_ids, skip_special_tokens=True)
-
-        if do_normalize_eval:
-            pred_str = [normalizer(pred) for pred in predictions]
-            label_str = [normalizer(label) for label in labels]
-            # Filtering step to only evaluate the samples that correspond to non-zero references:
-            pred_str = [pred_str[i]
-                        for i in range(len(pred_str)) if len(label_str[i]) > 0]
-            label_str = [label_str[i]
-                         for i in range(len(label_str)) if len(label_str[i]) > 0]
-        else:
-            pred_str = predictions
-            label_str = labels
-
+        # Filtering step to only evaluate the samples that correspond to non-zero references:
+        pred_str = [predictions[i]
+                    for i in range(len(predictions)) if len(labels[i]) > 0]
+        label_str = [labels[i]
+                        for i in range(len(labels)) if len(labels[i]) > 0]
+        # Raw metrics
+        raw_wer = 100 * metric_wer.compute(predictions=pred_str, references=label_str)
+        raw_cer = 100 * metric_cer.compute(predictions=pred_str, references=label_str)
+        # Normalized metrics
+        pred_str = [normalizer(pred) for pred in predictions]
+        label_str = [normalizer(label) for label in labels]
+        # Filtering step to only evaluate the samples that correspond to non-zero references:
+        pred_str = [pred_str[i]
+                    for i in range(len(pred_str)) if len(label_str[i]) > 0]
+        label_str = [label_str[i]
+                        for i in range(len(label_str)) if len(label_str[i]) > 0]
         wer = 100 * metric_wer.compute(predictions=pred_str, references=label_str)
         cer = 100 * metric_cer.compute(predictions=pred_str, references=label_str)
+
+        # if do_normalize_eval:
+        #     pred_str = [normalizer(pred) for pred in predictions]
+        #     label_str = [normalizer(label) for label in labels]
+        #     # Filtering step to only evaluate the samples that correspond to non-zero references:
+        #     pred_str = [pred_str[i]
+        #                 for i in range(len(pred_str)) if len(label_str[i]) > 0]
+        #     label_str = [label_str[i]
+        #                  for i in range(len(label_str)) if len(label_str[i]) > 0]
+        # else:
+        #     pred_str = predictions
+        #     label_str = labels
+
+        # wer = 100 * metric_wer.compute(predictions=pred_str, references=label_str)
+        # cer = 100 * metric_cer.compute(predictions=pred_str, references=label_str)
             
         if return_preds_labels:
-            return {"wer": wer, "cer": cer}, predictions, labels
+            return {"wer": wer, "cer": cer, "exact_wer": wer, "exact_cer": cer}, predictions, labels
         else:
-            return {"wer": wer, "cer": cer}
+            return {"wer": wer, "cer": cer, "exact_wer": wer, "exact_cer": cer}
 
     def update_training_state(training_state, train_metrics, eval_metrics, step):
         safe_value = lambda x: float(x.tolist() if isinstance(x, jnp.ndarray) else x)
