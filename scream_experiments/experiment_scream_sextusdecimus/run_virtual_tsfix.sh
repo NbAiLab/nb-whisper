@@ -14,7 +14,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
         --train_split_name train \
         --dataset_load_fn "utils.dataset_load_scream.load_dataset_scream" \
         --eval_split_name validation \
-        --output_dir ../../../scream_sextusdecimus_virtual_tsfix\
+        --output_dir ../../../scream_sextusdecimus_virtual_tsfix_small\
         --overwrite_output_dir\
         --warmup_steps 2000 \
         --do_train \
@@ -33,7 +33,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
         --use_auth_token True \
         --dtype bfloat16 \
         --hub_private_repo True \
-        --hub_model_id NbAiLab/scream_sextusdecimus_virtual_tsfix\
+        --hub_model_id NbAiLab/scream_sextusdecimus_virtual_tsfix_small\
         --resume_from_checkpoint True \
         --num_beams 5 \
         --ignore_data_skip \
