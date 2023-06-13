@@ -14,7 +14,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
         --train_split_name train \
         --dataset_load_fn "utils.dataset_load_scream.load_dataset_scream" \
         --eval_split_name validation \
-        --output_dir ../../../scream_sextusdecimus_virtual_test\
+        --output_dir ../../../scream_sextusdecimus_virtual_bpeonly\
         --overwrite_output_dir\
         --warmup_steps 2000 \
         --do_train \
@@ -33,7 +33,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
         --use_auth_token True \
         --dtype bfloat16 \
         --hub_private_repo True \
-        --hub_model_id NbAiLab/scream_sextusdecimus_virtual_test\
+        --hub_model_id NbAiLab/scream_sextusdecimus_virtual_bpeonly\
         --resume_from_checkpoint True \
         --num_beams 5 \
         --ignore_data_skip \
@@ -41,6 +41,5 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
         --prev_column_name "prompt" \
         --log_examples 100 \
         --bpe_dropout 0.1 \
-        --activation_dropout 0.1 \
         --push_to_hub
         
