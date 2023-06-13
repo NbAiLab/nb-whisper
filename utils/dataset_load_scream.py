@@ -4,7 +4,7 @@ import datasets
 
 def processor_normal(sample):
     if sample["source"].lower() not in ("nrk_tv", "nrk_tv_translate"):
-        return {**sample, "previous_text": None, "timestamped_text": False}
+        return {**sample, "previous_text": None, "timestamped_text": None}
 
 
 def processor_normal_no(sample):
@@ -21,12 +21,12 @@ def processor_normal_nn(sample):
 
 def processor_timestamps(sample):
     if sample["timestamped_text"] not in (None, ""):
-        return {**sample, "text": sample["timestamped_text"], "previous_text": None, "timestamped_text": True}
+        return {**sample, "text": sample["timestamped_text"], "previous_text": None}
 
 
 def processor_previous_text_prompts(sample):
     if sample["previous_text"] is not None:
-        return {**sample, "previous_text": sample["previous_text"], "timestamped_text": False}
+        return {**sample, "previous_text": sample["previous_text"], "timestamped_text": None}
 
 
 def processor_style_prompts(sample):
@@ -40,7 +40,7 @@ def processor_style_prompts(sample):
         "audio_book": "[VERBATIM]",
     }
     if sample["source"].lower() in mapping.keys():
-        return {**sample, "previous_text": mapping.get(sample["source"].lower(), ""), "timestamped_text": False}
+        return {**sample, "previous_text": mapping.get(sample["source"].lower(), ""), "timestamped_text": None}
 
 
 def processor_previous_text_style_prompts(sample):
@@ -57,7 +57,7 @@ def processor_previous_text_style_prompts(sample):
         return {
             **sample,
             "previous_text": sample["previous_text"] + " " + mapping.get(sample["source"].lower(), ""),
-            "timestamped_text": False
+            "timestamped_text": None
         }
 
 
@@ -78,7 +78,6 @@ def processor_timestamps_previous_text_style_prompts(sample):
             **sample,
             "text": sample["timestamped_text"],
             "previous_text": sample["previous_text"] + " " + mapping.get(sample["source"].lower(), ""),
-            "timestamped_text": True,
         }
 
 
@@ -90,7 +89,7 @@ def processor_translate_to_english(sample):
             "task": "translate",
             "language": "no",
             "previous_text": None,
-            "timestamped_text": False,
+            "timestamped_text": None
         }
 
 
@@ -101,7 +100,7 @@ def processor_en_transcribe(sample):
             "text": sample["translated_text_en"],
             "language": "en",
             "previous_text": None,
-            "timestamped_text": False,
+            "timestamped_text": None
         }
 
 
@@ -112,7 +111,7 @@ def processor_nn_transcribe(sample):
             "text": sample["translated_text_nn"],
             "language": "nn",
             "previous_text": None,
-            "timestamped_text": False,
+            "timestamped_text": None
         }
 
 
@@ -123,7 +122,7 @@ def processor_es_transcribe(sample):
             "text": sample["translated_text_es"],
             "language": "es",
             "previous_text": None,
-            "timestamped_text": False,
+            "timestamped_text": None
         }
 
 
