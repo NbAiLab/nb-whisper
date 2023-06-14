@@ -55,14 +55,14 @@ def write_predictions(
     model_args=None,
     training_args=None,
     data_args=None,
-    do_predict=False,
+    eval_name=None,
 ):
-    if not do_predict:
+    if not eval_name:
         predictions_folder_name = os.path.join(
             training_args.output_dir, "predictions")
     else:
         predictions_folder_name = os.path.join(
-            training_args.output_dir, "predictions", "test")
+            training_args.output_dir, "predictions", eval_name)
 
     if not os.path.exists(predictions_folder_name):
         os.makedirs(predictions_folder_name)
