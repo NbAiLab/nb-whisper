@@ -35,7 +35,6 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
         --hub_private_repo True \
         --hub_model_id NbAiLab/scream_sextusdecimus_virtual_tsfix_medium_3e5 \
         --resume_from_checkpoint True \
-        --num_beams 5 \
         --ignore_data_skip \
         --gradient_checkpointing True \
         --prev_column_name "prompt" \
