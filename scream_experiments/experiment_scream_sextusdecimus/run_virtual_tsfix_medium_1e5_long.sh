@@ -40,6 +40,6 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
         --prev_column_name "prompt" \
         --log_examples 100 \
         --bpe_dropout 0.1 \
-        --activation_dropout 0.1 \
+	--timestamp_column_name "timestamped_text" \  
         --push_to_hub
         
