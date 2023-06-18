@@ -40,7 +40,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_debug.py \
         --log_examples 100 \
         --bpe_dropout 0.1 \
 	--timestamp_column_name "timestamped_text" \
-        --prev_column_name "previous_text" \
+        --dataset_load_fn "utils.dataset_load_scream.load_dataset_scream" \
         --push_to_hub
-         #--dataset_load_fn "utils.dataset_load_scream.load_dataset_scream" \
+        
         
