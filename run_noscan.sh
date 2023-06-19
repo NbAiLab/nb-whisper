@@ -5,7 +5,7 @@ export TCMALLOC_VERBOSE=0
 export TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD=10000000000
 python run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
             --model_name_or_path openai/whisper-tiny \
-            --dataset_name NbAiLab/NCCS_whisper \
+            --dataset_name NbAiLab/ncc_speech \
             --dataset_load_fn utils.dataset_load_scream.load_dataset_scream \
             --language Norwegian \
             --text_column_name text \
@@ -28,7 +28,7 @@ python run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
             --streaming True \
             --gradient_checkpointing True \
             --hub_private_repo True \
-            --hub_model_id NbAiLab/whisper_dummy5 \
+            --hub_model_id NbAiLab/whisper_dummy6 \
             --use_auth_token True \
             --dtype bfloat16 \
             --predict_with_generate \
