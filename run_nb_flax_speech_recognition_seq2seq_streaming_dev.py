@@ -928,7 +928,7 @@ def main():
 
     if timestamp_column_name:
         tokens_added = tokenizer.add_tokens([f"<|{i * 0.02:.2f}|>" for i in range(1501)], special_tokens=True)
-        logging.info(f"Tokenizer: added {tokens_added} timestamps tokens.")
+        logging.warning(f"Tokenizer: added {tokens_added} timestamps tokens.")
 
     # BPE dropout only added for training
     inference_tokenizer = tokenizer
@@ -952,6 +952,9 @@ def main():
             tokenizer._tokenizer.model = type(tokenizer._tokenizer.model)(
                 *tokenizer_files, dropout=model_args.bpe_dropout
             )
+            if timestamp_column_name:
+                tokens_added = tokenizer.add_tokens([f"<|{i * 0.02:.2f}|>" for i in range(1501)], special_tokens=True)
+                logging.warning(f"BPE Tokenizer: added {tokens_added} timestamps tokens.")
 
     if data_args.language is not None:
         # We only need to set the task id when the language is specified (i.e. in a multilingual setting)
