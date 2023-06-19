@@ -796,7 +796,7 @@ def main():
             raw_datasets[test_split_name] = dataset_load(
                 data_args.dataset_name,
                 data_args.dataset_config_name,
-                split=data_args.test_split_name,
+                split=test_split_name,
                 cache_dir=data_args.dataset_cache_dir,
                 streaming=data_args.streaming,
                 use_auth_token=True if model_args.use_auth_token else None,
