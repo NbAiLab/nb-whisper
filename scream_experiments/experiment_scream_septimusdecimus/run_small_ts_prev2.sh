@@ -37,7 +37,6 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
         --resume_from_checkpoint True \
         --ignore_data_skip \
         --gradient_checkpointing True \
-        --prev_column_name "prompt" \
         --log_examples 100 \
         --bpe_dropout 0.1 \
 	--timestamp_column_name "timestamped_text" \
