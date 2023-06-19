@@ -13,8 +13,8 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
         --text_column_name text \
         --train_split_name train \
         --dataset_load_fn "utils.dataset_load_scream.load_dataset_scream" \
-        --eval_split_name validation \
-        --output_dir ../../../scream_septimusdecimus_small_ts_prev_retry \
+        --eval_split_name "validation,validation_nrk_tv,validation_nrk_silence,validation_stortinget" \
+        --output_dir ../../../scream_septimusdecimus_small_ts_prev \
         --overwrite_output_dir\
         --warmup_steps 2000 \
         --do_train \
@@ -33,7 +33,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
         --use_auth_token True \
         --dtype bfloat16 \
         --hub_private_repo True \
-        --hub_model_id NbAiLab/scream_septimusdecimus_small_ts_prev_retry \
+        --hub_model_id NbAiLab/scream_septimusdecimus_small_ts_prev \
         --resume_from_checkpoint True \
         --ignore_data_skip \
         --gradient_checkpointing True \
