@@ -1516,7 +1516,7 @@ def main():
         training_summary["hyperparameters"]["gradient_accumulation_steps"] = f"{training_args.gradient_accumulation_steps:,}"
         training_summary["hyperparameters"]["effective_total_train_batch_size"] = f"{train_batch_size * training_args.gradient_accumulation_steps:,}"
     
-    if model_args.dropout or model_args.attention_dropout or model_args.activation_dropout or model_args.encoder_dropout or model_args.decoder_dropout:
+    if model_args.dropout or model_args.bpe_dropout or model_args.attention_dropout or model_args.activation_dropout or model_args.encoder_dropout or model_args.decoder_dropout:
         training_summary["hyperparameters"]["dropout"] = True
         if model_args.dropout:
             training_summary["hyperparameters"]["dropout_probability"] = model_args.dropout
