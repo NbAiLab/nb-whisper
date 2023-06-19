@@ -5,7 +5,7 @@ export TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD=10000000000
 python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
         --model_name_or_path openai/whisper-small \
         --run_name "Scream - scream_septimusdecimus_small_ts" \
-        --run_description "A Medium Scream model. Labels" \
+        --run_description "A Medium Scream model. Timestamps and Prev" \
         --wandb_entity "nbailab" \
         --wandb_project "Scream - septimusdecimus" \
         --dataset_name NbAiLab/ncc_speech \
