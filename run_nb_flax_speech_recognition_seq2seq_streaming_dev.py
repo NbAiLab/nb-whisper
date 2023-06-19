@@ -12,7 +12,7 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-## 
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
@@ -936,7 +936,7 @@ def main():
     inference_tokenizer = tokenizer
     if training_args.do_train and model_args.bpe_dropout:
         if not model_args.use_fast_tokenizer:
-            logging.warn("BPE Dropout can only be used with fast tokenizers. Try enabling --use_fast_tokenizer")
+            logging.warning("BPE Dropout can only be used with fast tokenizers. Try enabling --use_fast_tokenizer")
         else:
             # Workaround to enable BPE dropout, cf. https://github.com/huggingface/tokenizers/issues/201#issuecomment-720392299
             tokenizer = AutoTokenizer.from_pretrained(
@@ -988,7 +988,7 @@ def main():
         if do_remove_punctuation:
             input_str = normalizer(input_str).strip()
         
-        # Process prefix tokens
+        # Process prefix tokens
         prefix_timestamps = (
             bool(batch.get(timestamp_column_name))
             and input_str.strip() not in ("<|nocaptions|>", "<|nospeech|>")
@@ -1088,10 +1088,10 @@ def main():
                     for i in range(len(predictions)) if len(labels[i]) > 0]
         label_str = [labels[i]
                         for i in range(len(labels)) if len(labels[i]) > 0]
-        # Raw metrics
+        # Raw metrics
         raw_wer = 100 * metric_wer.compute(predictions=pred_str, references=label_str)
         raw_cer = 100 * metric_cer.compute(predictions=pred_str, references=label_str)
-        # Normalized metrics
+        # Normalized metrics
         pred_str = [normalizer(pred) for pred in predictions]
         label_str = [normalizer(label) for label in labels]
         # Filtering step to only evaluate the samples that correspond to non-zero references:
