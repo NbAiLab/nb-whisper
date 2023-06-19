@@ -2,7 +2,7 @@ export TOKENIZERS_PARALLELISM=false
 export CMALLOC_VERBOSE=0
 export TCMALLOC_VERBOSE=0
 export TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD=10000000000
-python ../../run_nb_flax_speech_recognition_seq2seq_streaming_debug.py \
+python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
         --model_name_or_path openai/whisper-small \
         --run_name "Scream - scream_septimusdecimus_small_ts" \
         --run_description "A Medium Scream model. Labels" \
