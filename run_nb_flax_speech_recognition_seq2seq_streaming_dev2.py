@@ -926,12 +926,10 @@ def main():
     # normalizer = BasicTextNormalizer()  # 'official' text normalizer from OpenAI
     normalizer = SimpleTextNormalizer()
 
-    breakpoint()
-
     if timestamp_column_name:
-        breakpoint()
         tokens_added = tokenizer.add_tokens([f"<|{i * 0.02:.2f}|>" for i in range(1501)], special_tokens=True)
-        logging.info(f"Tokenizer: added {tokens_added} timestamps tokens.")
+        logging.warn(f"Tokenizer: added {tokens_added} timestamps tokens.")
+        breakpoint()
 
     # BPE dropout only added for training
     inference_tokenizer = tokenizer
