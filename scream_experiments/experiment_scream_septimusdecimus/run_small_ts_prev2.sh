@@ -2,7 +2,7 @@ export TOKENIZERS_PARALLELISM=false
 export CMALLOC_VERBOSE=0
 export TCMALLOC_VERBOSE=0
 export TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD=10000000000
-python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
+python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev2.py \
         --model_name_or_path openai/whisper-small \
         --run_name "Scream - scream_septimusdecimus_small_ts" \
         --run_description "A Medium Scream model. Timestamps and Prev" \
@@ -14,7 +14,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
         --train_split_name train \
         --dataset_load_fn "utils.dataset_load_scream_nopretext.load_dataset_scream" \
         --eval_split_name "validation,validation_nrk_tv,validation_stortinget" \
-        --output_dir ../../../scream_septimusdecimus_small_ts_prev \
+        --output_dir ../../../scream_septimusdecimus_small_ts_prev2 \
         --overwrite_output_dir\
         --warmup_steps 2000 \
         --do_train \
@@ -33,7 +33,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
         --use_auth_token True \
         --dtype bfloat16 \
         --hub_private_repo True \
-        --hub_model_id NbAiLab/scream_septimusdecimus_small_ts_prev \
+        --hub_model_id NbAiLab/scream_septimusdecimus_small_ts_prev2 \
         --resume_from_checkpoint True \
         --ignore_data_skip \
         --gradient_checkpointing True \
