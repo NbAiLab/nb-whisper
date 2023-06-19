@@ -988,7 +988,7 @@ def main():
         if do_remove_punctuation:
             input_str = normalizer(input_str).strip()
         
-        # Process prefix tokens
+        # Process prefix tokens
         prefix_timestamps = (
             bool(batch.get(timestamp_column_name))
             and input_str.strip() not in ("<|nocaptions|>", "<|nospeech|>")
