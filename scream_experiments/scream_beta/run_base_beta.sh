@@ -14,7 +14,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
         --train_split_name train \
         --dataset_load_fn "utils.dataset_load_scream_nopretext.load_dataset_scream" \
         --eval_split_name "validation_fleurs,validation_stortinget,validation_nrk_tv" \
-        --output_dir ../../../scream_small_beta \
+        --output_dir ../../../scream_base_beta \
         --overwrite_output_dir\
         --warmup_steps 2500 \
         --do_train \

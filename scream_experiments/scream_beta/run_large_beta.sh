@@ -4,7 +4,7 @@ export TCMALLOC_VERBOSE=0
 export TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD=10000000000
 python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
         --model_name_or_path openai/whisper-large-v2 \
-        --run_name "Scream - scream_small_beta" \
+        --run_name "Scream - scream_large_beta" \
         --run_description "A Large Scream model. Beta." \
         --wandb_entity "nbailab" \
         --wandb_project "Scream - beta" \
