@@ -1304,7 +1304,8 @@ def main():
         )
         flat_mask = {path: (path[-1] != "bias" and path[-2:] not in layer_norm_named_params) for path in flat_params}
         return traverse_util.unflatten_dict(flat_mask)
-        
+    
+    breakpoint()
     # Create adam optimizer
     optimizer = optax.adamw(
         learning_rate=linear_decay_lr_schedule_fn,
