@@ -2,8 +2,8 @@ export TOKENIZERS_PARALLELISM=false
 export CMALLOC_VERBOSE=0
 export TCMALLOC_VERBOSE=0
 export TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD=10000000000
-python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
-        --model_name_or_path openai/whisper-small \
+python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev2.py \
+        --model_name_or_path NbAiLab/scream_septimusdecimus_small_ts_prev2 \
         --run_name "Scream - scream_septimusdecimus_small_ts" \
         --run_description "A Medium Scream model. Timestamps and Prev" \
         --wandb_entity "nbailab" \
@@ -12,17 +12,17 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
         --language Norwegian \
         --text_column_name text \
         --train_split_name train \
-        --dataset_load_fn "utils.dataset_load_scream_nopretext2.load_dataset_scream" \
-        --eval_split_name "validation_nrk_tv" \
-        --output_dir ../../../scream_septimusdecimus_small_ts_prev \
+        --dataset_load_fn "utils.dataset_load_scream_nopretext_hq.load_dataset_scream" \
+        --eval_split_name "validation" \
+        --output_dir ../../../scream_septimusdecimus_small_hq_23k \
         --overwrite_output_dir\
         --warmup_steps 2000 \
         --do_train \
         --do_eval \
-        --num_train_steps 30000 \
+        --num_train_steps 10000 \
         --lr_scheduler_type linear \
         --eval_steps 1000 \
-        --learning_rate 3e-5 \
+        --learning_rate 1e-5 \
         --preprocessing_num_workers 32 \
         --per_device_train_batch_size 32 \
         --per_device_eval_batch_size 4 \
@@ -33,7 +33,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
         --use_auth_token True \
         --dtype bfloat16 \
         --hub_private_repo True \
-        --hub_model_id NbAiLab/scream_septimusdecimus_small_ts_prev \
+        --hub_model_id NbAiLab/scream_septimusdecimus_small_hq_23k \
         --resume_from_checkpoint True \
         --ignore_data_skip \
         --gradient_checkpointing True \

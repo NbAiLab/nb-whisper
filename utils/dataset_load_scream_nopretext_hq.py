@@ -3,7 +3,7 @@ import datasets
 
 
 def processor_normal(sample):
-    if sample["source"].lower() not in ("nrk_tv", "nrk_tv_translate"):
+    if sample["source"].lower() not in ("nrk_tv", "nrk_tv_translate") and sample.get('verbosity_level', 0) >= 6:
         return {**sample, "previous_text": None, "timestamped_text": None}
 
 
@@ -32,7 +32,11 @@ def processor_timestamps(sample):
 def processor_style_prompts(sample):
     mapping = {
         "nrk_tv": "[SUBTITLE]",
+        "nrk_tv_translate": "[SUBTITLE]",
+        "npsc": "[REPORT]",
         "stortinget": "[REPORT]",
+        "nst": "[VERBATIM]",
+        "fleurs": "[VERBATIM]",
         "audio_book": "[VERBATIM]",
     }
     if sample["source"].lower() in mapping.keys():
