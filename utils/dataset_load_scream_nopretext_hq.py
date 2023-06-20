@@ -3,7 +3,8 @@ import datasets
 
 
 def processor_normal(sample):
-    if sample["source"].lower() not in ("nrk_tv", "nrk_tv_translate") and sample.get('verbosity_level', 0) >= 6:
+    verbosity_level = sample.get('verbosity-level', 0)
+    if sample["source"].lower() not in ("nrk_tv", "nrk_tv_translate") and verbosity_level is not None and verbosity_level >= 6:
         return {**sample, "previous_text": None, "timestamped_text": None}
 
 
