@@ -578,6 +578,26 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
         return batch
 
 
+def flatten_eval_lines(eval_lines: List[dict], by: str="step") -> list:
+    """
+    Flattens a list of dictionaries based on a specified key.
+
+    Args:
+        eval_lines (list[dict]): A list of dictionaries to be flattened.
+        by (str, optional): The key based on which the dictionaries should be flattened. 
+            Defaults to "step".
+
+    Returns:
+        list[dict]: A list of flattened dictionaries.
+    """
+    flattened_eval_lines = {}
+    for line in eval_lines:
+        if line[by] not in flattened_eval_lines:
+            flattened_eval_lines[line[by]] = {}
+        flattened_eval_lines[line[by]].update(line)
+    return list(flattened_eval_lines.values())
+
+
 def load_maybe_streaming_dataset(dataset_name, dataset_config_name, split="train", streaming=True, **kwargs):
     """
     Utility function to load a dataset in streaming mode. For datasets with multiple splits,
@@ -1145,7 +1165,7 @@ def main():
                 if step in train_metrics_dict:
                     eval_metric_dict.update(train_metrics_dict[step])
             eval_lines.append(eval_metric_dict)
-        return {**state, "eval_lines": eval_lines}
+        return {**state, "eval_lines": flatten_eval_lines(eval_lines)}
 
     def write_metric(summary_writer, train_metrics, eval_metrics, train_time, step, eval_name=None, predictions=None, labels=None, do_predict=False):
         if not do_predict:
