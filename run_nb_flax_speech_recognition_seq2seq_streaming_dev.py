@@ -462,6 +462,14 @@ class DataTrainingArguments:
             )
         },
     )
+    push_to_hub_auto_lfs_prune: bool = field(
+        default=False,
+        metadata={
+            "help": (
+                "Auto prune git lfs, event files referenced by 'recent' commits."
+            )
+        },
+    )
 
 
 def shift_tokens_right(label_ids: np.array, decoder_start_token_id: Union[int, np.ndarray]) -> np.ndarray:
@@ -1744,7 +1752,7 @@ def main():
                     repo.push_to_hub(
                         commit_message=f"Saving weights and logs of step {step} - epoch {epoch}",
                         blocking=False,
-                        auto_lfs_prune=True,
+                        auto_lfs_prune=data_args.push_to_hub_auto_lfs_prune,
                     )
 
     # ======================== Prediction loop ==============================
@@ -1832,7 +1840,7 @@ def main():
             )
             if training_args.push_to_hub:
                 repo.push_to_hub(
-                    commit_message=f"Saving test results", blocking=False, auto_lfs_prune=True)
+                    commit_message=f"Saving test results", blocking=False, auto_lfs_prune=data_args.push_to_hub_auto_lfs_prune)
 
 
 if __name__ == "__main__":
