@@ -13,7 +13,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
         --language Norwegian \
         --text_column_name text \
         --train_split_name train \
-        --eval_split_name validation \
+        --eval_split_name "validation_fleurs,validation_stortinget,validation_nrk_tv,nst,audio_books" \
         --dataset_load_fn "utils.dataset_load_scream.load_dataset_scream" \
         --output_dir ../../../scream_duodevicesimus_working \
         --overwrite_output_dir\
