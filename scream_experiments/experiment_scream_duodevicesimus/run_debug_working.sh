@@ -13,13 +13,15 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
         --language Norwegian \
         --text_column_name text \
         --train_split_name train \
-        --eval_split_name "validation_fleurs,validation_stortinget,validation_nrk_tv,nst,audio_books" \
+        --test_split_name "test_fleurs,test_stortinget,test_nrk_tv,test_audio_books" \
+        --eval_split_name "validation_fleurs,validation_stortinget,validation_nrk_tv,validation_audio_books" \
         --dataset_load_fn "utils.dataset_load_scream.load_dataset_scream" \
         --output_dir ../../../scream_duodevicesimus_working \
         --overwrite_output_dir\
         --warmup_steps 2000 \
         --do_train \
         --do_eval \
+        --do_predict \
         --num_train_steps 20000 \
         --lr_scheduler_type linear \
         --eval_steps 1000 \
