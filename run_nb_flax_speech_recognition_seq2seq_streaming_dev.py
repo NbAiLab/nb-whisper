@@ -63,7 +63,7 @@ import evaluate
 import transformers
 from datasets import Dataset, DatasetDict, IterableDatasetDict, interleave_datasets, load_dataset
 from datasets.distributed import split_dataset_by_node
-from huggingface_hub import Repository, create_repo
+from huggingface_hub import create_repo
 from transformers import (
     AutoConfig,
     AutoFeatureExtractor,
@@ -82,6 +82,8 @@ from transformers.utils import check_min_version, send_example_telemetry
 from transformers.utils.versions import require_version
 
 from flax.training import checkpoints
+
+from utils.repository import Repository
 
 # Will error if the minimal version of Transformers is not installed. Remove at your own risks.
 check_min_version("4.27.0.dev0")
@@ -1461,7 +1463,7 @@ def main():
         f"  Number of hosts = {num_of_hosts}")
     if num_of_hosts > 1:
         logger.info(
-            f"  Current host idx = {current_host_idx}")
+            f"  Current host idx = {current_host_idx} ({socket.gethostname()})")
     logger.info(
         f"  Instantaneous batch size per device = {training_args.per_device_train_batch_size}")
     logger.info(
@@ -1740,7 +1742,10 @@ def main():
                 readme.write_text(TrainingSummary(**training_summary).to_model_card())
                 if training_args.push_to_hub:
                     repo.push_to_hub(
-                        commit_message=f"Saving weights and logs of step {step} - epoch {epoch}", blocking=False)
+                        commit_message=f"Saving weights and logs of step {step} - epoch {epoch}",
+                        blocking=False,
+                        auto_lfs_prune=True,
+                    )
 
     # ======================== Prediction loop ==============================
     if training_args.do_predict:
@@ -1827,7 +1832,7 @@ def main():
             )
             if training_args.push_to_hub:
                 repo.push_to_hub(
-                    commit_message=f"Saving test results", blocking=False)
+                    commit_message=f"Saving test results", blocking=False, auto_lfs_prune=True)
 
 
 if __name__ == "__main__":
