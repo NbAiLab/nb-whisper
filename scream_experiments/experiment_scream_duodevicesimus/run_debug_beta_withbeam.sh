@@ -22,7 +22,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
         --do_train \
         --do_eval \
         --do_predict \
-        --num_train_steps 25000 \
+        --num_train_steps 20000 \
         --lr_scheduler_type linear \
         --eval_steps 1000 \
         --learning_rate 5e-5 \
