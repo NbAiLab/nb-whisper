@@ -48,7 +48,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
         --adam_beta2 0.98 \
         --adam_epsilon 1e-6 \
 	--timestamp_column_name "timestamped_text" \
-        --prev_column_name "previous_text" \
+        --prev_column_name "prompt" \
         --push_to_hub
         
         
