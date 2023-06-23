@@ -16,7 +16,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
         --test_split_name "test_fleurs,test_stortinget,test_nrk_tv" \
         --eval_split_name "validation_fleurs,validation_stortinget,validation_nrk_tv" \
         --dataset_load_fn "utils.dataset_load_scream_noaudiobooks.load_dataset_scream" \
-        --output_dir ../../../scream_duodevicesimus_working \
+        --output_dir ../../../scream_duodevicesimus_working_noaudiobooks \
         --overwrite_output_dir\
         --warmup_steps 2000 \
         --do_train \
@@ -36,7 +36,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
         --use_auth_token True \
         --dtype bfloat16 \
         --hub_private_repo True \
-        --hub_model_id NbAiLab/scream_duodevicesimus_working \
+        --hub_model_id NbAiLab/scream_duodevicesimus_working_noaudiobooks \
         --resume_from_checkpoint True \
         --num_beams 5 \
         --ignore_data_skip \
