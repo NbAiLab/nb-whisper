@@ -3,7 +3,7 @@ import datasets
 
 
 def processor_normal(sample):
-    if sample["source"].lower() not in ("nrk_tv", "nrk_tv_translate", "audio_books"):
+    if sample["source"].lower() not in ("nrk_tv", "nrk_tv_translate"):
         return {**sample, "previous_text": None, "timestamped_text": None}
 
 
