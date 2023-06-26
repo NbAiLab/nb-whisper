@@ -140,4 +140,4 @@ def load_dataset_scream(dataset_name, dataset_config_name=None, split="train", s
     else:
         processors = None
     ds = datasets.load_dataset(dataset_name, dataset_config_name, split=split, streaming=streaming, post_processors=processors, **kwargs)
-    return ds.filter(lambda sample: sample if sample["source"] != "audio_book" else None)
+    return ds
