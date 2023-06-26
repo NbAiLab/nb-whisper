@@ -3,7 +3,7 @@ import datasets
 
 
 def processor_normal(sample):
-    if sample["source"].lower() not in ("nrk_tv", "nrk_tv_translate"):
+    if sample["source"].lower() not in ("audio_books") and sample["verbosity_level"] != 6:
         return {**sample, "previous_text": None, "timestamped_text": None}
 
 
@@ -33,13 +33,11 @@ def processor_style_prompts(sample):
     mapping = {
         "nrk_tv": "<|startoflm|>",
         "nrk_tv_translate": "<|startoflm|>",
-        # "npsc": "",
-        # "stortinget": "",
-        # "nst": "",
-        # "fleurs": "",
-        # "audio_book": "",
+        "stortinget": "<|startoflm|>",
+        "nst": "<|startoflm|>",
+        "fleurs": "<|startoflm|>",
     }
-    if sample["source"].lower() in mapping.keys():
+    if sample["source"].lower() in mapping.keys() and sample["verbosity_level"] == 6:
         return {**sample, "previous_text": mapping.get(sample["source"].lower(), ""), "timestamped_text": None}
 
 
@@ -47,13 +45,11 @@ def processor_previous_text_style_prompts(sample):
     mapping = {
         "nrk_tv": "<|startoflm|>",
         "nrk_tv_translate": "<|startoflm|>",
-        # "npsc": "",
-        # "stortinget": "",
-        # "nst": "",
-        # "fleurs": "",
-        # "audio_book": "",
+        "stortinget": "<|startoflm|>",
+        "nst": "<|startoflm|>",
+        "fleurs": "<|startoflm|>",
     }
-    if sample["previous_text"] is not None and sample["source"].lower() in mapping.keys():
+    if sample["previous_text"] is not None and sample["source"].lower() in mapping.keys() and sample["verbosity_level"] == 6:
         return {
             **sample,
             "previous_text": sample["previous_text"] + " " + mapping.get(sample["source"].lower(), ""),
@@ -65,15 +61,14 @@ def processor_timestamps_previous_text_style_prompts(sample):
     mapping = {
         "nrk_tv": "<|startoflm|>",
         "nrk_tv_translate": "<|startoflm|>",
-        # "npsc": "",
-        # "stortinget": "",
-        # "nst": "",
-        # "fleurs": "",
-        # "audio_book": "",
+        "stortinget": "<|startoflm|>",
+        "nst": "<|startoflm|>",
+        "fleurs": "<|startoflm|>",
     }
     if (sample["previous_text"] is not None
         and sample["timestamped_text"] not in (None, "")
-        and sample["source"].lower() in mapping.keys()):
+        and sample["source"].lower() in mapping.keys()
+        and sample["verbosity_level"] == 6):
         return {
             **sample,
             "text": sample["timestamped_text"],
