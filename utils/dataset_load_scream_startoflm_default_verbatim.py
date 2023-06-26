@@ -81,6 +81,17 @@ def processor_timestamps_previous_text_style_prompts(sample):
         }
 
 
+def processor_translate_to_english(sample):
+    if sample["translated_text_en"] is not None:
+        return {
+            **sample,
+            "text": sample["translated_text_en"],
+            "task": "translate",
+            "language": "no",
+            "previous_text": None,
+            "timestamped_text": None
+        }
+
 
 def processor_en_transcribe(sample):
     if sample["translated_text_en"] is not None:
@@ -134,4 +145,4 @@ def load_dataset_scream(dataset_name, dataset_config_name=None, split="train", s
     else:
         processors = None
     ds = datasets.load_dataset(dataset_name, dataset_config_name, split=split, streaming=streaming, post_processors=processors, **kwargs)
-    return ds.filter(lambda sample: sample if sample["source"] != "audio_book" else None)
+    return ds
