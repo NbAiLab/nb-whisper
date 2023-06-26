@@ -45,13 +45,13 @@ def processor_style_prompts(sample):
 
 def processor_previous_text_style_prompts(sample):
     mapping = {
-        "nrk_tv": "<|startoflm|>",
-        "nrk_tv_translate": "<|startoflm|>",
-        # "npsc": "",
-        # "stortinget": "",
-        # "nst": "",
-        # "fleurs": "",
-        # "audio_books": "",
+        "nrk_tv": "[SUBTITLE]",
+        "nrk_tv_translate": "[SUBTITLE]",
+        "npsc": "[REPORT]",
+        "stortinget": "[REPORT]",
+        "nst": "[VERBATIM]",
+        "fleurs": "[VERBATIM]",
+        "audio_book": "[VERBATIM]",
     }
     if sample["previous_text"] is not None and sample["source"].lower() in mapping.keys():
         return {
@@ -63,13 +63,13 @@ def processor_previous_text_style_prompts(sample):
 
 def processor_timestamps_previous_text_style_prompts(sample):
     mapping = {
-        "nrk_tv": "<|startoflm|>",
-        "nrk_tv_translate": "<|startoflm|>",
-        # "npsc": "",
-        # "stortinget": "",
-        # "nst": "",
-        # "fleurs": "",
-        # "audio_book": "",
+        "nrk_tv": "[SUBTITLE]",
+        "nrk_tv_translate": "[SUBTITLE]",
+        "npsc": "[REPORT]",
+        "stortinget": "[REPORT]",
+        "nst": "[VERBATIM]",
+        "fleurs": "[VERBATIM]",
+        "audio_book": "[VERBATIM]",
     }
     if (sample["previous_text"] is not None
         and sample["timestamped_text"] not in (None, "")
@@ -80,17 +80,6 @@ def processor_timestamps_previous_text_style_prompts(sample):
             "previous_text": sample["previous_text"] + " " + mapping.get(sample["source"].lower(), ""),
         }
 
-
-def processor_translate_to_english(sample):
-    if sample["translated_text_en"] is not None:
-        return {
-            **sample,
-            "text": sample["translated_text_en"],
-            "task": "translate",
-            "language": "no",
-            "previous_text": None,
-            "timestamped_text": None
-        }
 
 
 def processor_en_transcribe(sample):
