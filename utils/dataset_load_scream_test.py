@@ -63,13 +63,13 @@ def processor_previous_text_style_prompts(sample):
 
 def processor_timestamps_previous_text_style_prompts(sample):
     mapping = {
-        "nrk_tv": "<|startoflm|>",
-        "nrk_tv_translate": "<|startoflm|>",
-        # "npsc": "",
-        # "stortinget": "",
-        # "nst": "",
-        # "fleurs": "",
-        # "audio_book": "",
+        "nrk_tv": "[SUBTITLE]",
+        "nrk_tv_translate": "[SUBTITLE]",
+        "npsc": "[REPORT]",
+        "stortinget": "[REPORT]",
+        "nst": "[VERBATIM]",
+        "fleurs": "[VERBATIM]",
+        "audio_book": "[VERBATIM]",
     }
     if (sample["previous_text"] is not None
         and sample["timestamped_text"] not in (None, "")
@@ -145,4 +145,4 @@ def load_dataset_scream(dataset_name, dataset_config_name=None, split="train", s
     else:
         processors = None
     ds = datasets.load_dataset(dataset_name, dataset_config_name, split=split, streaming=streaming, post_processors=processors, **kwargs)
-    return ds.filter(lambda sample: sample if sample["source"] != "audio_book" else None)
+    return ds
