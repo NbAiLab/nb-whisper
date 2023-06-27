@@ -38,7 +38,7 @@ def processor_style_prompts(sample):
         "fleurs": "<|startoflm|>",
         "audio_books": "<|startoflm|>",
     }
-    if sample["source"].lower() in mapping.keys() and sample["verbosity_level"] == 6:
+    if sample["source"].lower() in mapping.keys() and sample["verbosity_level"] == 6 and sample["wav2vec_wer"] <= 0.1:
         return {**sample, "previous_text": mapping.get(sample["source"].lower(), ""), "timestamped_text": None}
 
 
@@ -52,7 +52,7 @@ def processor_previous_text_style_prompts(sample):
         "fleurs": "<|startoflm|>",
         "audio_books": "<|startoflm|>",
     }
-    if sample["previous_text"] is not None and sample["source"].lower() in mapping.keys() and sample["verbosity_level"] == 6:
+    if sample["previous_text"] is not None and sample["source"].lower() in mapping.keys() and sample["verbosity_level"] == 6  and sample["wav2vec_wer"] <= 0.1:
         return {
             **sample,
             "previous_text": sample["previous_text"] + " " + mapping.get(sample["source"].lower(), ""),
@@ -73,7 +73,7 @@ def processor_timestamps_previous_text_style_prompts(sample):
     if (sample["previous_text"] is not None
         and sample["timestamped_text"] not in (None, "")
         and sample["source"].lower() in mapping.keys()
-        and sample["verbosity_level"] == 6):
+        and sample["verbosity_level"] == 6) and sample["wav2vec_wer"] <= 0.1:
         return {
             **sample,
             "text": sample["timestamped_text"],
