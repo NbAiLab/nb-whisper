@@ -21,8 +21,8 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --hub_model_id NbAiLab/nb-whisper_public_beta_small_testrun \
     --output_dir ../../../nb-whisper_public_beta_small_testrun \
     --overwrite_output_dir \
+    --do_train \
     --do_predict \
-    --do_test \
     --do_eval \
     --predict_with_generate \
     --warmup_steps 1000 \
