@@ -1537,6 +1537,10 @@ def main():
             "total_num_training_examples": f"{data_args.num_train_steps * train_batch_size:,}",
             "steps_per_epoch": "_To be computed after first epoch_",
             "num_beams": model_args.num_beams,
+            "weight_decay": training_args.weight_decay,
+            "adam_beta1": training_args.adam_beta1,
+            "adam_beta2": training_args.adam_beta2,
+            "adam_epsilon": training_args.adam_epsilon,
         },
         # TODO: Adapt https://github.com/huggingface/transformers/blob/main/src/transformers/modelcard.py#L855
         # "hyperparameters": training_args.to_sanitized_dict()
