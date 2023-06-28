@@ -68,7 +68,7 @@ def processor_timestamps_previous_text_style_prompts(sample):
         "stortinget": "<|startoflm|>",
         "nst": "<|startoflm|>",
         "fleurs": "<|startoflm|>",
-         "audio_books": "<|startoflm|>",
+        "audio_books": "<|startoflm|>",
     }
     if (sample["previous_text"] is not None
         and sample["timestamped_text"] not in (None, "")

@@ -15,11 +15,11 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --language Norwegian \
     --text_column_name text \
     --train_split_name train \
-    --dataset_load_fn "utils.dataset_load_public_beta.load_dataset_scream" \
+    --dataset_load_fn "utils.dataset_load_startoflm_default_nonverbatim.load_dataset_scream" \
     --test_split_name "test_fleurs,test_stortinget,test_nrk_tv,test_audio_books" \
     --eval_split_name "validation_fleurs,validation_stortinget,validation_nrk_tv,validation_audio_books" \
-    --hub_model_id NbAiLab/nb-whisper_public_beta_small_testrun \
-    --output_dir ../../../nb-whisper_public_beta_small_testrun \
+    --hub_model_id NbAiLab/nb-whisper_public_beta_small_testrun2 \
+    --output_dir ../../../nb-whisper_public_beta_small_testrun2 \
     --overwrite_output_dir \
     --do_train \
     --do_predict \
