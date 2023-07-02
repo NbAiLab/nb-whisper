@@ -36,7 +36,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --adam_epsilon 1e-6 \
     --bpe_dropout 0.1 \
     --activation_dropout 0.1 \
-    --per_device_train_batch_size 16 \
+    --per_device_train_batch_size 8 \
     --per_device_eval_batch_size 8 \
     --preprocessing_num_workers 32 \
     --timestamp_column_name "timestamped_text" \
@@ -51,8 +51,6 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --hub_private_repo True \
     --resume_from_checkpoint True \
     --ignore_data_skip \
-    --use_scan True \
-    --whisper_model_class modeling_flax_whisper.FlaxWhisperForConditionalGeneration \
     --gradient_checkpointing True \
     --push_to_hub_auto_lfs_prune True \
     --push_to_hub
