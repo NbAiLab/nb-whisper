@@ -11,7 +11,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --run_description "A Medium NB-Whisper Public Beta" \
     --wandb_entity "nbailab" \
     --wandb_project "NB-Whisper Public Beta" \
-    --dataset_name NbAiLab/ncc_speech2 \
+    --dataset_name NbAiLab/ncc_speech \
     --language Norwegian \
     --text_column_name text \
     --train_split_name train \
