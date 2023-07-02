@@ -8,16 +8,18 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
         --run_description "A Medium Scream model. Beta." \
         --wandb_entity "nbailab" \
         --wandb_project "Scream - beta" \
-        --dataset_name NbAiLab/ncc_speech \
+        --dataset_name NbAiLab/ncc_speech2 \
         --language Norwegian \
         --text_column_name text \
         --train_split_name train \
-        --dataset_load_fn "utils.dataset_load_scream_nopretext.load_dataset_scream" \
-        --eval_split_name "validation_fleurs,validation_stortinget,validation_nrk_tv" \
-        --output_dir ../../../scream_medium_beta \
+        --dataset_load_fn "utils.dataset_load_public_beta.load_dataset_scream" \
+    	--test_split_name "test_fleurs,test_stortinget" \
+        --eval_split_name "validation_fleurs,validation_stortinget" \
+        --output_dir ../../../scream_medium_beta_tes_test \
         --overwrite_output_dir\
         --warmup_steps 2500 \
         --do_train \
+	--do_predict \
         --do_eval \
         --num_train_steps 25000 \
         --lr_scheduler_type linear \
@@ -33,7 +35,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
         --use_auth_token True \
         --dtype bfloat16 \
         --hub_private_repo True \
-        --hub_model_id NbAiLab/scream_medium_beta \
+        --hub_model_id NbAiLab/scream_medium_beta_test \
         --resume_from_checkpoint True \
         --ignore_data_skip \
         --gradient_checkpointing True \
@@ -44,7 +46,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
         --adam_beta2 0.98 \
         --adam_epsilon 1e-6 \
 	--timestamp_column_name "timestamped_text" \
-        --prev_column_name "previous_text" \
+        --prev_column_name "prompt" \
         --push_to_hub
         
         
