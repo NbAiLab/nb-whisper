@@ -47,7 +47,6 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --streaming True \
     --use_auth_token True \
     --dtype bfloat16 \
-    --num_beams 5 \
     --hub_private_repo True \
     --resume_from_checkpoint True \
     --ignore_data_skip \
