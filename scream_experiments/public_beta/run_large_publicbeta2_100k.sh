@@ -18,13 +18,11 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --dataset_load_fn "utils.dataset_load_public_beta.load_dataset_scream" \
     --test_split_name "test_fleurs,test_stortinget" \
     --eval_split_name "validation_fleurs,validation_stortinget" \
-    --hub_model_id NbAiLab/nb-whisper-largetest2-100k \
-    --output_dir ../../../nb-whisper-largetest2-100k \
+    --hub_model_id NbAiLab/nb-whisper-largetest3-100k \
+    --output_dir ../../../nb-whisper-largetestr3-100k \
     --overwrite_output_dir \
     --do_train \
-    --do_predict \
     --do_eval \
-    --predict_with_generate \
     --warmup_steps 5000 \
     --num_train_steps 100000 \
     --eval_steps 2500 \
@@ -36,8 +34,8 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --adam_epsilon 1e-6 \
     --bpe_dropout 0.1 \
     --activation_dropout 0.1 \
-    --per_device_train_batch_size 16 \
-    --per_device_eval_batch_size 8 \
+    --per_device_train_batch_size 5 \
+    --per_device_eval_batch_size 4 \
     --preprocessing_num_workers 32 \
     --timestamp_column_name "timestamped_text" \
     --prev_column_name "prompt" \
