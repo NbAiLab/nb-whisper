@@ -18,9 +18,8 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --dataset_load_fn "utils.dataset_load_public_beta.load_dataset_scream" \
     --test_split_name "test_fleurs,test_stortinget" \
     --eval_split_name "validation_fleurs,validation_stortinget" \
-    --hub_model_id NbAiLab/nb-whisper-medium-mytest-100k \
-    --output_dir ../../../nb-whisper-memytet-100k \
-    --output_dir ../../../nb-whisper-memytestt-100k \
+    --hub_model_id NbAiLab/nb-whisper-mediumtest2-100k \
+    --output_dir ../../../nb-whisper-mediumtest2-100k \
     --overwrite_output_dir \
     --do_train \
     --do_predict \
