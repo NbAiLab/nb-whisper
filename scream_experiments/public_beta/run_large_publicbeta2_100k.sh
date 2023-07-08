@@ -23,6 +23,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --overwrite_output_dir \
     --do_train \
     --do_eval \
+    --predict_with_generate \
     --warmup_steps 5000 \
     --num_train_steps 100000 \
     --eval_steps 2500 \
