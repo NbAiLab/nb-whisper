@@ -11,7 +11,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --run_description "A Medium NB-Whisper Public Beta" \
     --wandb_entity "nbailab" \
     --wandb_project "NB-Whisper Public Beta" \
-    --dataset_name NbAiLab/ncc_speech \
+    --dataset_name NbAiLab/ncc_speech2 \
     --language Norwegian \
     --text_column_name text \
     --train_split_name train \
@@ -19,11 +19,8 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --test_split_name "test_fleurs,test_stortinget" \
     --eval_split_name "validation_fleurs,validation_stortinget" \
     --hub_model_id NbAiLab/nb-whisper-medium-mytest-100k \
-<<<<<<< HEAD
     --output_dir ../../../nb-whisper-memytet-100k \
-=======
     --output_dir ../../../nb-whisper-memytestt-100k \
->>>>>>> 1a4c81b6bdc1c54f767a2f0e35c1878b66c7f545
     --overwrite_output_dir \
     --do_train \
     --do_predict \
