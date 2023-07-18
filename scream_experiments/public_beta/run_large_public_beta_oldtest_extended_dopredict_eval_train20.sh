@@ -40,6 +40,4 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --num_beams 5 \
     --overwrite_output_dir \
     --gradient_checkpointing True \
-    --use_scan True \
-    --whisper_model_class modeling_flax_whisper.FlaxWhisperForConditionalGeneration \
     --push_to_hub

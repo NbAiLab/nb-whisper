@@ -25,7 +25,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --eval_steps 1000 \
     --learning_rate 1e-6 \
     --preprocessing_num_workers 32 \
-    --per_device_train_batch_size 20 \
+    --per_device_train_batch_size 24 \
     --per_device_eval_batch_size 1 \
     --predict_with_generate \
     --log_max_eval_predictions 100 \
@@ -40,4 +40,6 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --num_beams 5 \
     --overwrite_output_dir \
     --gradient_checkpointing True \
+    --use_scan True \
+    --whisper_model_class modeling_flax_whisper.FlaxWhisperForConditionalGeneration \
     --push_to_hub
