@@ -12,7 +12,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --language Norwegian \
     --text_column_name text \
     --train_split_name train \
-    --eval_split_name validation \
+    --eval_split_name validation_fleurs \
     --test_split_name "test_fleurs,test_stortinget" \
     --output_dir ../../public_beta_large_oldtest_extended\
     --overwrite_output_dir\
