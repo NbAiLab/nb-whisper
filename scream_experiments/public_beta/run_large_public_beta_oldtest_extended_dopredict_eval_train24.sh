@@ -14,7 +14,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --train_split_name train \
     --eval_split_name validation_fleurs \
     --test_split_name "test_fleurs,test_stortinget" \
-    --output_dir ../../public_beta_large_oldtest_extended_dopredict_eval1_train20 \
+    --output_dir ../../public_beta_large_oldtest_extended_dopredict_eval1_train24 \
     --overwrite_output_dir\
     --warmup_steps 1000 \
     --do_train \
@@ -25,7 +25,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --eval_steps 1000 \
     --learning_rate 1e-6 \
     --preprocessing_num_workers 32 \
-    --per_device_train_batch_size 20 \
+    --per_device_train_batch_size 24 \
     --per_device_eval_batch_size 1 \
     --predict_with_generate \
     --log_max_eval_predictions 100 \
@@ -34,12 +34,10 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --use_auth_token True \
     --dtype bfloat16 \
     --hub_private_repo True \
-    --hub_model_id NbAiLab/public_beta_large_oldtest_extended_dopredict_eval1_train20 \
+    --hub_model_id NbAiLab/public_beta_large_oldtest_extended_dopredict_eval1_train24 \
     --resume_from_checkpoint True \
     --ignore_data_skip \
     --num_beams 5 \
     --overwrite_output_dir \
     --gradient_checkpointing True \
-    --use_scan True \
-    --whisper_model_class modeling_flax_whisper.FlaxWhisperForConditionalGeneration \
     --push_to_hub
