@@ -29,8 +29,8 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --eval_steps 2500 \
     --lr_scheduler_type linear \
     --learning_rate 2e-5 \
-    --per_device_train_batch_size 8 \
-    --per_device_eval_batch_size 8 \
+    --per_device_train_batch_size 16 \
+    --per_device_eval_batch_size 1 \
     --preprocessing_num_workers 32 \
     --streaming True \
     --use_auth_token True \
