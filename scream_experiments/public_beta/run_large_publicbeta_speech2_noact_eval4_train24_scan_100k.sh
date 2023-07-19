@@ -17,11 +17,12 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --train_split_name train \
     --dataset_load_fn "utils.dataset_load_public_beta.load_dataset_scream" \
     --test_split_name "test_fleurs,test_stortinget" \
-    --eval_split_name "validation_fleurs" \
-    --hub_model_id NbAiLab/nb-whisper-large-publicbeta-100k \
-    --output_dir ../../../nb-whisper-large-publicbeta-100k \
+    --eval_split_name "validation_fleurs,validation_stortinget" \
+    --hub_model_id NbAiLab/nb-whisper-large-publicbeta-speech2-noact-eval4-100k \
+    --output_dir ../../../nb-whisper-large-publicbeta-speech2-noact-eval4-100k \
     --overwrite_output_dir \
     --do_train \
+    --do_predict \
     --do_eval \
     --predict_with_generate \
     --warmup_steps 5000 \
@@ -29,12 +30,12 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --eval_steps 2500 \
     --lr_scheduler_type linear \
     --learning_rate 2e-5 \
-    --weight_decay 0.1 \
+    --weight_decay 0.01 \
     --adam_beta1 0.9 \
     --adam_beta2 0.98 \
     --adam_epsilon 1e-6 \
     --bpe_dropout 0.1 \
-    --per_device_train_batch_size 16 \
+    --per_device_train_batch_size 24 \
     --per_device_eval_batch_size 4 \
     --preprocessing_num_workers 32 \
     --timestamp_column_name "timestamped_text" \
@@ -49,5 +50,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --resume_from_checkpoint True \
     --ignore_data_skip \
     --gradient_checkpointing True \
+    --use_scan True \
+    --whisper_model_class modeling_flax_whisper.FlaxWhisperForConditionalGeneration \
     --push_to_hub_auto_lfs_prune True \
     --push_to_hub
