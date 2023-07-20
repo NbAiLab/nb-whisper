@@ -43,7 +43,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --log_max_eval_predictions 100 \
     --log_eval_predictions_fn "utils.log_predictions.write_predictions" \
     --log_examples 100 \
-    --streaming True \
+    --streaming False \
     --use_auth_token True \
     --dtype bfloat16 \
     --hub_private_repo True \
