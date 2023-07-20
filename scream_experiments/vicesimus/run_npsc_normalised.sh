@@ -5,7 +5,7 @@ export TCMALLOC_VERBOSE=0
 export TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD=10000000000
 
 # Running the Python script
-python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev2.py \
+python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --model_name_or_path NbAiLab/nb-whisper-medium-publicbeta-speech2-100k \
     --run_name "Scream - medium_npsc_norm 10k" \
     --run_description "A Medium NB-Whisper Public Beta NPSC Normalised" \
@@ -43,7 +43,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev2.py \
     --log_max_eval_predictions 100 \
     --log_eval_predictions_fn "utils.log_predictions.write_predictions" \
     --log_examples 100 \
-    --streaming False \
+    --streaming True \
     --use_auth_token True \
     --dtype bfloat16 \
     --hub_private_repo True \
