@@ -12,6 +12,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --wandb_entity "nbailab" \
     --wandb_project "NB-Whisper Public Beta" \
     --dataset_name NbAiLab/NPSC \
+    --dataset_config_name "16K_mp3_bokmaal" \
     --language Norwegian \
     --text_column_name normsentence_text \
     --train_split_name train \
