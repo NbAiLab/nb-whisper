@@ -837,8 +837,13 @@ def main():
             "There is nothing to do. Please pass `do_train`, `do_eval` and/or `do_predict`."
         )
 
-    raw_datasets_features = list(
-        next(iter(raw_datasets.values())).features.keys())
+    try:
+        raw_datasets_features = list(next(iter(raw_datasets.values())).features.keys())
+    except AttributeError:
+        # If this fails, try an alternative approach: Works for older datasets.
+        first_item = next(iter(next(iter(raw_datasets.values()))))
+        raw_datasets_features = list(first_item.keys())
+
 
     if data_args.audio_column_name not in raw_datasets_features:
         raise ValueError(
@@ -922,8 +927,16 @@ def main():
 
     # Resample speech dataset: `datasets` takes care of automatically loading and resampling the audio,
     # so we just need to set the correct target sampling rate.
-    dataset_sampling_rate = next(
-        iter(raw_datasets.values())).features[data_args.audio_column_name].sampling_rate
+    # dataset_sampling_rate = next(
+    #    iter(raw_datasets.values())).features[data_args.audio_column_name].sampling_rate
+
+    try:
+        dataset_sampling_rate = next(iter(raw_datasets.values())).features[data_args.audio_column_name].sampling_rate
+    except AttributeError:
+        # If this fails, try an alternative approach: Works for older datasets.
+        first_item = next(iter(next(iter(raw_datasets.values()))))
+        dataset_sampling_rate = first_item[data_args.audio_column_name]['sampling_rate']
+
 
     if dataset_sampling_rate != feature_extractor.sampling_rate:
         raw_datasets = raw_datasets.cast_column(
