@@ -63,7 +63,7 @@ import evaluate
 import transformers
 from datasets import Dataset, DatasetDict, IterableDatasetDict, interleave_datasets, load_dataset
 from datasets.distributed import split_dataset_by_node
-from huggingface_hub import Repository, create_repo
+from huggingface_hub import create_repo
 from transformers import (
     AutoConfig,
     AutoFeatureExtractor,
@@ -82,6 +82,8 @@ from transformers.utils import check_min_version, send_example_telemetry
 from transformers.utils.versions import require_version
 
 from flax.training import checkpoints
+
+from utils.repository import Repository
 
 # Will error if the minimal version of Transformers is not installed. Remove at your own risks.
 check_min_version("4.27.0.dev0")
@@ -460,6 +462,14 @@ class DataTrainingArguments:
             )
         },
     )
+    push_to_hub_auto_lfs_prune: bool = field(
+        default=False,
+        metadata={
+            "help": (
+                "Auto prune git lfs, event files referenced by 'recent' commits."
+            )
+        },
+    )
 
 
 def shift_tokens_right(label_ids: np.array, decoder_start_token_id: Union[int, np.ndarray]) -> np.ndarray:
@@ -576,6 +586,26 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
         batch["attention_mask"] = labels_batch.attention_mask  # Add attention_mask to the batch
         
         return batch
+
+
+def flatten_eval_lines(eval_lines: List[dict], by: str="step") -> list:
+    """
+    Flattens a list of dictionaries based on a specified key.
+
+    Args:
+        eval_lines (list[dict]): A list of dictionaries to be flattened.
+        by (str, optional): The key based on which the dictionaries should be flattened. 
+            Defaults to "step".
+
+    Returns:
+        list[dict]: A list of flattened dictionaries.
+    """
+    flattened_eval_lines = {}
+    for line in eval_lines:
+        if line[by] not in flattened_eval_lines:
+            flattened_eval_lines[line[by]] = {}
+        flattened_eval_lines[line[by]].update(line)
+    return list(flattened_eval_lines.values())
 
 
 def load_maybe_streaming_dataset(dataset_name, dataset_config_name, split="train", streaming=True, **kwargs):
@@ -796,7 +826,7 @@ def main():
             raw_datasets[test_split_name] = dataset_load(
                 data_args.dataset_name,
                 data_args.dataset_config_name,
-                split=data_args.test_split_name,
+                split=test_split_name,
                 cache_dir=data_args.dataset_cache_dir,
                 streaming=data_args.streaming,
                 use_auth_token=True if model_args.use_auth_token else None,
@@ -1016,12 +1046,6 @@ def main():
             max_prev_str = tokenizer.decode(prev_tokens[-(max_prev_length - 1):])
             max_prev_tokens = tokenizer("<|startofprev|>", max_prev_str, add_special_tokens=False).input_ids
             batch["labels"] = max_prev_tokens + batch["labels"]
-
-        #debug
-        if len(batch["labels"]) >= max_label_length:
-            logging.warning(f"Number of tokens: {len(batch['labels'])}")
-
-        
         return batch
 
     # Mapping and filtering of dataset
@@ -1151,7 +1175,7 @@ def main():
                 if step in train_metrics_dict:
                     eval_metric_dict.update(train_metrics_dict[step])
             eval_lines.append(eval_metric_dict)
-        return {**state, "eval_lines": eval_lines}
+        return {**state, "eval_lines": flatten_eval_lines(eval_lines)}
 
     def write_metric(summary_writer, train_metrics, eval_metrics, train_time, step, eval_name=None, predictions=None, labels=None, do_predict=False):
         if not do_predict:
@@ -1304,8 +1328,7 @@ def main():
         )
         flat_mask = {path: (path[-1] != "bias" and path[-2:] not in layer_norm_named_params) for path in flat_params}
         return traverse_util.unflatten_dict(flat_mask)
-    
-    breakpoint()
+        
     # Create adam optimizer
     optimizer = optax.adamw(
         learning_rate=linear_decay_lr_schedule_fn,
@@ -1448,7 +1471,7 @@ def main():
         f"  Number of hosts = {num_of_hosts}")
     if num_of_hosts > 1:
         logger.info(
-            f"  Current host idx = {current_host_idx}")
+            f"  Current host idx = {current_host_idx} ({socket.gethostname()})")
     logger.info(
         f"  Instantaneous batch size per device = {training_args.per_device_train_batch_size}")
     logger.info(
@@ -1514,6 +1537,10 @@ def main():
             "total_num_training_examples": f"{data_args.num_train_steps * train_batch_size:,}",
             "steps_per_epoch": "_To be computed after first epoch_",
             "num_beams": model_args.num_beams,
+            "weight_decay": training_args.weight_decay,
+            "adam_beta1": training_args.adam_beta1,
+            "adam_beta2": training_args.adam_beta2,
+            "adam_epsilon": training_args.adam_epsilon,
         },
         # TODO: Adapt https://github.com/huggingface/transformers/blob/main/src/transformers/modelcard.py#L855
         # "hyperparameters": training_args.to_sanitized_dict()
@@ -1523,7 +1550,7 @@ def main():
         training_summary["hyperparameters"]["gradient_accumulation_steps"] = f"{training_args.gradient_accumulation_steps:,}"
         training_summary["hyperparameters"]["effective_total_train_batch_size"] = f"{train_batch_size * training_args.gradient_accumulation_steps:,}"
     
-    if model_args.dropout or model_args.attention_dropout or model_args.activation_dropout or model_args.encoder_dropout or model_args.decoder_dropout:
+    if model_args.dropout or model_args.bpe_dropout or model_args.attention_dropout or model_args.activation_dropout or model_args.encoder_dropout or model_args.decoder_dropout:
         training_summary["hyperparameters"]["dropout"] = True
         if model_args.dropout:
             training_summary["hyperparameters"]["dropout_probability"] = model_args.dropout
@@ -1549,7 +1576,7 @@ def main():
     train_metrics = []
     epoch = 0
     if training_args.do_train:
-        train_dataset = vectorized_datasets["train"].shuffle(seed=training_args.seed, buffer_size=data_args.shuffle_buffer_size)
+        train_dataset = vectorized_datasets["train"].shuffle(seed=training_args.seed)
         # Split by node
         train_dataset = split_dataset_by_node(train_dataset, rank=current_host_idx, world_size=num_of_hosts)   
     
@@ -1727,7 +1754,10 @@ def main():
                 readme.write_text(TrainingSummary(**training_summary).to_model_card())
                 if training_args.push_to_hub:
                     repo.push_to_hub(
-                        commit_message=f"Saving weights and logs of step {step} - epoch {epoch}", blocking=False)
+                        commit_message=f"Saving weights and logs of step {step} - epoch {epoch}",
+                        blocking=False,
+                        auto_lfs_prune=data_args.push_to_hub_auto_lfs_prune,
+                    )
 
     # ======================== Prediction loop ==============================
     if training_args.do_predict:
@@ -1814,7 +1844,7 @@ def main():
             )
             if training_args.push_to_hub:
                 repo.push_to_hub(
-                    commit_message=f"Saving test results", blocking=False)
+                    commit_message=f"Saving test results", blocking=False, auto_lfs_prune=data_args.push_to_hub_auto_lfs_prune)
 
 
 if __name__ == "__main__":
