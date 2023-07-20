@@ -837,6 +837,7 @@ def main():
             "There is nothing to do. Please pass `do_train`, `do_eval` and/or `do_predict`."
         )
 
+    breakpoint()
     raw_datasets_features = list(
         next(iter(raw_datasets.values())).features.keys())
 
@@ -1576,7 +1577,7 @@ def main():
     train_metrics = []
     epoch = 0
     if training_args.do_train:
-        train_dataset = vectorized_datasets["train"].shuffle(seed=training_args.seed)
+        train_dataset = vectorized_datasets["train"].shuffle(seed=training_args.seed, buffer_size=data_args.shuffle_buffer_size)
         # Split by node
         train_dataset = split_dataset_by_node(train_dataset, rank=current_host_idx, world_size=num_of_hosts)   
     
