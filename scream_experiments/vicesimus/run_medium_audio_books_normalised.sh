@@ -15,7 +15,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --language Norwegian \
     --text_column_name text \
     --train_split_name train \
-    --dataset_load_fn "utils.dataset_load_npsc.load_dataset_audio_books" \
+    --dataset_load_fn "utils.dataset_load_audio_books.load_dataset_audio_books" \
     --test_split_name "test_audio_books" \
     --eval_split_name "validation_audio_books" \
     --hub_model_id NbAiLab/nb-whisper-medium-publicbeta-audio-books-v1 \
