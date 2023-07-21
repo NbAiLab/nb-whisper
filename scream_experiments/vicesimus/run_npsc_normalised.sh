@@ -19,8 +19,8 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --dataset_load_fn "utils.dataset_load_npsc.load_dataset_npsc_norm" \
     --test_split_name "test" \
     --eval_split_name "validation" \
-    --hub_model_id NbAiLab/nb-whisper-medium-publicbeta-npsc-norm-v3 \
-    --output_dir ../../../nb-whisper-medium-publicbeta-npsc-norm-v3 \
+    --hub_model_id NbAiLab/nb-whisper-medium-publicbeta-npsc-norm-v4 \
+    --output_dir ../../../nb-whisper-medium-publicbeta-npsc-norm-v4 \
     --overwrite_output_dir \
     --do_train \
     --do_predict \
