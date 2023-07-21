@@ -24,10 +24,13 @@ def processor_general(sample, field):
 def processor_audio_books(sample):
     # Filter samples to only include ones with the source "audio_books"
     if sample["source"].lower() == "audio_books":
-        sample = processor_general(sample, "text")
-        return sample
+        return processor_general(sample, "text")
+    return sample  # return unmodified sample when "source" is not "audio_books"
+
 
 def load_dataset_audio_books(dataset_name, dataset_config_name=None, split="train", streaming=True, **kwargs):
     ds = datasets.load_dataset(dataset_name, dataset_config_name, split=split, streaming=streaming, **kwargs)
+    ds = ds.filter(lambda example: example['source'].lower() == 'audio_books')
     ds = ds.map(processor_audio_books)
     return ds
+
