@@ -7,12 +7,15 @@ def processor_general(sample, field):
     # Lowercase the text
     sample[field] = sample[field].lower()
     
+    # Remove all words between "<" and ">"
+    sample[field] = re.sub('<.*?>', '', sample[field])
+
     # Remove punctuation
     translator = str.maketrans(string.punctuation, ' '*len(string.punctuation)) # map punctuation to space
     sample[field] = sample[field].translate(translator)
-    
-    # Remove all words between "<" and ">"
-    sample[field] = re.sub('<.*?>', '', sample[field])
+
+    # Replace "tunell" with "tunnel"
+    sample[field] = sample[field].replace('tunell', 'tunnel')
 
     # Remove double spacing
     sample[field] = ' '.join(sample[field].split())

@@ -19,18 +19,18 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --dataset_load_fn "utils.dataset_load_npsc.load_dataset_npsc_norm" \
     --test_split_name "test" \
     --eval_split_name "validation" \
-    --hub_model_id NbAiLab/nb-whisper-medium-publicbeta-npsc-norm \
-    --output_dir ../../../nb-whisper-medium-publicbeta-npsc-norm \
+    --hub_model_id NbAiLab/nb-whisper-medium-publicbeta-npsc-norm-v2 \
+    --output_dir ../../../nb-whisper-medium-publicbeta-npsc-norm-v2 \
     --overwrite_output_dir \
     --do_train \
     --do_predict \
     --do_eval \
     --predict_with_generate \
-    --warmup_steps 500 \
-    --num_train_steps 10000 \
-    --eval_steps 500 \
+    --warmup_steps 100 \
+    --num_train_steps 1000 \
+    --eval_steps 200 \
     --lr_scheduler_type linear \
-    --learning_rate 2.5e-5 \
+    --learning_rate 1e-5 \
     --weight_decay 0.01 \
     --adam_beta1 0.9 \
     --adam_beta2 0.98 \
