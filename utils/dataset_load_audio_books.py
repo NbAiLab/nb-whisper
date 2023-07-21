@@ -7,11 +7,12 @@ def processor_general(sample, field):
     # Lowercase the text
     sample[field] = sample[field].lower()
     
-    # Remove all words between "<" and ">"
-    sample[field] = re.sub('<.*?>', '', sample[field])
+    # Updated characters list, excluding the ones already in the list and the space character
+    characters = ["\\.", "\\,", "\\;", "\\!", "\\?", "\\:", "-", "\\(", "\\)", "\\[", "\\]", "\\{", "\\}", "\\/", "\\%", "\\&", "\\+", "<", ">", "\\=", "~", "`", "\\|", "\\^", "\\#", "\\*", "_", "\"", "\\@"]
+    regex_str = '[' + ''.join(characters) + ']'
 
     # Remove punctuation unless it's following a digit
-    sample[field] = re.sub(r'(?<!\d)[.,;!?](?!\d)', ' ', sample[field])
+    sample[field] = re.sub(fr'(?<!\d){regex_str}(?!\d)', ' ', sample[field])
 
     # Replace "tunell" with "tunnel"
     sample[field] = sample[field].replace('tunell', 'tunnel')
@@ -22,8 +23,8 @@ def processor_general(sample, field):
     return sample
 
 def processor_audio_books(sample):
-    # Filter samples to only include ones with the source "audio_books"
-    if sample["source"].lower() == "audio_books":
+    # Filter samples to only include ones with the source "audio_books" and the language is Norwegian
+    if sample["source"].lower() == "audio_books" and sample["language"] == "no":
         return processor_general(sample, "text")
     return sample  # return unmodified sample when "source" is not "audio_books"
 

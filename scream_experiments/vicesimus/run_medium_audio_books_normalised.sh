@@ -18,8 +18,8 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --dataset_load_fn "utils.dataset_load_audio_books.load_dataset_audio_books" \
     --test_split_name "test_audio_books" \
     --eval_split_name "validation_audio_books" \
-    --hub_model_id NbAiLab/nb-whisper-medium-publicbeta-audio-books-v1 \
-    --output_dir ../../../nb-whisper-medium-publicbeta-audio-books-v1 \
+    --hub_model_id NbAiLab/nb-whisper-medium-publicbeta-audio-books-v2 \
+    --output_dir ../../../nb-whisper-medium-publicbeta-audio-books-v2 \
     --overwrite_output_dir \
     --do_train \
     --do_predict \
