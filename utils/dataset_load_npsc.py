@@ -10,9 +10,8 @@ def processor_general(sample, field):
     # Remove all words between "<" and ">"
     sample[field] = re.sub('<.*?>', '', sample[field])
 
-    # Remove punctuation
-    translator = str.maketrans(string.punctuation, ' '*len(string.punctuation)) # map punctuation to space
-    sample[field] = sample[field].translate(translator)
+    # Remove punctuation unless it's following a digit
+    sample[field] = re.sub(r'(?<!\d)[.,;!?](?!\d)', ' ', sample[field])
 
     # Replace "tunell" with "tunnel"
     sample[field] = sample[field].replace('tunell', 'tunnel')
@@ -21,6 +20,7 @@ def processor_general(sample, field):
     sample[field] = ' '.join(sample[field].split())
 
     return sample
+
 
 def processor_normal_norm(sample):
     return processor_general(sample, "normsentence_text")
