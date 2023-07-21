@@ -8,7 +8,7 @@ def processor_general(sample, field):
     sample[field] = sample[field].lower()
     
     # Updated characters list, excluding the ones already in the list and the space character
-    characters = ["\\.", "\\,", "\\;", "\\!", "\\?", "\\:", "-", "\\(", "\\)", "\\[", "\\]", "\\{", "\\}", "\\/", "\\%", "\\&", "\\+", "<", ">", "\\=", "~", "`", "\\|", "\\^", "\\#", "\\*", "_", "\"", "\\@"]
+    characters = ["\\.", "\\,", "\\;", "\\!", "\\?", "\\:", "\\(", "\\)", "\\[", "\\]", "\\{", "\\}", "\\/", "\\%", "\\&", "\\+", "<", ">", "\\=", "~", "`", "\\|", "\\^", "\\#", "\\*", "_", "\"", "\\@", "-"]
     regex_str = '[' + ''.join(characters) + ']'
 
     # Remove punctuation unless it's following a digit
@@ -21,6 +21,7 @@ def processor_general(sample, field):
     sample[field] = ' '.join(sample[field].split())
 
     return sample
+
 
 def processor_audio_books(sample):
     # Filter samples to only include ones with the source "audio_books" and the language is Norwegian
