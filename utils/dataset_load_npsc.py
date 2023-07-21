@@ -31,10 +31,13 @@ def processor_normal(sample):
 def load_dataset_npsc_norm(dataset_name, dataset_config_name=None, split="train", streaming=True, **kwargs):
     ds = datasets.load_dataset(dataset_name, dataset_config_name, split=split, streaming=streaming, **kwargs)
     ds = ds.map(processor_normal_norm)
+    ds = ds.filter(lambda example: '<inaudible>' not in example['normsentence_text'])
     return ds
 
 def load_dataset_npsc(dataset_name, dataset_config_name=None, split="train", streaming=True, **kwargs):
     ds = datasets.load_dataset(dataset_name, dataset_config_name, split=split, streaming=streaming, **kwargs)
     ds = ds.map(processor_normal)
+    ds = ds.filter(lambda example: '<inaudible>' not in example['text'])
     return ds
+
 
