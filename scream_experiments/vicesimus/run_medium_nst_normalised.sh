@@ -13,7 +13,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --wandb_project "NB-Whisper Public Beta" \
     --dataset_name NbAiLab/ncc_speech_v3 \
     --language Norwegian \
-    --text_column_name normsentence_text \
+    --text_column_name ext \
     --train_split_name train \
     --dataset_load_fn "utils.dataset_load_nst.load_dataset_nst" \
     --test_split_name "test_nst" \
