@@ -17,7 +17,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --train_split_name train \
     --dataset_load_fn "utils.dataset_load_nst.load_dataset_nst" \
     --test_split_name "test_nst" \
-    --eval_split_name "validation_nst" \
+    --eval_split_name "test_nst" \
     --hub_model_id NbAiLab/nb-whisper-medium-publicbeta-nst-norm-v1 \
     --output_dir ../../../nb-whisper-medium-publicbeta-nst-norm-v1 \
     --overwrite_output_dir \
