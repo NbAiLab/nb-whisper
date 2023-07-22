@@ -11,7 +11,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --run_description "A Medium NB-Whisper Public Beta NPSC Normalised" \
     --wandb_entity "nbailab" \
     --wandb_project "NB-Whisper Public Beta" \
-    --dataset_name NbAiLab/NPSC_orto \
+    --dataset_name NbAiLab/NPSC \
     --dataset_config_name "16K_mp3_bokmaal" \
     --language Norwegian \
     --text_column_name normsentence_text \
