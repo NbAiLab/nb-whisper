@@ -4,6 +4,19 @@ import string
 import re
 
 def processor_general(sample, field):
+    # Lowercase the text
+    sample[field] = sample[field].lower()
+    
+    # Updated characters list, excluding the ones already in the list and the space character
+    characters = ["\\.", "\\,", "\\;", "\\!", "\\?", "\\:", "\\(", "\\)", "\\[", "\\]", "\\{", "\\}", "\\/", "\\%", "\\&", "\\+", "<", ">", "\\=", "~", "`", "\\|", "\\^", "\\#", "\\*", "_", "\"", "\\@", "-"]
+    regex_str = '[' + ''.join(characters) + ']'
+
+    # Remove punctuation unless it's following a digit
+    sample[field] = re.sub(fr'(?<!\d){regex_str}(?!\d)', ' ', sample[field])
+
+    # Replace "tunell" with "tunnel"
+    sample[field] = sample[field].replace('tunell', 'tunnel')
+
     # Remove double spacing
     sample[field] = ' '.join(sample[field].split())
 
