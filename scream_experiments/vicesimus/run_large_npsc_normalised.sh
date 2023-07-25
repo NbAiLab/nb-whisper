@@ -36,9 +36,8 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --adam_beta1 0.9 \
     --adam_beta2 0.98 \
     --adam_epsilon 1e-6 \
-    --bpe_dropout 0.1 \
     --per_device_train_batch_size 16 \
-    --per_device_eval_batch_size 2 \
+    --per_device_eval_batch_size 1 \
     --preprocessing_num_workers 32 \
     --log_max_eval_predictions 100 \
     --log_eval_predictions_fn "utils.log_predictions.write_predictions" \
@@ -49,7 +48,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --hub_private_repo True \
     --resume_from_checkpoint True \
     --ignore_data_skip \
-    --num_beams 5 \
+    --num_beams 3 \
     --gradient_checkpointing True \
     --push_to_hub_auto_lfs_prune True \
     --push_to_hub
