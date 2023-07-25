@@ -5,7 +5,7 @@ export TCMALLOC_VERBOSE=0
 export TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD=10000000000
 
 # Running the Python script
-python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev2.py \
+python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --model_name_or_path NbAiLab/nb-whisper-large-beta \
     --run_name "Scream - large_nst 400steps" \
     --run_description "A Medium NB-Whisper Public Beta NST" \
@@ -18,8 +18,8 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev2.py \
     --dataset_load_fn "utils.dataset_load_nst.load_dataset_nst" \
     --test_split_name "test_nst" \
     --eval_split_name "test_nst, validation_stortinget" \
-    --hub_model_id NbAiLab/nb-whisper-large-publicbeta-nst-v3 \
-    --output_dir ../../../nb-whisper-large-publicbeta-nst-v3 \
+    --hub_model_id NbAiLab/nb-whisper-large-publicbeta-nst-v4 \
+    --output_dir ../../../nb-whisper-large-publicbeta-nst-v4 \
     --overwrite_output_dir \
     --do_train \
     --do_eval \
