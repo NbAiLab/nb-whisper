@@ -927,13 +927,17 @@ def main():
 
     # Resample speech dataset: `datasets` takes care of automatically loading and resampling the audio,
     # so we just need to set the correct target sampling rate.
+    # dataset_sampling_rate = next(
+    #    iter(raw_datasets.values())).features[data_args.audio_column_name].sampling_rate
 
     try:
         dataset_sampling_rate = next(iter(raw_datasets.values())).features[data_args.audio_column_name].sampling_rate
-    except AttributeError:
-        # If this fails, try an alternative approach: Works for older datasets.
+    except (AttributeError, TypeError):
         first_item = next(iter(next(iter(raw_datasets.values()))))
-        dataset_sampling_rate = first_item[data_args.audio_column_name]['sampling_rate']
+        if first_item and data_args.audio_column_name in first_item and first_item[data_args.audio_column_name] is not None:
+            dataset_sampling_rate = first_item[data_args.audio_column_name]['sampling_rate']
+        else:
+            dataset_sampling_rate = 16000
 
 
     if dataset_sampling_rate != feature_extractor.sampling_rate:
@@ -1716,7 +1720,6 @@ def main():
                     print("Error while calling get_metrics:", e)
                     print("eval_metrics before calling get_metrics was:", eval_metrics)
                     raise
-
                 eval_metrics = jax.tree_util.tree_map(jnp.mean, eval_metrics)
 
                 # Compute metrics
