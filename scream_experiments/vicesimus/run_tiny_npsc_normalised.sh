@@ -2,11 +2,11 @@
 export TOKENIZERS_PARALLELISM=false
 export CMALLOC_VERBOSE=0
 export TCMALLOC_VERBOSE=0
-export TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD=10000000000
+export TCMALLOC_tiny_ALLOC_REPORT_THRESHOLD=10000000000
 
 # Running the Python script
 python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
-    --model_name_or_path NbAiLab/nb-whisper-large-beta \
+    --model_name_or_path NbAiLab/nb-whisper-tiny-beta \
     --run_name "Scream - medium_npsc_norm 10k" \
     --run_description "A Medium NB-Whisper Public Beta NPSC Normalised" \
     --wandb_entity "nbailab" \
@@ -19,8 +19,8 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --dataset_load_fn "utils.dataset_load_npsc.load_dataset_npsc_norm" \
     --test_split_name "test" \
     --eval_split_name "validation" \
-    --hub_model_id NbAiLab/nb-whisper-large-publicbeta-npsc-normalised \
-    --output_dir ../../../nb-whisper-large-publicbeta-npsc-normalised \
+    --hub_model_id NbAiLab/nb-whisper-tiny-publicbeta-npsc-normalised \
+    --output_dir ../../../nb-whisper-tiny-publicbeta-npsc-normalised \
     --overwrite_output_dir \
     --do_train \
     --do_predict \
@@ -31,7 +31,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --eval_steps 40 \
     --max_eval_samples 2048 \
     --lr_scheduler_type linear \
-    --learning_rate 2e-5 \
+    --learning_rate 1.5e-4 \
     --weight_decay 0.01 \
     --adam_beta1 0.9 \
     --adam_beta2 0.98 \
