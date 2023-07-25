@@ -932,10 +932,12 @@ def main():
 
     try:
         dataset_sampling_rate = next(iter(raw_datasets.values())).features[data_args.audio_column_name].sampling_rate
-    except AttributeError:
-        # If this fails, try an alternative approach: Works for older datasets.
+    except (AttributeError, TypeError):
         first_item = next(iter(next(iter(raw_datasets.values()))))
-        dataset_sampling_rate = first_item[data_args.audio_column_name]['sampling_rate']
+        if first_item and data_args.audio_column_name in first_item and first_item[data_args.audio_column_name] is not None:
+            dataset_sampling_rate = first_item[data_args.audio_column_name]['sampling_rate']
+        else:
+            dataset_sampling_rate = 16000
 
 
     if dataset_sampling_rate != feature_extractor.sampling_rate:
