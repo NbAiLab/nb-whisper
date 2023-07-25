@@ -17,12 +17,11 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --train_split_name train \
     --dataset_load_fn "utils.dataset_load_nst_norm.load_dataset_nst" \
     --test_split_name "test_nst" \
-    --eval_split_name "test_nst" \
-    --hub_model_id NbAiLab/nb-whisper-large-publicbeta-nst-norm-v1 \
-    --output_dir ../../../nb-whisper-large-publicbeta-nst-norm-v1 \
+    --eval_split_name "test_nst, validation_stortinget, validation_audio_books" \
+    --hub_model_id NbAiLab/nb-whisper-large-publicbeta-nst-norm-v2 \
+    --output_dir ../../../nb-whisper-large-publicbeta-nst-norm-v2 \
     --overwrite_output_dir \
     --do_train \
-    --do_predict \
     --do_eval \
     --predict_with_generate \
     --warmup_steps 40 \
@@ -37,7 +36,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --adam_epsilon 1e-6 \
     --bpe_dropout 0.1 \
     --per_device_train_batch_size 16 \
-    --per_device_eval_batch_size 2 \
+    --per_device_eval_batch_size 1 \
     --preprocessing_num_workers 32 \
     --log_max_eval_predictions 100 \
     --log_eval_predictions_fn "utils.log_predictions.write_predictions" \
