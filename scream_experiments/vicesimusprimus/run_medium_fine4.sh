@@ -14,7 +14,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --dataset_name NbAiLab/NPSC \
     --dataset_config_name "16K_mp3_bokmaal" \
     --language Norwegian \
-    --text_column_name text \
+    --text_column_name normsentence_text \
     --train_split_name train \
     --dataset_load_fn "utils.dataset_load_npsc.load_dataset_npsc_norm_nohes" \
     --test_split_name "test" \

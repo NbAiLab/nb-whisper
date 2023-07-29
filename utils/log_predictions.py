@@ -71,8 +71,8 @@ def write_predictions(
 
     # Put predictions into a table
     inference_df = pd.DataFrame(columns=['target', 'prediction'])
-    breakpoint()
-    
+   
+
     for pred_text, label_text in zip(predictions, labels):
         formatted_label_text, formatted_pred_text = format_diff(
             label_text, pred_text)
@@ -81,6 +81,8 @@ def write_predictions(
         inference_df = pd.concat(
             [inference_df, new_row], ignore_index=True)
 
+    breakpoint()
+    
     # Create the prediction table of the first N rows
     inference_df = inference_df[['target', 'prediction']]
     predict_table = inference_df.to_markdown(index=False)
