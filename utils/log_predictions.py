@@ -71,7 +71,8 @@ def write_predictions(
 
     # Put predictions into a table
     inference_df = pd.DataFrame(columns=['target', 'prediction'])
-
+    breakpoint()
+    
     for pred_text, label_text in zip(predictions, labels):
         formatted_label_text, formatted_pred_text = format_diff(
             label_text, pred_text)
