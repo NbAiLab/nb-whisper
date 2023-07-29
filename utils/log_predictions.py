@@ -80,8 +80,6 @@ def write_predictions(
             {'target': formatted_label_text, 'prediction': formatted_pred_text}, index=[0])
         inference_df = pd.concat(
             [inference_df, new_row], ignore_index=True)
-
-    breakpoint()
     
     # Create the prediction table of the first N rows
     inference_df = inference_df[['target', 'prediction']]
