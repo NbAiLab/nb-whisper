@@ -10,7 +10,10 @@ def processor_general(sample, field, remove_hesitations=False):
     if remove_hesitations == True:
         # Remove all words between "<" and ">"
         sample[field] = re.sub('<.*?>', '', sample[field])
-
+    else:
+        sample[field] = sample[field].replace('<', ' ')
+        sample[field] = sample[field].replace('>', ' ')
+        
     # Remove punctuation unless it's following a digit
     # This will not affect the non-normalized text, since they have no digits
     sample[field] = re.sub(r'(?<!\d)[.,;!?](?!\d)', ' ', sample[field])
