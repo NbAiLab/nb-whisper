@@ -17,7 +17,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --train_split_name train \
     --dataset_load_fn "utils.dataset_load_nrk.load_dataset_nrk" \
     --test_split_name "test" \
-    --eval_split_name "validation_fleurs, validation_audio_books, validation_nst, validation_stortinget, validation_nrk" \
+    --eval_split_name "validation_fleurs, test_nst, validation_stortinget, validation_nrk" \
     --hub_model_id NbAiLab/nb-whisper-medium-fine8-ncc-nrk \
     --output_dir ../../../nb-whisper-medium-fine8-ncc-nrk \
     --overwrite_output_dir \
