@@ -88,8 +88,6 @@ def write_predictions(
     # Build the markdown page
     markdown_str = f"{eval_table}\n\n{predict_table}"
     
-    #Debugging
-    print(markdown_str)
 
     # Save the stats file
     stats_file_name = f"{predictions_folder_name}/step_{step}.md"
@@ -115,9 +113,6 @@ def write_predictions(
                 f.write(new_content)
                 f.truncate()
                 
-                # Debugging
-                print("New content....")
-                print(new_content)
 
     logger.info(
         f"Created {stats_file_name} and updated the headers of the other stats files")
