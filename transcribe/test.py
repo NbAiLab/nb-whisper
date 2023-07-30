@@ -34,6 +34,9 @@ input_features_single = processor(sample["array"], sampling_rate=sample["samplin
 
 # Stack 4 identical copies to create a batch
 input_features = jnp.stack([input_features_single] * 4)
+input_features = input_features.squeeze()
+
+
 
 # replicate the input features across devices for DP
 print(input_features.shape)
