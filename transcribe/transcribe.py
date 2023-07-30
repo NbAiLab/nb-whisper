@@ -12,6 +12,7 @@ from whisper_jax import FlaxWhisperForConditionalGeneration
 # Set your BATCH_SIZE according to your GPU's memory availability
 BATCH_SIZE = 16
 NUM_BATCHES = 5
+NUM_TOKENS = 25
 
 # Load the model and replicate the parameters across devices
 model, params = FlaxWhisperForConditionalGeneration.from_pretrained(
