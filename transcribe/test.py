@@ -9,7 +9,7 @@ from whisper_jax import FlaxWhisperForConditionalGeneration
 # load the processor and model
 processor = WhisperProcessor.from_pretrained("openai/whisper-large-v2")
 model, params = FlaxWhisperForConditionalGeneration.from_pretrained(
-    "openai/whisper-large-v2", dtype=jnp.bfloat16, _do_init=False,
+    "openai/whisper-large-v2", dtype=jnp.bfloat32, _do_init=False,
 )
 
 def generate_fn(input_features):
