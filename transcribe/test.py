@@ -1,62 +1,41 @@
-import time
-
-import jax
 import jax.numpy as jnp
-from datasets import concatenate_datasets, load_dataset
-from flax import jax_utils
+from datasets import load_dataset
+from flax.jax_utils import replicate
 from flax.training.common_utils import shard
+from jax import device_get, pmap
 from transformers import WhisperProcessor
+
 from whisper_jax import FlaxWhisperForConditionalGeneration
 
-
-BATCH_SIZES = [4, 8, 16, 32, 64, 128]
-NUM_BATCHES = 100
-NUM_TOKENS = 25
-
+# load the processor and model
+processor = WhisperProcessor.from_pretrained("openai/whisper-large-v2")
 model, params = FlaxWhisperForConditionalGeneration.from_pretrained(
     "openai/whisper-large-v2", dtype=jnp.bfloat16, _do_init=False,
 )
 
-params = jax_utils.replicate(params)
-
-
-def generate_fn(batch):
-    pred_ids = model.generate(batch, params=params, max_new_tokens=NUM_TOKENS, min_new_tokens=NUM_TOKENS)
+def generate_fn(input_features):
+    pred_ids = model.generate(
+        input_features, task="transcribe", return_timestamps=False, max_length=model.config.max_length, params=params,
+    )
     return pred_ids.sequences
 
+# pmap the generate function for data parallelism
+p_generate = pmap(generate_fn, "input_features")
+# replicate the parameters across devices
+params = replicate(params)
 
-p_generate_fn = jax.pmap(generate_fn, "batch")
+# load a dummy sample from the LibriSpeech dataset
+ds = load_dataset("hf-internal-testing/librispeech_asr_dummy", "clean", split="validation")
+sample = ds[0]["audio"]
 
-# processors/tokenizers are the same for all models, so just load from tiny and preprocess once
-processor = WhisperProcessor.from_pretrained("openai/whisper-tiny.en")
+# pre-process: convert the audio array to log-mel input features
+input_features = processor(sample["array"], sampling_rate=sample["sampling_rate"], return_tensors="np").input_features
+# replicate the input features across devices for DP
+input_features = shard(input_features)
 
+# run the forward pass (JIT compiled the first time it is called)
+pred_ids = p_generate(input_features)
+output_ids = device_get(pred_ids.reshape(-1, model.config.max_length))
 
-def preprocess(batch):
-    batch["input_features"] = processor(
-        batch["audio"]["array"], sampling_rate=16000, return_tensors="np"
-    ).input_features[0]
-    return batch
-
-
-# load a dataset of 73 audio samples
-librispeech = load_dataset("hf-internal-testing/librispeech_asr_dummy", "clean", split="validation")
-dataset_processed = librispeech.map(preprocess, remove_columns=librispeech.column_names)
-
-for batch_size in BATCH_SIZES:
-    eval_dataset = dataset_processed.select(range(batch_size // 2))
-    eval_dataset = concatenate_datasets([eval_dataset for _ in range(2 * NUM_BATCHES)])
-
-    eval_dataloader = eval_dataset.with_format("numpy").iter(batch_size=batch_size)
-
-    # warm-up step
-    batch = next(iter(eval_dataloader))
-    input_features = shard(batch["input_features"])
-    pred_ids = p_generate_fn(input_features)
-
-    start = time.time()
-    for batch in eval_dataloader:
-        input_features = shard(batch["input_features"])
-        pred_ids = p_generate_fn(input_features)
-    runtime = time.time() - start
-
-    print(f"{batch_size}: {runtime:.06}")
+# post-process: convert tokens ids to text string
+transcription = processor.batch_decode(pred_ids, skip_special_tokens=True)
