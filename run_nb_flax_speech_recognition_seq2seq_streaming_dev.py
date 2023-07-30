@@ -1687,6 +1687,8 @@ def main():
                         samples = next(eval_loader)
                     except StopIteration:
                         break
+                    logger.info(f"Eval step {eval_step}, samples: {samples}")  # Add this line
+
                     batch = data_collator(samples)
                     
                     if eval_step is None or eval_step % data_args.log_examples == 0:
@@ -1702,6 +1704,8 @@ def main():
                     metrics = pad_shard_unpad(p_eval_step, static_return=True)(
                         state.params, batch.data, min_device_batch=training_args.per_device_eval_batch_size
                     )
+                    logger.info(f"Eval step {eval_step}, metrics: {metrics}")  # Add this line
+
                     eval_metrics.append(metrics)
 
                     # Generation
