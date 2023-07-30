@@ -1683,10 +1683,15 @@ def main():
                     max_eval_steps_iter = itertools.count()
                 for eval_step in tqdm(max_eval_steps_iter, desc=f"Evaluating {eval_name}...", position=2, leave=False):
                     # Model forward
+                    logger.info(f"Before fetching samples at eval step {eval_step}")  # Add this line
+
                     try:
                         samples = next(eval_loader)
                     except StopIteration:
+                        logger.info(f"StopIteration raised at eval step {eval_step}")  # Add this line
                         break
+                    logger.info(f"After fetching samples at eval step {eval_step}")  # Add this line
+
                     logger.info(f"Eval step {eval_step}, samples: {samples}")  # Add this line
 
                     batch = data_collator(samples)
