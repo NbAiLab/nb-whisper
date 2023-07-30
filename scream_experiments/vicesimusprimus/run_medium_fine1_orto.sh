@@ -2,24 +2,25 @@
 export TOKENIZERS_PARALLELISM=false
 export CMALLOC_VERBOSE=0
 export TCMALLOC_VERBOSE=0
-export TCMALLOC_medium_ALLOC_REPORT_THRESHOLD=10000000000
+export TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD=10000000000
 
 # Running the Python script
 python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
-    --model_name_or_path NbAiLab/nb-whisper-medium-beta \
-    --run_name "Scream - medium_nst" \
-    --run_description "A Medium NB-Whisper Public Beta NST" \
+    --model_name_or_path NbAiLab/nb-whisper-medium-publicbeta-speech2-100k \
+    --run_name "Scream - medium_npsc_norm 10k" \
+    --run_description "A Medium NB-Whisper Public Beta NPSC orto" \
     --wandb_entity "nbailab" \
     --wandb_project "NB-Whisper Public Beta" \
-    --dataset_name NbAiLab/ncc_speech2 \
+    --dataset_name NbAiLab/NPSC_orto \
+    --dataset_config_name "16K_mp3_bokmaal" \
     --language Norwegian \
     --text_column_name text \
     --train_split_name train \
-    --dataset_load_fn "utils.dataset_load_nst.load_dataset_nst" \
-    --test_split_name "test_fleurs,test_stortinget,test_nst" \
-    --eval_split_name "validation_fleurs,validation_stortinget,validation_nst" \
-    --hub_model_id NbAiLab/nb-whisper-medium-fine6-ncc-nst \
-    --output_dir ../../../nb-whisper-medium-fine6-ncc-nst \
+    --dataset_load_fn "utils.dataset_load_npsc.load_dataset_npsc" \
+    --test_split_name "test" \
+    --eval_split_name "validation" \
+    --hub_model_id NbAiLab/nb-whisper-medium-fine1-npsc-nohes-orto \
+    --output_dir ../../../nb-whisper-medium-fine1-npsc-nohes-orto \
     --overwrite_output_dir \
     --do_train \
     --do_predict \
@@ -28,15 +29,17 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --warmup_steps 40 \
     --num_train_steps 200 \
     --eval_steps 20 \
+    --max_eval_samples 2048 \
     --lr_scheduler_type linear \
-    --learning_rate 2.5e-5 \
+    --learning_rate 1e-5 \
     --weight_decay 0.01 \
     --adam_beta1 0.9 \
     --adam_beta2 0.98 \
     --adam_epsilon 1e-6 \
     --bpe_dropout 0.1 \
+    --activation_dropout 0.1 \
     --per_device_train_batch_size 16 \
-    --per_device_eval_batch_size 1 \
+    --per_device_eval_batch_size 2 \
     --preprocessing_num_workers 32 \
     --log_max_eval_predictions 100 \
     --log_eval_predictions_fn "utils.log_predictions.write_predictions" \
@@ -47,7 +50,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --hub_private_repo True \
     --resume_from_checkpoint True \
     --ignore_data_skip \
-    --num_beams 3 \
+    --num_beams 5 \
     --gradient_checkpointing True \
     --push_to_hub_auto_lfs_prune True \
     --push_to_hub
