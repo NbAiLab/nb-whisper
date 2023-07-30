@@ -12,7 +12,7 @@ NUM_BATCHES = 5
 
 # Load the model and replicate the parameters across devices
 model, params = FlaxWhisperForConditionalGeneration.from_pretrained(
-    "openai/whisper-tiny-v2",
+    "openai/whisper-tiny",
     _do_init=False,
     dtype=jnp.bfloat16,
 )
