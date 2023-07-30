@@ -43,7 +43,8 @@ def preprocess(batch):
     return batch
 
 # Provide your Hugging Face token here
-audio_files_dataset = load_dataset("NbAiLab/ncc_speech_v3", split="train", use_auth_token=True, streaming=True)
+# audio_files_dataset = load_dataset("NbAiLab/ncc_speech_v3", split="train", use_auth_token=True, streaming=True)
+audio_files_dataset = load_dataset("hf-internal-testing/librispeech_asr_dummy", "clean", split="validation")
 
 # Preprocess the audio data
 dataset_processed = audio_files_dataset.map(preprocess, remove_columns=audio_files_dataset.column_names)
