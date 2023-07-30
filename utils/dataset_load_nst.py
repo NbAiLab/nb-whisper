@@ -14,6 +14,6 @@ def load_dataset_nst(dataset_name, dataset_config_name=None, split="train", stre
     ds = ds.filter(lambda example: example['language'] == 'no')
     if split == "train":
         ds = ds.filter(lambda example: example['source'].lower() == 'nst')
-    ds = ds.map(processor_general)
+    ds = ds.map(processor_general, fn_kwargs={'field': 'text'})
     return ds
 
