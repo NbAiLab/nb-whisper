@@ -22,7 +22,6 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --output_dir ../../../nb-whisper-medium-fine5-ncc-audiobooks \
     --overwrite_output_dir \
     --do_train \
-    --do_predict \
     --do_eval \
     --predict_with_generate \
     --warmup_steps 40 \
