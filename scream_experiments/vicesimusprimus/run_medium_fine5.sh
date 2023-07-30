@@ -16,8 +16,8 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --text_column_name text \
     --train_split_name train \
     --dataset_load_fn "utils.dataset_load_audio_books.load_dataset_audio_books" \
-    --test_split_name "test" \
-    --eval_split_name "validation_fleurs, test_nst, validation_stortinget" \
+    --test_split_name "test_fleurs" \
+    --eval_split_name "validation_fleurs" \
     --hub_model_id NbAiLab/nb-whisper-medium-fine5-ncc-audiobooks \
     --output_dir ../../../nb-whisper-medium-fine5-ncc-audiobooks \
     --overwrite_output_dir \

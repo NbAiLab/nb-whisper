@@ -11,13 +11,13 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --run_description "A Medium NB-Whisper Public Beta NST" \
     --wandb_entity "nbailab" \
     --wandb_project "NB-Whisper Public Beta" \
-    --dataset_name NbAiLab/ncc_speech_v3 \
+    --dataset_name NbAiLab/ncc_speech2 \
     --language Norwegian \
     --text_column_name text \
     --train_split_name train \
     --dataset_load_fn "utils.dataset_load_nst.load_dataset_nst" \
-    --test_split_name "test" \
-    --eval_split_name "validation_fleurs, test_nst, validation_stortinget, validation_nrk" \
+    --test_split_name "test_fleurs" \
+    --eval_split_name "validation_fleurs" \
     --hub_model_id NbAiLab/nb-whisper-medium-fine6-ncc-nst \
     --output_dir ../../../nb-whisper-medium-fine6-ncc-nst \
     --overwrite_output_dir \
