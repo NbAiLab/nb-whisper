@@ -4,7 +4,7 @@ from flax.jax_utils import replicate
 from flax.training.common_utils import shard
 from jax import device_get, pmap
 from transformers import WhisperProcessor
-from transformers import FlaxWhisperForConditionalGeneration
+from whisper_jax import FlaxWhisperForConditionalGeneration
 
 # load the processor and model
 processor = WhisperProcessor.from_pretrained("openai/whisper-large-v2")
