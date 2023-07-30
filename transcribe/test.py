@@ -31,8 +31,8 @@ sample = ds[0]["audio"]
 # pre-process: convert the audio array to log-mel input features
 input_features = processor(sample["array"], sampling_rate=sample["sampling_rate"], return_tensors="np").input_features
 # replicate the input features across devices for DP
+print(input_features.shape)
 input_features = shard(input_features)
-
 # run the forward pass (JIT compiled the first time it is called)
 pred_ids = p_generate(input_features)
 output_ids = device_get(pred_ids.reshape(-1, model.config.max_length))
