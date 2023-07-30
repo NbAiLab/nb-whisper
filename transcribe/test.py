@@ -29,13 +29,13 @@ sample = ds[0]["audio"]
 
 # pre-process: convert the audio array to log-mel input features
 # Assume input_features_single is a single example of shape (1, 80, 3000)
-input_features_single = processor(sample["array"], sampling_rate=sample["sampling_rate"], return_tensors="np").input_features
+input_features_single = processor(sample["array"], sampling_rate=sample["sampling_rate"], return_tensors="np").input_features.squeeze()
 
 # Stack 4 identical copies to create a batch
 input_features = jnp.stack([input_features_single] * 4)
 
-# Make sure input features is of shape (4, 1, 80, 3000)
-print(input_features.shape)  # it should print: (4, 1, 80, 3000)
+# Make sure input features is of shape (4, 80, 3000)
+print(input_features.shape)  # it should print: (4, 80, 3000)
 
 # replicate the input features across devices for DP
 input_features = shard(input_features)
