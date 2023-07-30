@@ -11,20 +11,20 @@ from transformers import FlaxWhisperForConditionalGeneration, WhisperProcessor
 BATCH_SIZES = [4, 8, 16, 32, 64, 128]
 NUM_BATCHES = 100
 NUM_TOKENS = 25
-
+print("x")
 model, params = FlaxWhisperForConditionalGeneration.from_pretrained(
     "openai/whisper-large-v2",
     _do_init=False,
     dtype=jnp.bfloat16,
 )
-
+print("y")
 params = jax_utils.replicate(params)
 
 
 def generate_fn(batch):
     pred_ids = model.generate(batch, params=params, max_new_tokens=NUM_TOKENS, min_new_tokens=NUM_TOKENS)
     return pred_ids.sequences
-
+print("z")
 
 p_generate_fn = jax.pmap(generate_fn, "batch")
 
