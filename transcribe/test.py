@@ -1,4 +1,5 @@
 import time
+
 import jax
 import jax.numpy as jnp
 from datasets import concatenate_datasets, load_dataset
@@ -6,67 +7,57 @@ from flax import jax_utils
 from flax.training.common_utils import shard
 from transformers import FlaxWhisperForConditionalGeneration, WhisperProcessor
 
-# Set your BATCH_SIZE according to your GPU's memory availability
-BATCH_SIZE = 16
-NUM_BATCHES = 5
 
-# Load the model and replicate the parameters across devices
+BATCH_SIZES = [4, 8, 16, 32, 64, 128]
+NUM_BATCHES = 100
+NUM_TOKENS = 25
+
 model, params = FlaxWhisperForConditionalGeneration.from_pretrained(
-    "openai/whisper-tiny",
+    "openai/whisper-large-v2",
     _do_init=False,
     dtype=jnp.bfloat16,
 )
 
 params = jax_utils.replicate(params)
 
-# Function to generate predictions
+
 def generate_fn(batch):
-    pred_ids = model.generate(batch, params=params)
+    pred_ids = model.generate(batch, params=params, max_new_tokens=NUM_TOKENS, min_new_tokens=NUM_TOKENS)
     return pred_ids.sequences
 
-# Map the generate function to multiple devices
+
 p_generate_fn = jax.pmap(generate_fn, "batch")
 
-# Load the WhisperProcessor
+# processors/tokenizers are the same for all models, so just load from tiny and preprocess once
 processor = WhisperProcessor.from_pretrained("openai/whisper-tiny.en")
 
-# Function to preprocess the audio data
+
 def preprocess(batch):
     batch["input_features"] = processor(
-        batch["audio"]["array"], sampling_rate=batch["audio"]["sampling_rate"], return_tensors="np"
+        batch["audio"]["array"], sampling_rate=16000, return_tensors="np"
     ).input_features[0]
     return batch
 
-# Provide your Hugging Face token here
-audio_files_dataset = load_dataset("NbAiLab/ncc_speech_v3", split="train", use_auth_token=True, streaming=True)
 
-# Preprocess the audio data
-dataset_processed = audio_files_dataset.map(preprocess, remove_columns=audio_files_dataset.column_names)
+# load a dataset of 73 audio samples
+librispeech = load_dataset("hf-internal-testing/librispeech_asr_dummy", "clean", split="validation")
+dataset_processed = librispeech.map(preprocess, remove_columns=librispeech.column_names)
 
-# Create a dataloader
-eval_dataloader = dataset_processed.with_format("numpy").iter(batch_size=BATCH_SIZE)
+for batch_size in BATCH_SIZES:
+    eval_dataset = dataset_processed.select(range(batch_size // 2))
+    eval_dataset = concatenate_datasets([eval_dataset for _ in range(2 * NUM_BATCHES)])
 
-# Warm-up step
-batch = next(iter(eval_dataloader))
-input_features = shard(batch["input_features"])
-pred_ids = p_generate_fn(input_features)
+    eval_dataloader = eval_dataset.with_format("numpy").iter(batch_size=batch_size)
 
-# Run the model on the batches
-start = time.time()
-for i, batch in enumerate(eval_dataloader):
+    # warm-up step
+    batch = next(iter(eval_dataloader))
     input_features = shard(batch["input_features"])
     pred_ids = p_generate_fn(input_features)
-    
-    # Post-process: convert tokens ids to text string
-    transcriptions = processor.batch_decode(jax.device_get(pred_ids.reshape(-1, model.config.max_length)), skip_special_tokens=True)
-    
-    # Print the transcriptions
-    for transcription in transcriptions:
-        print(transcription)
-    
-    # Exit after processing NUM_BATCHES batches
-    if i >= NUM_BATCHES - 1:
-        break
 
-runtime = time.time() - start
-print(f"\nTotal time for {NUM_BATCHES} batches: {runtime:.06}")
+    start = time.time()
+    for batch in eval_dataloader:
+        input_features = shard(batch["input_features"])
+        pred_ids = p_generate_fn(input_features)
+    runtime = time.time() - start
+
+    print(f"{batch_size}: {runtime:.06}")
