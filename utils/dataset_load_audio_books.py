@@ -14,6 +14,5 @@ def load_dataset_audio_books(dataset_name, dataset_config_name=None, split="trai
     ds = ds.filter(lambda example: example['language'] == 'no')
     if split == "train":
         ds = ds.filter(lambda example: example['source'].lower() == 'audio_books')
-    ds = ds.map(processor_general)
+    ds = ds.map(processor_general, fn_kwargs={'field': 'texte'})
     return ds
-
