@@ -1718,7 +1718,7 @@ def main():
                     logger.error(f"No metrics were generated for evaluation named {eval_name}.")
                     logger.error(f"Evaluated dataset: {eval_dataset}")
                     logger.error(f"Eval step iterator: {max_eval_steps_iter}")
-                    logger.error(f"Last batch data: {batch.data}")
+                    logger.error(f"Last batch: {batch}")
                     continue
                 # Debugging code ends here
 
