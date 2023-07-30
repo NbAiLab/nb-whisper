@@ -1,10 +1,13 @@
 import time
+
 import jax
 import jax.numpy as jnp
 from datasets import concatenate_datasets, load_dataset
 from flax import jax_utils
 from flax.training.common_utils import shard
-from transformers import FlaxWhisperForConditionalGeneration, WhisperProcessor
+from transformers import WhisperProcessor
+from whisper_jax import FlaxWhisperForConditionalGeneration
+
 
 # Set your BATCH_SIZE according to your GPU's memory availability
 BATCH_SIZE = 16
