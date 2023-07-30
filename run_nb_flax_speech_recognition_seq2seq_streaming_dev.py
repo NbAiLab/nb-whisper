@@ -1712,6 +1712,16 @@ def main():
                             generated_ids.reshape(-1, gen_kwargs["max_length"])))
                         eval_labels.extend(labels)
 
+
+                # Debugging code starts here
+                if not eval_metrics:
+                    logger.error(f"No metrics were generated for evaluation named {eval_name}.")
+                    logger.error(f"Evaluated dataset: {eval_dataset}")
+                    logger.error(f"Eval step iterator: {max_eval_steps_iter}")
+                    logger.error(f"Last batch data: {batch.data}")
+                    continue
+                # Debugging code ends here
+
                 # Normalize eval metrics
                 eval_metrics = get_metrics(eval_metrics)
                 eval_metrics = jax.tree_util.tree_map(jnp.mean, eval_metrics)
