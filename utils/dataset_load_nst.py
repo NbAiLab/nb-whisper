@@ -9,17 +9,11 @@ def processor_general(sample, field):
 
     return sample
 
-
-def processor_nst(sample):
-    # Filter samples to only include ones with the source "nst" and the language is Norwegian
-    if sample["source"].lower() == "nst" and sample["language"] == "no":
-        return processor_general(sample, "text")
-    return sample  # return unmodified sample when "source" is not "nst"
-
-
 def load_dataset_nst(dataset_name, dataset_config_name=None, split="train", streaming=True, **kwargs):
     ds = datasets.load_dataset(dataset_name, dataset_config_name, split=split, streaming=streaming, **kwargs)
-    ds = ds.filter(lambda example: example['source'].lower() == 'nst')
-    ds = ds.map(processor_nst)
+    ds = ds.filter(lambda example: example['language'] == 'no')
+    if split == "train":
+        ds = ds.filter(lambda example: example['source'].lower() == 'nst')
+    ds = ds.map(processor_general)
     return ds
 
