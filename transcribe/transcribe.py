@@ -16,7 +16,7 @@ NUM_TOKENS = 25
 
 # Load the model and replicate the parameters across devices
 model, params = FlaxWhisperForConditionalGeneration.from_pretrained(
-    "openai/whisper-tiny",
+    "openai/whisper-tiny.en",
     _do_init=False,
     dtype=jnp.bfloat16,
 )
@@ -25,7 +25,7 @@ params = jax_utils.replicate(params)
 
 # Function to generate predictions
 def generate_fn(input_features):
-    pred_ids = model.generate(input_features, params=params, max_new_tokens=NUM_TOKENS, min_new_tokens=NUM_TOKENS)
+    pred_ids = model.generate(input_features, params=params)
     return pred_ids.sequences
 
 
