@@ -1713,19 +1713,18 @@ def main():
                         eval_labels.extend(labels)
 
 
-                # Debugging code starts here
-                if not eval_metrics:
+                # Normalize eval metrics
+                try:
+                    eval_metrics = get_metrics(eval_metrics)
+                    eval_metrics = jax.tree_util.tree_map(jnp.mean, eval_metrics)
+                    logger.error(f"Evaluated dataset name: {eval_name}")
+                except:
                     logger.error(f"No metrics were generated for evaluation named {eval_name}.")
                     logger.error(f"Evaluated dataset: {eval_dataset}")
                     logger.error(f"Evaluated dataset name: {eval_name}")
                     logger.error(f"Eval step iterator: {max_eval_steps_iter}")
-                    logger.error(f"Last batch: {batch}")
-                    continue
-                # Debugging code ends here
-
-                # Normalize eval metrics
-                eval_metrics = get_metrics(eval_metrics)
-                eval_metrics = jax.tree_util.tree_map(jnp.mean, eval_metrics)
+                    # logger.error(f"Last batch: {batch}")
+                    breakpoint()
 
                 # Compute metrics
                 metric_desc = ""
