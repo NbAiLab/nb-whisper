@@ -23,9 +23,10 @@ model, params = FlaxWhisperForConditionalGeneration.from_pretrained(
 params = jax_utils.replicate(params)
 
 # Function to generate predictions
-def generate_fn(batch):
-    pred_ids = model.generate(batch, params=params)
+def generate_fn(input_features):
+    pred_ids = model.generate(input_features, params=params, max_new_tokens=NUM_TOKENS, min_new_tokens=NUM_TOKENS)
     return pred_ids.sequences
+
 
 # Map the generate function to multiple devices
 p_generate_fn = jax.pmap(generate_fn, "batch")
