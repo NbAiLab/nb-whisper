@@ -1717,6 +1717,7 @@ def main():
                 if not eval_metrics:
                     logger.error(f"No metrics were generated for evaluation named {eval_name}.")
                     logger.error(f"Evaluated dataset: {eval_dataset}")
+                    logger.error(f"Evaluated dataset name: {eval_name}")
                     logger.error(f"Eval step iterator: {max_eval_steps_iter}")
                     logger.error(f"Last batch: {batch}")
                     continue
