@@ -29,7 +29,12 @@ ds = load_dataset("hf-internal-testing/librispeech_asr_dummy", "clean", split="v
 sample = ds[0]["audio"]
 
 # pre-process: convert the audio array to log-mel input features
-input_features = processor(sample["array"], sampling_rate=sample["sampling_rate"], return_tensors="np").input_features
+# Assume input_features_single is a single example of shape (80, 3000)
+input_features_single = processor(sample["array"], sampling_rate=sample["sampling_rate"], return_tensors="np").input_features
+
+# Stack 4 identical copies to create a batch
+input_features = jnp.stack([input_features_single] * 4)
+
 # replicate the input features across devices for DP
 print(input_features.shape)
 input_features = shard(input_features)
