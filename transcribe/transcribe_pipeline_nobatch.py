@@ -8,7 +8,7 @@ from whisper_jax import FlaxWhisperPipline
 librispeech = load_dataset("hf-internal-testing/librispeech_asr_dummy", "clean", split="validation")
 
 
-eval_dataloader = librispeech.with_format("numpy").iter()
+eval_dataloader = librispeech.with_format("numpy").iter(batch_size=1)
 
 # Create the FlaxWhisperPipeline object
 pipeline = FlaxWhisperPipline(
