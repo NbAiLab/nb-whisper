@@ -19,6 +19,7 @@ pipeline = FlaxWhisperPipline(
 while True:
     audio = next(iter(eval_dataloader))
     start = time.time()
+    breakpoint()
     transcription = pipeline(audio["path"])
     runtime = time.time() - start
     print(f"{runtime:.06}")
