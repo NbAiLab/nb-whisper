@@ -2,7 +2,7 @@ import time
 
 import jax.numpy as jnp
 from datasets import concatenate_datasets, load_dataset
-from whisper_jax import FlaxWhisperPipeline
+from whisper_jax import FlaxWhisperPipline
 
 
 BATCH_SIZES = [4, 8, 16, 32, 64, 128]
