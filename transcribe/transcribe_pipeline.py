@@ -2,8 +2,7 @@ import time
 
 import jax.numpy as jnp
 from datasets import concatenate_datasets, load_dataset
-from whisper_jax import FlaxWhisperPipline
-
+from whisper_jax import FlaxWhisperPipeline
 
 BATCH_SIZES = [4, 8, 16, 32, 64, 128]
 NUM_BATCHES = 100
@@ -18,7 +17,7 @@ for batch_size in BATCH_SIZES:
     eval_dataloader = eval_dataset.with_format("numpy").iter(batch_size=batch_size)
 
     # Create the FlaxWhisperPipeline object
-    pipeline = FlaxWhisperPipline(
+    pipeline = FlaxWhisperPipeline(
         "openai/whisper-tiny.en",
         dtype=jnp.bfloat16,  # use bfloat16 precision
         batch_size=batch_size,  # enable batching
@@ -27,14 +26,12 @@ for batch_size in BATCH_SIZES:
     # warm-up step
     batch = next(iter(eval_dataloader))
 
-    breakpoint()
-    # Pass the audio file path to the pipeline
-    transcription = pipeline(batch["audio"]["path"])
-
     start = time.time()
     for batch in eval_dataloader:
-        # Pass the audio file path to the pipeline
-        transcription = pipeline(batch["audio"]["path"])
+        for audio in batch["audio"]:
+            # Pass the audio file path to the pipeline
+            transcription = pipeline(audio["path"])
     runtime = time.time() - start
 
     print(f"{batch_size}: {runtime:.06}")
+
