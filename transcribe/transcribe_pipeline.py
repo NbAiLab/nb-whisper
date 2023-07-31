@@ -4,6 +4,7 @@ import jax.numpy as jnp
 from datasets import concatenate_datasets, load_dataset
 from whisper_jax import FlaxWhisperPipeline
 
+
 BATCH_SIZES = [4, 8, 16, 32, 64, 128]
 NUM_BATCHES = 100
 
