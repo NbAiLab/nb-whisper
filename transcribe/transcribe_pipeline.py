@@ -2,7 +2,7 @@ import time
 
 import jax.numpy as jnp
 from datasets import concatenate_datasets, load_dataset
-from whisper_jax import FlaxWhisperPipeline
+from whisper_jax import FlaxWhisperPipline
 
 BATCH_SIZES = [4, 8, 16, 32, 64, 128]
 NUM_BATCHES = 100
@@ -17,7 +17,7 @@ for batch_size in BATCH_SIZES:
     eval_dataloader = eval_dataset.with_format("numpy").iter(batch_size=batch_size)
 
     # Create the FlaxWhisperPipeline object
-    pipeline = FlaxWhisperPipeline(
+    pipeline = FlaxWhisperPipline(
         "openai/whisper-tiny.en",
         dtype=jnp.bfloat16,  # use bfloat16 precision
         batch_size=batch_size,  # enable batching
