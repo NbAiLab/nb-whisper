@@ -6,6 +6,8 @@ from transformers import WhisperProcessor
 from flax.training.common_utils import shard
 import numpy as np
 from datasets import load_dataset
+from transformers import WhisperProcessor
+import numpy as np
 
 from whisper_jax import FlaxWhisperForConditionalGeneration, InferenceState, PjitPartitioner
 
@@ -26,7 +28,7 @@ logical_axis_rules_dp = [
 ]
 
 model, params = FlaxWhisperForConditionalGeneration.from_pretrained(
-    "openai/whisper-large-v2",
+    "openai/whisper-tiny.en",
     _do_init=False,
     dtype=jnp.bfloat16,
 )
@@ -90,9 +92,14 @@ p_generate = partitioner.partition(
     in_axis_resources=(params_spec, P("data")),
     out_axis_resources=P("data"),
 )
-
 # This will auto-magically run in mesh context
-params = p_shard_params(freeze(params))
+# params = p_shard_params(freeze(params))
+# params = jax.device_put_sharded([params] * jax.local_device_count(), jax.devices())
+
+from copy import deepcopy
+
+params_list = [deepcopy(params) for _ in range(jax.local_device_count())]
+params = jax.device_put_sharded(params_list, jax.devices())
 
 # Prepare some data
 processor = WhisperProcessor.from_pretrained("openai/whisper-large-v2")
@@ -102,8 +109,6 @@ ds = load_dataset("hf-internal-testing/librispeech_asr_dummy", "clean", split="v
 batch = [ds[i]["audio"] for i in range(4)]
 input_features = [processor(sample["array"], sampling_rate=sample["sampling_rate"], return_tensors="np").input_features for sample in batch]
 
-
-breakpoint()
 # Stack the input features into a single array
 input_features = np.stack(input_features, axis=0)
 
@@ -111,5 +116,8 @@ input_features = np.stack(input_features, axis=0)
 input_features = shard(input_features)
 
 
+# This will auto-magically run in mesh context
+params = p_shard_params(freeze(params))
+
 # you can now run the forward pass with: 
-pred_ids = p_generate(input_features)
+pred_ids = p_generate(params,input_features)

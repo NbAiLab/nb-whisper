@@ -18,16 +18,16 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --dataset_load_fn "utils.dataset_load_audio_books.load_dataset_audio_books" \
     --test_split_name "test_fleurs,test_stortinget,test_nst" \
     --eval_split_name "validation_fleurs,validation_stortinget,validation_nst" \
-    --hub_model_id NbAiLab/nb-whisper-medium-fine5-ncc-audiobooks \
-    --output_dir ../../../nb-whisper-medium-fine5-ncc-audiobooks \
+    --hub_model_id NbAiLab/nb-whisper-medium-fine5b-ncc-audiobooks \
+    --output_dir ../../../nb-whisper-medium-fine5b-ncc-audiobooks \
     --overwrite_output_dir \
     --do_train \
     --do_predict \
     --do_eval \
     --predict_with_generate \
-    --warmup_steps 40 \
-    --num_train_steps 200 \
-    --eval_steps 20 \
+    --warmup_steps 500 \
+    --num_train_steps 5000 \
+    --eval_steps 500 \
     --max_eval_samples 2048 \
     --lr_scheduler_type linear \
     --learning_rate 1e-5 \
