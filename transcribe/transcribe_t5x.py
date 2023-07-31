@@ -8,6 +8,8 @@ import numpy as np
 from datasets import load_dataset
 from transformers import WhisperProcessor
 import numpy as np
+from copy import deepcopy
+
 
 from whisper_jax import FlaxWhisperForConditionalGeneration, InferenceState, PjitPartitioner
 
@@ -92,14 +94,14 @@ p_generate = partitioner.partition(
     in_axis_resources=(params_spec, P("data")),
     out_axis_resources=P("data"),
 )
-# This will auto-magically run in mesh context
-# params = p_shard_params(freeze(params))
-# params = jax.device_put_sharded([params] * jax.local_device_count(), jax.devices())
 
-from copy import deepcopy
 
+# I need to add these two lines to 
 params_list = [deepcopy(params) for _ in range(jax.local_device_count())]
 params = jax.device_put_sharded(params_list, jax.devices())
+
+# This will auto-magically run in mesh context
+params = p_shard_params(freeze(params))
 
 # Prepare some data
 processor = WhisperProcessor.from_pretrained("openai/whisper-large-v2")
@@ -113,11 +115,13 @@ input_features = [processor(sample["array"], sampling_rate=sample["sampling_rate
 input_features = np.stack(input_features, axis=0)
 
 # Shard
-input_features = shard(input_features)
+sharded_input_features = shard(input_features)
 
+# Single example of shape (1, 80, 3000)
+sample = ds[0]["audio"]
+single_input_feature = processor(sample["array"], sampling_rate=sample["sampling_rate"], return_tensors="np").input_features
 
-# This will auto-magically run in mesh context
-params = p_shard_params(freeze(params))
+# single_sharded_input_feature = shard(single_input_feature)
 
 # you can now run the forward pass with: 
 pred_ids = p_generate(params,input_features)
