@@ -13,9 +13,7 @@ NUM_BATCHES = 100
 
 
 model, params = FlaxWhisperForConditionalGeneration.from_pretrained(
-    "openai/whisper-tiny.en",
-    _do_init=False,
-    dtype=jnp.bfloat16,
+    "openai/whisper-tiny.en"
 )
 
 params = jax_utils.replicate(params)
