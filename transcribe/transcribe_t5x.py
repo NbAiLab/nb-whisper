@@ -95,10 +95,14 @@ p_generate = partitioner.partition(
 params = p_shard_params(freeze(params))
 
 # Prepare some data
-processor = WhisperProcessor.from_pretrained("openai/whisper-large-v2")
-ds = load_dataset("hf-internal-testing/librispeech_asr_dummy", "clean", split="validation")
-sample = ds[0]["audio"]
-input_features = processor(sample["array"], sampling_rate=sample["sampling_rate"], return_tensors="np").input_features
+# Load a batch of 4 samples
+batch = [ds[i]["audio"] for i in range(4)]
+input_features = [processor(sample["array"], sampling_rate=sample["sampling_rate"], return_tensors="np").input_features for sample in batch]
+
+# Stack the input features into a single array
+input_features = np.stack(input_features, axis=0)
+
+# Shard
 input_features = shard(input_features)
 
 
