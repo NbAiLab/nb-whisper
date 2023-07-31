@@ -44,8 +44,8 @@ librispeech = load_dataset("hf-internal-testing/librispeech_asr_dummy", "clean",
 dataset_processed = librispeech.map(preprocess, remove_columns=librispeech.column_names)
 
 for batch_size in BATCH_SIZES:
-    eval_dataset = dataset_processed.select(range(batch_size // 2))
-    eval_dataset = concatenate_datasets([eval_dataset for _ in range(2 * NUM_BATCHES)])
+    eval_dataset = dataset_processed.select(range(batch_size // 4))
+    eval_dataset = concatenate_datasets([eval_dataset for _ in range(4 * NUM_BATCHES)])
 
     eval_dataloader = eval_dataset.with_format("numpy").iter(batch_size=batch_size)
 
