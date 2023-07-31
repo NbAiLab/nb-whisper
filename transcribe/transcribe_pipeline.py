@@ -26,6 +26,8 @@ for batch_size in BATCH_SIZES:
 
     # warm-up step
     batch = next(iter(eval_dataloader))
+
+    breakpoint()
     # Pass the audio file path to the pipeline
     transcription = pipeline(batch["audio"]["path"])
 
