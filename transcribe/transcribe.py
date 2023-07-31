@@ -9,7 +9,7 @@ from transformers import WhisperProcessor
 from whisper_jax import FlaxWhisperForConditionalGeneration
 
 
-BATCH_SIZE = 1
+BATCH_SIZE = 4
 NUM_BATCHES = 1
 
 # Load the model and replicate the parameters across devices
