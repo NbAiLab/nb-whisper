@@ -4,6 +4,8 @@ from flax.core.frozen_dict import freeze
 from jax.sharding import PartitionSpec as P
 from transformers import WhisperProcessor
 from flax.training.common_utils import shard
+import numpy as np
+from datasets import load_dataset
 
 from whisper_jax import FlaxWhisperForConditionalGeneration, InferenceState, PjitPartitioner
 
@@ -79,8 +81,6 @@ p_shard_params = partitioner.partition(model.to_bf16, (params_spec,), params_spe
 
 
 def generate(params, input_features):
-    print(f"Shape of input_features inside generate: {input_features.shape}")  # Debugging line
-    print(f"Model configuration: num_mel_bins = {model.config.num_mel_bins}, max_source_positions = {model.config.max_source_positions}")
     output_ids = model.generate(input_features, params=params, max_length=model.config.max_length).sequences
     return output_ids
 
@@ -95,10 +95,15 @@ p_generate = partitioner.partition(
 params = p_shard_params(freeze(params))
 
 # Prepare some data
+processor = WhisperProcessor.from_pretrained("openai/whisper-large-v2")
+ds = load_dataset("hf-internal-testing/librispeech_asr_dummy", "clean", split="validation")
+
 # Load a batch of 4 samples
 batch = [ds[i]["audio"] for i in range(4)]
 input_features = [processor(sample["array"], sampling_rate=sample["sampling_rate"], return_tensors="np").input_features for sample in batch]
 
+
+breakpoint()
 # Stack the input features into a single array
 input_features = np.stack(input_features, axis=0)
 
