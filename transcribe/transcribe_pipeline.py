@@ -18,7 +18,7 @@ for batch_size in BATCH_SIZES:
     eval_dataloader = eval_dataset.with_format("numpy").iter(batch_size=batch_size)
 
     # Create the FlaxWhisperPipeline object
-    pipeline = FlaxWhisperPipeline(
+    pipeline = FlaxWhisperPipline(
         model_name_or_path="openai/whisper-tiny.en",
         dtype=jnp.bfloat16,  # use bfloat16 precision
         batch_size=batch_size,  # enable batching
