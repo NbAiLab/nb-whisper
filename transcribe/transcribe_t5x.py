@@ -90,7 +90,7 @@ p_generate = partitioner.partition(
     out_axis_resources=P("data"),
 )
 
-# I need to add these two lines to 
+# I need to add these two lines to make it work 
 params_list = [deepcopy(params) for _ in range(jax.local_device_count())]
 params = jax.device_put_sharded(params_list, jax.devices())
 
