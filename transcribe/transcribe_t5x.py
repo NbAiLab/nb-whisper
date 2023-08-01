@@ -10,9 +10,7 @@ from transformers import WhisperProcessor
 import numpy as np
 from copy import deepcopy
 
-
 from whisper_jax import FlaxWhisperForConditionalGeneration, InferenceState, PjitPartitioner
-
 
 # 2D parameter and activation partitioning for DP
 logical_axis_rules_dp = [
@@ -34,7 +32,6 @@ model, params = FlaxWhisperForConditionalGeneration.from_pretrained(
     _do_init=False,
     dtype=jnp.bfloat16,
 )
-
 
 def init_fn():
     input_shape = (1, 80, 3000)
@@ -59,7 +56,6 @@ def init_fn():
     )
     return init_params
 
-
 # Axis names metadata
 param_axes = jax.eval_shape(init_fn)["params_axes"]
 
@@ -83,18 +79,16 @@ params_spec = mesh_axes.params
 
 p_shard_params = partitioner.partition(model.to_bf16, (params_spec,), params_spec)
 
-
+# Change generate function to not iterate over examples
 def generate(params, input_features):
     output_ids = model.generate(input_features, params=params, max_length=model.config.max_length).sequences
     return output_ids
-
 
 p_generate = partitioner.partition(
     generate,
     in_axis_resources=(params_spec, P("data")),
     out_axis_resources=P("data"),
 )
-
 
 # I need to add these two lines to 
 params_list = [deepcopy(params) for _ in range(jax.local_device_count())]
@@ -109,19 +103,25 @@ ds = load_dataset("hf-internal-testing/librispeech_asr_dummy", "clean", split="v
 
 # Load a batch of 4 samples
 batch = [ds[i]["audio"] for i in range(4)]
-input_features = [processor(sample["array"], sampling_rate=sample["sampling_rate"], return_tensors="np").input_features for sample in batch]
+input_features = [np.squeeze(processor(sample["array"], sampling_rate=sample["sampling_rate"], return_tensors="np").input_features) for sample in batch]
 
 # Stack the input features into a single array
-input_features = np.stack(input_features, axis=0)
+stacked_input_features = np.stack(input_features, axis=0)
+
+def custom_shard(xs):
+    num_devices = 4
+    batch_size = xs.shape[0]
+    if batch_size % num_devices != 0:
+        raise ValueError(f"Batch size ({batch_size}) must be divisible by the number of devices ({num_devices})")
+    samples_per_device = batch_size // num_devices
+    return jax.tree_map(
+        lambda x: x.reshape((num_devices, samples_per_device) + x.shape[1:]), xs
+    )
 
 # Shard
-sharded_input_features = shard(input_features)
-
-# Single example of shape (1, 80, 3000)
-sample = ds[0]["audio"]
-single_input_feature = processor(sample["array"], sampling_rate=sample["sampling_rate"], return_tensors="np").input_features
-
-# single_sharded_input_feature = shard(single_input_feature)
+sharded_input_features = custom_shard(stacked_input_features)
+print("sharded_input_features shape: ", sharded_input_features.shape)
 
 # you can now run the forward pass with: 
-pred_ids = p_generate(params,input_features)
+pred_ids = p_generate(params, sharded_input_features)
+print("pred_ids shape: ", pred_ids.shape)
