@@ -34,12 +34,8 @@ def main(model, split, max):
     else:
         df = pd.DataFrame(columns=['id', 'target', model])
 
-    print(f'[DEBUG] Initial DataFrame size: {len(df)}')  # Debug info
-
     # Create a set of already transcribed ids for faster lookup
     transcribed_ids = set(df['id'].values.tolist())
-
-    print(f'[DEBUG] Initial set of transcribed ids size: {len(transcribed_ids)}')  # Debug info
 
     # List of splits to load
     splits = ['train', 'validation', 'test'] if split is None else [split]
@@ -63,9 +59,6 @@ def main(model, split, max):
 
                     transcribed_ids.add(item['id'])  # Add the transcribed id to the set
                     count += 1
-
-                    print(f'[DEBUG] DataFrame size after adding new row: {len(df)}')  # Debug info
-                    print(f'[DEBUG] Set of transcribed ids size after adding new id: {len(transcribed_ids)}')  # Debug info
 
                     # Push to output file every PUSH_INTERVAL steps
                     if count % PUSH_INTERVAL == 0:
