@@ -34,22 +34,26 @@ def main(model, split, max):
         df = pd.read_csv(output_file, sep='\t')
     else:
         df = pd.DataFrame(columns=['id', 'target', model])
+    
+    # Create a set of already transcribed ids for faster lookup
+    transcribed_ids = set(df['id'].values.tolist())
 
     # Transcribe each audio file in the dataset
-    count = 0
+    count = len(df)  # Start count from current DataFrame size
     start_time = time.time()
     try:
         for i, item in enumerate(dataset):
-            if item['id'] not in df['id'].values:  # Skip item if already transcribed
+            if item['id'] not in transcribed_ids:  # Skip item if already transcribed
                 audio_file = item['audio']
                 result = pipeline(audio_file, task="transcribe", language="Norwegian")  # Changed task to "transcribe"
                 text = result['text']  # Extract text from result
 
                 # Add transcription to dataframe
-                new_row = pd.DataFrame({'id': [item['id']], 'target': [item['text']], model: [text]})
-                df = pd.concat([df, new_row], ignore_index=True)
+                new_row = pd.DataFrame({'id': [item['id']], 'target': [item['text']], model: [text]}, index=[count])
+                df = pd.concat([df, new_row])
 
-                count = len(df)
+                transcribed_ids.add(item['id'])  # Add the transcribed id to the set
+                count += 1
 
                 # Push to output file every PUSH_INTERVAL steps
                 if count % PUSH_INTERVAL == 0:
