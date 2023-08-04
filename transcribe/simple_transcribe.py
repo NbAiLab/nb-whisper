@@ -9,6 +9,7 @@ from datasets import load_dataset
 # Constants
 DATASET = 'NbAiLab/ncc_speech_v3'
 PUSH_INTERVAL = 50
+GCS_BUCKET = "gs://north/pere-cloud/transcript-output"
 
 def load_model(model_name):
     # Instantiate pipeline
@@ -75,6 +76,16 @@ def main(model, split, max):
                         transcription_speed = PUSH_INTERVAL / elapsed_time  # Calculate transcription speed
                         df.to_csv(output_file, sep='\t', index=False)  # Overwrite file
                         print(f'Saved {count} items to {output_file}. Transcription speed: {transcription_speed:.2f} items/second.')
+                        
+                        # Copy file to Google Cloud Storage
+                        gcs_path = os.path.join(GCS_BUCKET, output_file)
+                        copy_command = f"gsutil cp {output_file} {gcs_path}"
+                        result = os.system(copy_command)
+                        if result == 0:
+                            print(f'Successfully copied {output_file} to {gcs_path}')
+                        else:
+                            print(f'Failed to copy {output_file} to {gcs_path}. Continuing transcription...')
+
                         start_time = time.time()
 
                 # Exit gracefully if max transcripts is reached
@@ -88,6 +99,15 @@ def main(model, split, max):
     # Save remaining transcripts
     df.to_csv(output_file, sep='\t', index=False)  # Overwrite file
     print(f'Saved {len(df)} items to {output_file}')
+
+    # Copy file to Google Cloud Storage
+    gcs_path = os.path.join(GCS_BUCKET, output_file)
+    copy_command = f"gsutil cp {output_file} {gcs_path}"
+    result = os.system(copy_command)
+    if result == 0:
+        print(f'Successfully copied {output_file} to {gcs_path}')
+    else:
+        print(f'Failed to copy {output_file} to {gcs_path}. Continuing transcription...')
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Transcribe audio from Huggingface streaming dataset')
