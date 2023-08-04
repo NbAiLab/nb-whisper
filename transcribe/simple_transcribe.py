@@ -36,7 +36,6 @@ def main(model, split, max):
         df = pd.DataFrame(columns=['id', 'target', model])
 
     # Transcribe each audio file in the dataset
-    count = 0
     start_time = time.time()
     try:
         for i, item in enumerate(dataset):
@@ -46,9 +45,9 @@ def main(model, split, max):
                 text = result['text']  # Extract text from result
 
                 # Add transcription to dataframe
-                df.loc[count] = [item['id'], item['text'], text]
+                df = df.append({'id': item['id'], 'target': item['text'], model: text}, ignore_index=True)
 
-                count += 1
+                count = len(df)
 
                 # Push to output file every PUSH_INTERVAL steps
                 if count % PUSH_INTERVAL == 0:
@@ -67,7 +66,7 @@ def main(model, split, max):
 
     # Save remaining transcripts
     df.to_csv(output_file, sep='\t', index=False)  # Overwrite file
-    print(f'Saved {count} items to {output_file}')
+    print(f'Saved {len(df)} items to {output_file}')
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Transcribe audio from Huggingface streaming dataset')
