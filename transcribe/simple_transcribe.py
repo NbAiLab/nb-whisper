@@ -2,6 +2,7 @@ import argparse
 import os
 import jax.numpy as jnp
 import pandas as pd
+from tqdm import tqdm
 from whisper_jax import FlaxWhisperPipline
 from datasets import load_dataset
 
@@ -24,11 +25,14 @@ def main(model, split, max):
     pipeline = load_model(model)
     dataset = load_data(split)
 
+    # Get size of dataset for progress bar
+    dataset_size = len(dataset)
+
     # Modify model name for output file
     model_name = model.replace("_", "-")
 
     # Check if output file exists
-    output_file = f'output_{model_name}.txt'
+    output_file = os.path.join(os.getcwd(), f'output_{model_name}.txt')
     if os.path.exists(output_file):
         df = pd.read_csv(output_file, sep='\t')
     else:
@@ -36,6 +40,7 @@ def main(model, split, max):
 
     # Transcribe each audio file in the dataset
     count = 0
+    pbar = tqdm(total=min(max, dataset_size), ncols=70, bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt}')
     for i, item in enumerate(dataset):
         if item['id'] not in df['id'].values:  # Skip item if already transcribed
             audio_file = item['audio']
@@ -45,6 +50,7 @@ def main(model, split, max):
             df.loc[count] = [item['id'], item['text'], text]
 
             count += 1
+            pbar.update(1)
 
             # Push to output file every PUSH_INTERVAL steps
             if count % PUSH_INTERVAL == 0:
@@ -59,6 +65,7 @@ def main(model, split, max):
     # Save remaining transcripts
     df.to_csv(output_file, sep='\t', index=False)
     print(f'Saved {count} items to {output_file}')
+    pbar.close()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Transcribe audio from Huggingface streaming dataset')
