@@ -24,8 +24,11 @@ def main(model, split, max):
     pipeline = load_model(model)
     dataset = load_data(split)
 
+    # Modify model name for output file
+    model_name = model.replace("_", "-")
+
     # Check if output file exists
-    output_file = f'output_{model}.txt'
+    output_file = f'output_{model_name}.txt'
     if os.path.exists(output_file):
         df = pd.read_csv(output_file, sep='\t')
     else:
