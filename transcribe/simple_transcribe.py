@@ -39,7 +39,7 @@ def main(model, split, max):
             text = pipeline(audio_file, task="translate", language="Norwegian")
 
             # Add transcription to dataframe
-            df.loc[count] = [item['id'], item['target'], text]
+            df.loc[count] = [item['id'], item['text'], text]
 
             count += 1
 
