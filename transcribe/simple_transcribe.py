@@ -46,8 +46,9 @@ def main(model, split, max):
                 text = result['text']  # Extract text from result
 
                 # Add transcription to dataframe
-                df = df.append({'id': item['id'], 'target': item['text'], model: text}, ignore_index=True)
-                
+                new_row = pd.DataFrame({'id': [item['id']], 'target': [item['text']], model: [text]})
+                df = pd.concat([df, new_row], ignore_index=True)
+
                 count = len(df)
 
                 # Push to output file every PUSH_INTERVAL steps
