@@ -46,6 +46,7 @@ def main(model, split, max):
             # Push to output file every PUSH_INTERVAL steps
             if count % PUSH_INTERVAL == 0:
                 df.to_csv(output_file, sep='\t', index=False)
+                print(f'Saved {count} items to {output_file}')
 
         # Exit gracefully if max transcripts is reached
         if count >= max:
@@ -54,6 +55,7 @@ def main(model, split, max):
 
     # Save remaining transcripts
     df.to_csv(output_file, sep='\t', index=False)
+    print(f'Saved {count} items to {output_file}')
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Transcribe audio from Huggingface streaming dataset')
