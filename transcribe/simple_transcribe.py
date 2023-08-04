@@ -2,7 +2,6 @@ import argparse
 import os
 import jax.numpy as jnp
 import pandas as pd
-from tqdm import tqdm
 from whisper_jax import FlaxWhisperPipline
 from datasets import load_dataset
 
@@ -26,10 +25,10 @@ def main(model, split, max):
     dataset = load_data(split)
 
     # Modify model name for output file
-    model_name = model.replace("_", "-")
+    model_name = model.split("/")[-1]
 
     # Check if output file exists
-    output_file = os.path.join(os.getcwd(), f'output_{model_name}.txt')
+    output_file = f'output_{model_name}.txt'
     if os.path.exists(output_file):
         df = pd.read_csv(output_file, sep='\t')
     else:
@@ -37,38 +36,38 @@ def main(model, split, max):
 
     # Transcribe each audio file in the dataset
     count = 0
-    pbar = tqdm(total=max, ncols=70, bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt}')
-    for i, item in enumerate(dataset):
-        if item['id'] not in df['id'].values:  # Skip item if already transcribed
-            audio_file = item['audio']
-            text = pipeline(audio_file, task="translate", language="Norwegian")
+    try:
+        for i, item in enumerate(dataset):
+            if item['id'] not in df['id'].values:  # Skip item if already transcribed
+                audio_file = item['audio']
+                text = pipeline(audio_file, task="translate", language="Norwegian")
 
-            # Add transcription to dataframe
-            df.loc[count] = [item['id'], item['text'], text]
+                # Add transcription to dataframe
+                df.loc[count] = [item['id'], item['text'], text]
 
-            count += 1
-            pbar.update(1)
+                count += 1
 
-            # Push to output file every PUSH_INTERVAL steps
-            if count % PUSH_INTERVAL == 0:
-                df.to_csv(output_file, sep='\t', index=False)
-                print(f'Saved {count} items to {output_file}')
+                # Push to output file every PUSH_INTERVAL steps
+                if count % PUSH_INTERVAL == 0:
+                    df.to_csv(output_file, sep='\t', index=False)
+                    print(f'Saved {count} items to {output_file}')
 
-        # Exit gracefully if max transcripts is reached
-        if count >= max:
-            print(f'Reached max transcripts: {max}')
-            break
+            # Exit gracefully if max transcripts is reached
+            if count >= max:
+                print(f'Reached max transcripts: {max}')
+                break
+    except StopIteration:
+        print("End of dataset reached")
 
     # Save remaining transcripts
     df.to_csv(output_file, sep='\t', index=False)
     print(f'Saved {count} items to {output_file}')
-    pbar.close()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Transcribe audio from Huggingface streaming dataset')
     parser.add_argument('--model', type=str, default="openai/whisper-tiny-en", help='Model to use for transcription')
     parser.add_argument('--split', type=str, default="train", help='Split of the dataset to use')
-    parser.add_argument('--max', type=int, default=100, help='Max number of transcripts')
+    parser.add_argument('--max', type=int, default=float('inf'), help='Max number of transcripts')
     args = parser.parse_args()
 
     main(args.model, args.split, args.max)
