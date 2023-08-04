@@ -40,7 +40,13 @@ def main(model, split, max):
     # List of splits to load
     splits = ['train', 'validation', 'test'] if split is None else [split]
 
+    # Control flag for max transcripts
+    reached_max = False
+
     for split in splits:
+        if reached_max:
+            break
+
         dataset = load_data(split)
 
         # Transcribe each audio file in the dataset
@@ -48,6 +54,9 @@ def main(model, split, max):
         start_time = time.time()
         try:
             for i, item in enumerate(dataset):
+                if reached_max:
+                    break
+
                 if item['id'] not in transcribed_ids:  # Skip item if already transcribed
                     audio_file = item['audio']
                     result = pipeline(audio_file, task="transcribe", language="Norwegian")  # Changed task to "transcribe"
@@ -71,6 +80,7 @@ def main(model, split, max):
                 # Exit gracefully if max transcripts is reached
                 if count >= max:
                     print(f'Reached max transcripts: {max}')
+                    reached_max = True
                     break
         except StopIteration:
             print(f"End of {split} split reached")
