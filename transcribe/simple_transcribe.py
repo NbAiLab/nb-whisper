@@ -9,7 +9,7 @@ from datasets import load_dataset
 # Constants
 DATASET = 'NbAiLab/ncc_speech_v3'
 PUSH_INTERVAL = 50
-GCS_BUCKET = "gs://north/nb-whisper-transcript"
+GCS_BUCKET = "gs://nb-whisper-transcript"
 
 def load_model(model_name):
     # Instantiate pipeline
