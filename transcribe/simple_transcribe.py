@@ -1,5 +1,6 @@
 import argparse
 import os
+import time
 import jax.numpy as jnp
 import pandas as pd
 from whisper_jax import FlaxWhisperPipline
@@ -36,6 +37,7 @@ def main(model, split, max):
 
     # Transcribe each audio file in the dataset
     count = 0
+    start_time = time.time()
     try:
         for i, item in enumerate(dataset):
             if item['id'] not in df['id'].values:  # Skip item if already transcribed
@@ -49,8 +51,10 @@ def main(model, split, max):
 
                 # Push to output file every PUSH_INTERVAL steps
                 if count % PUSH_INTERVAL == 0:
+                    elapsed_time = time.time() - start_time
                     df.to_csv(output_file, sep='\t', index=False)
-                    print(f'Saved {count} items to {output_file}')
+                    print(f'Saved {count} items to {output_file}. Transcription speed: {PUSH_INTERVAL / elapsed_time} items/second.')
+                    start_time = time.time()
 
             # Exit gracefully if max transcripts is reached
             if count >= max:
