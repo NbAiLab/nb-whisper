@@ -36,17 +36,18 @@ def main(model, split, max):
         df = pd.DataFrame(columns=['id', 'target', model])
 
     # Transcribe each audio file in the dataset
+    count = 0
     start_time = time.time()
     try:
         for i, item in enumerate(dataset):
             if item['id'] not in df['id'].values:  # Skip item if already transcribed
                 audio_file = item['audio']
-                result = pipeline(audio_file, task="translate", language="Norwegian")
+                result = pipeline(audio_file, task="transcribe", language="Norwegian")  # Changed task to "transcribe"
                 text = result['text']  # Extract text from result
 
                 # Add transcription to dataframe
                 df = df.append({'id': item['id'], 'target': item['text'], model: text}, ignore_index=True)
-
+                
                 count = len(df)
 
                 # Push to output file every PUSH_INTERVAL steps
