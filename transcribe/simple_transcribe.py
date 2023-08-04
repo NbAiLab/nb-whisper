@@ -42,7 +42,8 @@ def main(model, split, max):
         for i, item in enumerate(dataset):
             if item['id'] not in df['id'].values:  # Skip item if already transcribed
                 audio_file = item['audio']
-                text = pipeline(audio_file, task="translate", language="Norwegian")
+                result = pipeline(audio_file, task="translate", language="Norwegian")
+                text = result['text']  # Extract text from result
 
                 # Add transcription to dataframe
                 df.loc[count] = [item['id'], item['text'], text]
@@ -52,8 +53,9 @@ def main(model, split, max):
                 # Push to output file every PUSH_INTERVAL steps
                 if count % PUSH_INTERVAL == 0:
                     elapsed_time = time.time() - start_time
+                    transcription_speed = round(PUSH_INTERVAL / elapsed_time, 2)  # Round to 2 decimal places
                     df.to_csv(output_file, sep='\t', index=False)
-                    print(f'Saved {count} items to {output_file}. Transcription speed: {PUSH_INTERVAL / elapsed_time} items/second.')
+                    print(f'Saved {count} items to {output_file}. Transcription speed: {transcription_speed} items/second.')
                     start_time = time.time()
 
             # Exit gracefully if max transcripts is reached
