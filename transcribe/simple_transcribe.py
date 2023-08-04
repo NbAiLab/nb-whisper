@@ -53,9 +53,9 @@ def main(model, split, max):
                 # Push to output file every PUSH_INTERVAL steps
                 if count % PUSH_INTERVAL == 0:
                     elapsed_time = time.time() - start_time
-                    transcription_speed = round(PUSH_INTERVAL / elapsed_time, 2)  # Round to 2 decimal places
-                    df.to_csv(output_file, sep='\t', index=False)
-                    print(f'Saved {count} items to {output_file}. Transcription speed: {transcription_speed} items/second.')
+                    transcription_speed = PUSH_INTERVAL / elapsed_time  # Calculate transcription speed
+                    df.to_csv(output_file, sep='\t', index=False)  # Overwrite file
+                    print(f'Saved {count} items to {output_file}. Transcription speed: {transcription_speed:.2f} items/second.')
                     start_time = time.time()
 
             # Exit gracefully if max transcripts is reached
@@ -66,7 +66,7 @@ def main(model, split, max):
         print("End of dataset reached")
 
     # Save remaining transcripts
-    df.to_csv(output_file, sep='\t', index=False)
+    df.to_csv(output_file, sep='\t', index=False)  # Overwrite file
     print(f'Saved {count} items to {output_file}')
 
 if __name__ == "__main__":
