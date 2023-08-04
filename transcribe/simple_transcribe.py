@@ -25,9 +25,6 @@ def main(model, split, max):
     pipeline = load_model(model)
     dataset = load_data(split)
 
-    # Get size of dataset for progress bar
-    dataset_size = len(dataset)
-
     # Modify model name for output file
     model_name = model.replace("_", "-")
 
@@ -40,7 +37,7 @@ def main(model, split, max):
 
     # Transcribe each audio file in the dataset
     count = 0
-    pbar = tqdm(total=min(max, dataset_size), ncols=70, bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt}')
+    pbar = tqdm(total=max, ncols=70, bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt}')
     for i, item in enumerate(dataset):
         if item['id'] not in df['id'].values:  # Skip item if already transcribed
             audio_file = item['audio']
