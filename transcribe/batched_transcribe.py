@@ -55,6 +55,10 @@ def main():
 
     # Define a generate function for transcription
     def generate_fn(input_features):
+        print("\n=== DEBUG INFO ===")
+        print("Shape of input_features:", input_features.shape)
+        print("====================\n")
+        
         pred_ids = model.generate(
             input_features, task="transcribe", return_timestamps=False, 
             max_length=model.config.max_length, params=params
@@ -64,6 +68,10 @@ def main():
     # Parallelize the generate function for data parallelism
     p_generate = pmap(generate_fn, "input_features")
     params = replicate(params)  # Replicate the model parameters
+    
+    print("\n=== DEBUG INFO ===")
+    print("Shape and type of params:", type(params), [ (k, v.shape) for k, v in params.items() ])
+    print("====================\n")
 
     # Run the inference
     batched_features = shard(batched_features)  # Shard the batched_features for data parallelism
