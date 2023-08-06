@@ -53,7 +53,7 @@ def main():
     # TODO : I am unable to run the line below. Keep getting the following error:
     # *** flax.errors.ScopeParamNotFoundError: Could not find parameter named "kernel" in scope "/model/encoder/conv1"
     # I get this even with batch 1. I have tried to debug this but I am unable to find the cause.
-
+    breakpoint()
     pred_ids = p_generate(batched_features)
     output_ids = device_get(pred_ids.reshape(-1, model.config.max_length))
 
