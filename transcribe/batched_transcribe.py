@@ -1,7 +1,7 @@
 import jax.numpy as jnp
 from datasets import load_dataset
 from transformers import WhisperProcessor
-from flax.jax_utils import replicate
+from flax.jax_utils import replicate, unreplicate
 from flax.training.common_utils import shard
 from jax import pmap, device_get
 from whisper_jax import FlaxWhisperForConditionalGeneration
@@ -47,7 +47,6 @@ def main():
     
     # Preprocess the audio items
     individual_features = preprocess_audio(audio_items, processor)
-    # Combine individual features into a batch
     batched_features = batch_audio_features(individual_features)
 
     # Load the model
@@ -67,14 +66,17 @@ def main():
     p_generate = pmap(generate_fn, "input_features")
     params = replicate(params)  # Replicate the model parameters
 
-    # Print details about p_generate and params
-    print("Details about p_generate:")
-    print(f"Type: {type(p_generate)}")
-    print("Details about params:")
-    print(f"Type: {type(params)}")
-    # TODO: Additional structure details can be added if necessary
+    # Run the inference
+    batched_features = shard(batched_features)  # Shard the batched_features for data parallelism
+    pred_ids = p_generate(batched_features)
+    output_ids = device_get(pred_ids.reshape(-1, model.config.max_length))  # Reshape and get the output from devices
 
-    # TODO: Feed the batched_features into the p_generate function
+    # Post-process to get transcriptions
+    transcriptions = processor.batch_decode(output_ids, skip_special_tokens=True)
+
+    # Print transcriptions
+    for idx, transcription in enumerate(transcriptions):
+        print(f"Transcription {idx + 1}: {transcription}")
 
 if __name__ == "__main__":
     main()
