@@ -11,8 +11,9 @@ MODEL_NAME = "openai/whisper-tiny"
 def main():
     # Load the processor and model
     processor = WhisperProcessor.from_pretrained(MODEL_NAME)
-    model, params = FlaxWhisperForConditionalGeneration.from_pretrained(MODEL_NAME, dtype=jnp.bfloat16, _do_init=False)
+    model,params = FlaxWhisperForConditionalGeneration.from_pretrained(MODEL_NAME, dtype=jnp.bfloat16, _do_init=False)
     
+    breakpoint()
     # Load a dummy sample from the LibriSpeech dataset
     ds = load_dataset("hf-internal-testing/librispeech_asr_dummy", "clean", split="validation")
     sample = ds[0]["audio"]
