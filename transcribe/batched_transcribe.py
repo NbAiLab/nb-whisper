@@ -1,6 +1,6 @@
-import jax
 import jax.numpy as jnp
-from flax.jax_utils import replicate, unreplicate
+from datasets import load_dataset
+from flax.jax_utils import replicate
 from flax.training.common_utils import shard
 from jax import device_get, pmap
 from transformers import WhisperProcessor
@@ -8,47 +8,53 @@ from whisper_jax import FlaxWhisperForConditionalGeneration
 
 MODEL_NAME = "openai/whisper-tiny"
 
-def print_shapes(params, prefix=""):
-    """Recursively print shapes for the nested params dictionaries."""
-    for k, v in params.items():
-        if isinstance(v, dict):
-            print_shapes(v, prefix=f"{prefix}/{k}")
-        else:
-            print(f"{prefix}/{k}:", v.shape)
-
 def main():
+    # Load the processor and model
     processor = WhisperProcessor.from_pretrained(MODEL_NAME)
-    model = FlaxWhisperForConditionalGeneration.from_pretrained(MODEL_NAME, dtype=jnp.bfloat16, return_dict=False)
-    params = model.params
+    model, params = FlaxWhisperForConditionalGeneration.from_pretrained(MODEL_NAME, dtype=jnp.bfloat16)
+
+    # Load a dummy sample from the LibriSpeech dataset
+    ds = load_dataset("hf-internal-testing/librispeech_asr_dummy", "clean", split="validation")
+    sample = ds[0]["audio"]
+
+    # Generate individual features
+    dummy_audio = [sample["array"] for _ in range(4)]
+    sample_rate = sample["sampling_rate"]
+
+    print("=== DEBUG INFO ===")
+    print("Shape of dummy_audio[0]:", dummy_audio[0].shape)
     
-    # Create a dummy batched_features for demonstration
-    sample_rate = 16000
-    dummy_audio = jnp.array([[[0.1] * sample_rate * 10]] * 4)  # 4 samples, each of 10 seconds
     individual_features = [
         processor(dummy_audio[i], sampling_rate=sample_rate, return_tensors="np").input_features
         for i in range(4)
     ]
+    for idx, feat in enumerate(individual_features):
+        print(f"Shape of individual_features[{idx}]:", feat.shape)
+
+    # Stack features for batching
     batched_features = jnp.stack(individual_features)
-    
-    print("\n=== DEBUG INFO ===")
     print("Shape of batched_features:", batched_features.shape)
-    print("Shapes in params:")
-    print_shapes(params)
-    print("====================\n")
-    
+
     def generate_fn(input_features):
-        return model.generate(
-            input_features, task="transcribe", return_timestamps=False, max_length=model.config.max_length,
-        ).sequences
-    
+        pred_ids = model.generate(
+            input_features, task="transcribe", return_timestamps=False, max_length=model.config.max_length, params=params,
+        )
+        return pred_ids.sequences
+
+    # pmap the generate function for data parallelism
     p_generate = pmap(generate_fn, "input_features")
+    # replicate the parameters across devices
     params = replicate(params)
-    
+    print("Shape and type of params:", type(params), {k: v.shape for k, v in params.items() if hasattr(v, 'shape')})
+
+    # Run the forward pass (JIT compiled the first time it is called)
     pred_ids = p_generate(batched_features)
     output_ids = device_get(pred_ids.reshape(-1, model.config.max_length))
-    
+
+    # Post-process: convert tokens ids to text string
     transcription = processor.batch_decode(output_ids, skip_special_tokens=True)
     print("Transcription:", transcription)
+
 
 if __name__ == "__main__":
     main()
