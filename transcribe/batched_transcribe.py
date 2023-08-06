@@ -45,7 +45,6 @@ def main():
     # pmap the generate function for data parallelism
     p_generate = pmap(generate_fn, "input_features")
 
-    breakpoint()
     # replicate the parameters across devices
     params = replicate(params)
 
@@ -53,6 +52,7 @@ def main():
     
     # TODO : I am unable to run the line below. Keep getting the following error:
     # jax._src.traceback_util.UnfilteredStackTrace: flax.errors.ScopeParamShapeError: Initializer expected to generate shape (4, 3, 80, 384) but got shape (3, 80, 384) instead for parameter "kernel" in "/model/encoder/conv1".
+    # I am really a bit lost here. Manually inspecting params['model']['encoder']['conv1']['kernel'].shape gives me (4, 3, 80, 384) as expected.
 
     pred_ids = p_generate(batched_features)
     output_ids = device_get(pred_ids.reshape(-1, model.config.max_length))
