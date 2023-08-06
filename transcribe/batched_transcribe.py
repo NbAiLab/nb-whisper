@@ -5,7 +5,7 @@ from transformers import WhisperProcessor
 # Constants
 DATASET = 'NbAiLab/ncc_speech_v3'
 BATCH_SIZE = 4
-MODEL_NAME = "openai/whisper-tiny"  # Placeholder, replace with the appropriate model name if different
+MODEL_NAME = "openai/whisper-tiny"
 
 def fetch_first_n_items(dataset, n):
     items = []
@@ -22,8 +22,9 @@ def preprocess_audio(audio_items, processor):
     # Convert audio items to features using the WhisperProcessor
     batched_features = []
     for item in audio_items:
-        audio_data = item['audio']
-        features = processor(audio_data, return_tensors="jax")
+        audio_data = item['audio']['array']  # Extract the raw audio data from the dictionary
+        sampling_rate = item['audio']['sampling_rate']
+        features = processor(audio_data, return_tensors="jax", sampling_rate=sampling_rate)
         batched_features.append(features)
     return batched_features
 
