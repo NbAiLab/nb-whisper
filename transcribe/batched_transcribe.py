@@ -1,6 +1,7 @@
 import jax.numpy as jnp
 from datasets import load_dataset
-from whisper_jax import FlaxWhisperPipline, WhisperProcessor
+from whisper_jax import FlaxWhisperPipline
+from transformers import WhisperProcessor
 
 # Constants
 DATASET = 'NbAiLab/ncc_speech_v3'
