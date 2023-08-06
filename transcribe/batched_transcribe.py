@@ -13,7 +13,6 @@ def main():
     processor = WhisperProcessor.from_pretrained(MODEL_NAME)
     model,params = FlaxWhisperForConditionalGeneration.from_pretrained(MODEL_NAME, dtype=jnp.bfloat16, _do_init=False)
     
-    breakpoint()
     # Load a dummy sample from the LibriSpeech dataset
     ds = load_dataset("hf-internal-testing/librispeech_asr_dummy", "clean", split="validation")
     sample = ds[0]["audio"]
@@ -45,6 +44,7 @@ def main():
     # pmap the generate function for data parallelism
     p_generate = pmap(generate_fn, "input_features")
     # replicate the parameters across devices
+    breakpoint()
     params = replicate(params)
     print("Shape and type of params:", type(params), {k: v.shape for k, v in params.items() if hasattr(v, 'shape')})
 
