@@ -1,6 +1,5 @@
 import jax.numpy as jnp
 from datasets import load_dataset
-from whisper_jax import FlaxWhisperPipline
 from transformers import WhisperProcessor
 
 # Constants
@@ -10,9 +9,10 @@ MODEL_NAME = "openai/whisper-tiny-en"  # Placeholder, replace with the appropria
 
 def fetch_first_n_items(dataset, n):
     items = []
+    iterator = iter(dataset)  # Convert dataset into an iterator
     for _ in range(n):
         try:
-            item = next(dataset)
+            item = next(iterator)
             items.append(item)
         except StopIteration:
             break
