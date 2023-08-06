@@ -49,10 +49,10 @@ def main():
     individual_features = preprocess_audio(audio_items, processor)
     batched_features = batch_audio_features(individual_features)
 
-    # Load the model
-    model, params = FlaxWhisperForConditionalGeneration.from_pretrained(
-        MODEL_NAME, dtype=jnp.bfloat16, _do_init=False
-    )
+    # Load and initialize the model
+    model = FlaxWhisperForConditionalGeneration(MODEL_NAME, dtype=jnp.bfloat16)
+    dummy_input = jnp.ones((1, 80, 3000), dtype=jnp.float32)
+    params = model.init(jax.random.PRNGKey(0), dummy_input, return_dict=False)["params"]
     
     # Define a generate function for transcription
     def generate_fn(input_features):
