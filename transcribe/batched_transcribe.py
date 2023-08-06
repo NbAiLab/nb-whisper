@@ -5,7 +5,7 @@ from transformers import WhisperProcessor
 # Constants
 DATASET = 'NbAiLab/ncc_speech_v3'
 BATCH_SIZE = 4
-MODEL_NAME = "openai/whisper-tiny-en"  # Placeholder, replace with the appropriate model name if different
+MODEL_NAME = "openai/whisper-tiny"  # Placeholder, replace with the appropriate model name if different
 
 def fetch_first_n_items(dataset, n):
     items = []
