@@ -41,6 +41,14 @@ def main():
     # Preprocess the audio items
     batched_features = preprocess_audio(audio_items, processor)
     
+    # Print details about batched_features
+    print("Details about batched_features:")
+    for idx, features in enumerate(batched_features):
+        print(f"Item {idx}:")
+        print(f"Type: {type(features)}")
+        for key, value in features.items():
+            print(f"  - {key} Shape: {value.shape}, Type: {type(value)}")
+    
     # TODO: Feed the batched_features into the model and post-process the results
 
 if __name__ == "__main__":
