@@ -45,13 +45,9 @@ def main():
     # pmap the generate function for data parallelism
     p_generate = pmap(generate_fn, "input_features")
 
+    breakpoint()
     # replicate the parameters across devices
     params = replicate(params)
-
-    # Manually replicate
-    devices = jax.devices()
-    params = jax.tree_map(lambda x: jnp.stack([x] * len(devices)), params)
-
 
     # Run the forward pass (JIT compiled the first time it is called)
     
