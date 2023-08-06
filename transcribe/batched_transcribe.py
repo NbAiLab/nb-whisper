@@ -18,7 +18,7 @@ def main():
     sample = ds[0]["audio"]
 
     # Generate individual features
-    dummy_audio = [sample["array"] for _ in range(4)]
+    dummy_audio = [sample["array"] for _ in range(8)]
     sample_rate = sample["sampling_rate"]
 
     print("=== DEBUG INFO ===")
