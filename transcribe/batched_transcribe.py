@@ -1,3 +1,4 @@
+import jax
 import jax.numpy as jnp
 from datasets import load_dataset
 from flax.jax_utils import replicate
@@ -47,7 +48,11 @@ def main():
     # replicate the parameters across devices
     params = replicate(params)
 
-    
+    # Manually replicate
+    devices = jax.devices()
+    params = jax.tree_map(lambda x: jnp.stack([x] * len(devices)), params)
+
+
     # Run the forward pass (JIT compiled the first time it is called)
     
     # TODO : I am unable to run the line below. Keep getting the following error:
