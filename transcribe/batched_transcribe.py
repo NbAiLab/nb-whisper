@@ -37,7 +37,7 @@ def main():
 
     def generate_fn(input_features):
         pred_ids = model.generate(
-            input_features, task="transcribe", return_timestamps=False, max_length=model.config.max_length, params=params,
+            input_features, task="transcribe", return_timestamps=False, max_length=model.config.max_length, params=replicated_params,
         )
         return pred_ids.sequences
 
@@ -45,7 +45,7 @@ def main():
     p_generate = pmap(generate_fn, "input_features")
 
     # replicate the parameters across devices
-    params = replicate(params)
+    replicated_params = replicate(params)
 
     
     # Run the forward pass (JIT compiled the first time it is called)
