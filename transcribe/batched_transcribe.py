@@ -12,7 +12,8 @@ def main():
     # Load the processor and model
     processor = WhisperProcessor.from_pretrained(MODEL_NAME)
     model,params = FlaxWhisperForConditionalGeneration.from_pretrained(MODEL_NAME, dtype=jnp.bfloat16, _do_init=False)
-    
+    params = params['model']
+
     # Load a dummy sample from the LibriSpeech dataset
     ds = load_dataset("hf-internal-testing/librispeech_asr_dummy", "clean", split="validation")
     sample = ds[0]["audio"]
@@ -37,7 +38,7 @@ def main():
 
     def generate_fn(input_features):
         pred_ids = model.generate(
-            input_features, task="transcribe", return_timestamps=False, max_length=model.config.max_length, params=params['model'],
+            input_features, task="transcribe", return_timestamps=False, max_length=model.config.max_length, params=params,
         )
         return pred_ids.sequences
 
@@ -45,8 +46,9 @@ def main():
     p_generate = pmap(generate_fn, "input_features")
 
     # replicate the parameters across devices
-    # params = replicate(params)
+    params = replicate(params)
 
+    breakpoint()
     # Run the forward pass (JIT compiled the first time it is called)
     pred_ids = p_generate(batched_features)
     output_ids = device_get(pred_ids.reshape(-1, model.config.max_length))
