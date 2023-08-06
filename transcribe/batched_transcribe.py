@@ -1,6 +1,6 @@
 import jax.numpy as jnp
 from datasets import load_dataset
-from transformers import WhisperProcessor, WhisperConfig
+from transformers import WhisperProcessor
 from flax.jax_utils import replicate, unreplicate
 from flax.training.common_utils import shard
 from jax import pmap, device_get
@@ -49,15 +49,9 @@ def main():
     individual_features = preprocess_audio(audio_items, processor)
     batched_features = batch_audio_features(individual_features)
 
-    # Load model configuration
-    config = WhisperConfig.from_pretrained(MODEL_NAME)
-    print("Loaded Model Config:", config)
-    
     # Load and initialize the model
-    model = FlaxWhisperForConditionalGeneration(config, dtype=jnp.bfloat16)
-    dummy_input = jnp.ones((1, 80, 3000), dtype=jnp.float32)
-    params = model.init(jax.random.PRNGKey(0), dummy_input, return_dict=False)["params"]
-    
+    model, params = FlaxWhisperForConditionalGeneration.from_pretrained(MODEL_NAME, dtype=jnp.bfloat16, return_dict=False)
+
     # Define a generate function for transcription
     def generate_fn(input_features):
         pred_ids = model.generate(
