@@ -24,9 +24,14 @@ def preprocess_audio(audio_items, processor):
     for item in audio_items:
         audio_data = item['audio']['array']  # Extract the raw audio data from the dictionary
         sampling_rate = item['audio']['sampling_rate']
-        features = processor(audio_data, return_tensors="jax", sampling_rate=sampling_rate)
-        batched_features.append(features)
+        features = processor(audio_data, return_tensors="np", sampling_rate=sampling_rate)
+        batched_features.append(features.input_features)
     return batched_features
+
+def batch_audio_features(features_list):
+    # Combine the individual feature items into a single batch
+    batch = jnp.concatenate(features_list, axis=0)
+    return batch
 
 def main():
     # Load dataset
@@ -39,17 +44,15 @@ def main():
     processor = WhisperProcessor.from_pretrained(MODEL_NAME)
     
     # Preprocess the audio items
-    batched_features = preprocess_audio(audio_items, processor)
+    individual_features = preprocess_audio(audio_items, processor)
     
-    # Print details about batched_features
+    # Combine individual features into a batch
+    batched_features = batch_audio_features(individual_features)
+    
+    # Print details about the batched_features
     print("Details about batched_features:")
-    for idx, features in enumerate(batched_features):
-        print(f"Item {idx}:")
-        print(f"Type: {type(features)}")
-        for key, value in features.items():
-            print(f"  - {key} Shape: {value.shape}, Type: {type(value)}")
-    
-    # TODO: Feed the batched_features into the model and post-process the results
+    print(f"Type: {type(batched_features)}")
+    print(f"Shape: {batched_features.shape}")
 
 if __name__ == "__main__":
     main()
