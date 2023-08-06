@@ -37,7 +37,7 @@ def main():
 
     def generate_fn(input_features):
         pred_ids = model.generate(
-            input_features, task="transcribe", return_timestamps=False, max_length=model.config.max_length, params=params,
+            input_features, task="transcribe", return_timestamps=False, max_length=model.config.max_length, params=params['model'],
         )
         return pred_ids.sequences
 
@@ -46,9 +46,7 @@ def main():
     # replicate the parameters across devices
 
     params = replicate(params)
-    print("Shape and type of params:", type(params), {k: v.shape for k, v in params.items() if hasattr(v, 'shape')})
-    breakpoint()
-    
+
     # Run the forward pass (JIT compiled the first time it is called)
     pred_ids = p_generate(batched_features)
     output_ids = device_get(pred_ids.reshape(-1, model.config.max_length))
