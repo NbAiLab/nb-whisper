@@ -37,7 +37,7 @@ def main():
 
     def generate_fn(input_features):
         pred_ids = model.generate(
-            input_features, task="transcribe", return_timestamps=False, max_length=model.config.max_length, params=params['model'],
+            input_features, task="transcribe", return_timestamps=False, max_length=model.config.max_length, params=params,
         )
         return pred_ids.sequences
 
@@ -52,8 +52,7 @@ def main():
     
     # TODO : I am unable to run the line below. Keep getting the following error:
     # *** flax.errors.ScopeParamNotFoundError: Could not find parameter named "kernel" in scope "/model/encoder/conv1"
-    # I get this even with batch 1. I have tried to debug this but I am unable to find the cause.
-    breakpoint()
+
     pred_ids = p_generate(batched_features)
     output_ids = device_get(pred_ids.reshape(-1, model.config.max_length))
 
