@@ -47,7 +47,8 @@ def main():
 
     params = replicate(params)
     print("Shape and type of params:", type(params), {k: v.shape for k, v in params.items() if hasattr(v, 'shape')})
-
+    breakpoint()
+    
     # Run the forward pass (JIT compiled the first time it is called)
     pred_ids = p_generate(batched_features)
     output_ids = device_get(pred_ids.reshape(-1, model.config.max_length))
