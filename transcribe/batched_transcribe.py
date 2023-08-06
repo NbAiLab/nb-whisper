@@ -26,7 +26,7 @@ def main():
     
     individual_features = [
         processor(dummy_audio[i], sampling_rate=sample_rate, return_tensors="np").input_features
-        for i in range(4)
+        for i in range(8)
     ]
     for idx, feat in enumerate(individual_features):
         print(f"Shape of individual_features[{idx}]:", feat.shape)
@@ -37,7 +37,7 @@ def main():
 
     def generate_fn(input_features):
         pred_ids = model.generate(
-            input_features, task="transcribe", return_timestamps=False, max_length=model.config.max_length, params=replicated_params,
+            input_features, task="transcribe", return_timestamps=False, max_length=model.config.max_length, params=params,
         )
         return pred_ids.sequences
 
@@ -45,13 +45,13 @@ def main():
     p_generate = pmap(generate_fn, "input_features")
 
     # replicate the parameters across devices
-    replicated_params = replicate(params)
+    params = replicate(params)
 
     
     # Run the forward pass (JIT compiled the first time it is called)
     
     # TODO : I am unable to run the line below. Keep getting the following error:
-    # *** flax.errors.ScopeParamNotFoundError: Could not find parameter named "kernel" in scope "/model/encoder/conv1"
+    # jax._src.traceback_util.UnfilteredStackTrace: flax.errors.ScopeParamShapeError: Initializer expected to generate shape (4, 3, 80, 384) but got shape (3, 80, 384) instead for parameter "kernel" in "/model/encoder/conv1".
 
     pred_ids = p_generate(batched_features)
     output_ids = device_get(pred_ids.reshape(-1, model.config.max_length))
