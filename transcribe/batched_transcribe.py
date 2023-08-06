@@ -44,7 +44,7 @@ def main():
     # pmap the generate function for data parallelism
     p_generate = pmap(generate_fn, "input_features")
     # replicate the parameters across devices
-    breakpoint()
+
     params = replicate(params)
     print("Shape and type of params:", type(params), {k: v.shape for k, v in params.items() if hasattr(v, 'shape')})
 
