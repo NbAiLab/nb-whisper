@@ -526,8 +526,7 @@ def main():
         cache_dir=model_args.cache_dir,
         revision=model_args.model_revision,
         use_auth_token=True if model_args.use_auth_token else None,
-        _do_init=False,
-        use_scan=model_args.load_with_scan,
+        _do_init=False    
     )
 
     if model.config.decoder_start_token_id is None:
