@@ -54,7 +54,7 @@ from transformers.models.whisper.english_normalizer import EnglishTextNormalizer
 from transformers.utils import check_min_version
 from transformers.utils.versions import require_version
 
-from distil_whisper import FlaxWhisperForConditionalGeneration
+from whisper_jax import FlaxWhisperForConditionalGeneration
 
 
 # Will error if the minimal version of Transformers is not installed. Remove at your own risks.
