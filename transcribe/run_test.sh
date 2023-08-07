@@ -28,4 +28,4 @@ python run_pseudo_labelling.py \
   --streaming \
   --push_to_hub \
   --dataloader_num_workers 32 \
-  --hub_token "YOUR_TOKEN_HERE"
+  --hub_token "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"
