@@ -715,7 +715,6 @@ def main():
             batch[model_input_name],
             # attention_mask=batch.get("attention_mask"),
             params=params,
-            freeze_encoder=True,
             **gen_kwargs,
         )
         return output_ids.sequences
