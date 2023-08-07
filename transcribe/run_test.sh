@@ -8,6 +8,7 @@ NUM_BEAMS=1
 MAX_LABEL_LENGTH=256
 LOGGING_STEPS=500  # or save steps
 
+
 python run_pseudo_labelling.py \
   --model_name_or_path $MODEL_NAME \
   --dataset_name "speechcolab/gigaspeech" \
@@ -16,7 +17,6 @@ python run_pseudo_labelling.py \
   --text_column_name "text" \
   --wandb_name "nb-whisper-transcribe" \
   --id_column_name "segment_id" \
-  --dataset_cache_dir $CACHE_DIR \
   --output_dir $OUTPUT_DIR \
   --wandb_project $WANDB_PROJECT \
   --per_device_eval_batch_size $BATCH_SIZE \
