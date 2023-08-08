@@ -802,7 +802,7 @@ def main():
     logger.info("  Instantaneous batch size per device =" f" {training_args.per_device_eval_batch_size}")
     logger.info(f"  Total eval batch size (w. parallel & distributed) = {eval_batch_size}")
     for split in data_splits:
-        # eval_step_with_save(split=split)
+        eval_step_with_save(split=split)
         if training_args.push_to_hub:
             repo.push_to_hub(
                 commit_message=f"Saving final transcriptions for split {split.replace('.', '-').split('/')[-1]}",

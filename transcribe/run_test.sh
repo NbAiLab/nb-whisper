@@ -4,7 +4,7 @@ MODEL_NAME="openai/whisper-large-v2"
 OUTPUT_DIR="./transcriptions-streaming"
 WANDB_PROJECT="nb-whisper-public-beta"
 BATCH_SIZE=64
-NUM_BEAMS=1
+NUM_BEAMS=5
 MAX_LABEL_LENGTH=256
 LOGGING_STEPS=500  # or save steps
 
