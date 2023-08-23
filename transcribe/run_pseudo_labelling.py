@@ -669,7 +669,7 @@ def main():
         ]
         # Disabling since I am getting an error
         #wer_ortho = 100 * metric.compute(predictions=spaced_pred_str, references=spaced_label_str)
-        wer_orto = 0
+        wer_ortho = 0
 
         # normalize everything and re-compute the WER
         norm_pred_str = [normalizer(pred) for pred in pred_str]
