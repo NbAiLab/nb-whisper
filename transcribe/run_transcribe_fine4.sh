@@ -13,7 +13,7 @@ python run_pseudo_labelling.py \
   --model_name_or_path $MODEL_NAME \
   --dataset_name "NbAiLab/ncc_speech_v3" \
   --dataset_config_name "" \
-  --data_split_name "train+validation+test" \
+  --data_split_name "validation_nrk" \
   --text_column_name "text" \
   --wandb_name "nb-whisper-transcribe-fine4" \
   --id_column_name "id" \
