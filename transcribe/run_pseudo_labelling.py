@@ -667,7 +667,9 @@ def main():
             for punctuation in all_punctuation
             for i in range(len(label_str))
         ]
-        wer_ortho = 100 * metric.compute(predictions=spaced_pred_str, references=spaced_label_str)
+        # Disabling since I am getting an error
+        #wer_ortho = 100 * metric.compute(predictions=spaced_pred_str, references=spaced_label_str)
+        wer_orto = 0
 
         # normalize everything and re-compute the WER
         norm_pred_str = [normalizer(pred) for pred in pred_str]
@@ -705,7 +707,7 @@ def main():
     gen_kwargs = {
         "max_length": max_label_length,
         "num_beams": num_beams,
-        "language": "<|en|>",  # forcing the language and task tokens helps the flax model in its generations
+        "language": "<|no|>",  # forcing the language and task tokens helps the flax model in its generations
         "task": "transcribe",
         "return_timestamps": return_timestamps,
     }
