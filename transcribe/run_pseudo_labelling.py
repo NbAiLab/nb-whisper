@@ -796,7 +796,7 @@ def main():
         with open(output_csv, "w", encoding="UTF8", newline="") as f:
             writer = csv.writer(f, delimiter='\t')
             # write multiple rows
-            writer.writerow(["file_id", "target", model.args.model_name_or_path])
+            writer.writerow(["file_id", "target", model_args.model_name_or_path])
             writer.writerows(csv_data)
 
         # Print metrics
