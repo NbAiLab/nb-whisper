@@ -3,7 +3,7 @@
 MODEL_NAME="NbAiLab/nb-whisper-medium-fine4-npsc-norm-nohes"
 OUTPUT_DIR="./transcriptions-fine4"
 WANDB_PROJECT="nb-whisper-public-beta-transcription"
-BATCH_SIZE=128
+BATCH_SIZE=256
 NUM_BEAMS=1
 MAX_LABEL_LENGTH=256
 LOGGING_STEPS=1000  # or save steps
@@ -13,7 +13,7 @@ python run_pseudo_labelling.py \
   --model_name_or_path $MODEL_NAME \
   --dataset_name "NbAiLab/ncc_speech_v3" \
   --dataset_config_name "" \
-  --data_split_name "validation_fleurs" \
+  --data_split_name "validation_nrk" \
   --text_column_name "text" \
   --id_column_name "id" \
   --output_dir $OUTPUT_DIR \
