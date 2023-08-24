@@ -15,7 +15,6 @@ python run_pseudo_labelling.py \
   --dataset_config_name "" \
   --data_split_name "validation_fleurs" \
   --text_column_name "text" \
-  --wandb_name "nb-whisper-transcribe-fine4" \
   --id_column_name "id" \
   --output_dir $OUTPUT_DIR \
   --wandb_project $WANDB_PROJECT \
