@@ -5,6 +5,10 @@ OUTPUT_DIR="./transcriptions-fine4"
 WANDB_PROJECT="nb-whisper-public-beta-transcription"
 BATCH_SIZE=160
 NUM_BEAMS=1
+
+BATCH_SIZE=64
+NUM_BEAMS=3
+
 MAX_LABEL_LENGTH=256
 LOGGING_STEPS=1000  # or save steps
 
