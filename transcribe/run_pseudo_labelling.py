@@ -792,11 +792,11 @@ def main():
             pred_str = tokenizer.batch_decode(eval_preds, skip_special_tokens=True)
 
         batches.write(f"Saving final transcriptions for split {split}.")
-        csv_data = [[eval_ids[i], pred_str[i]] for i in range(len(pred_str))]
+        csv_data = [[eval_ids[i], label_str[i], pred_str[i]] for i in range(len(pred_str))]
         with open(output_csv, "w", encoding="UTF8", newline="") as f:
             writer = csv.writer(f, delimiter='\t')
             # write multiple rows
-            writer.writerow(["file_id", "whisper_transcript"])
+            writer.writerow(["file_id", "target", model.args.model_name_or_path])
             writer.writerows(csv_data)
 
         # Print metrics
