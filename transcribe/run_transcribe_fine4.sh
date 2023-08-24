@@ -24,7 +24,6 @@ python run_pseudo_labelling.py \
   --max_label_length $MAX_LABEL_LENGTH \
   --logging_steps $LOGGING_STEPS \
   --dtype "bfloat16" \
-  --report_to "wandb" \
   --streaming \
   --push_to_hub \
   --dataloader_num_workers 32 \
