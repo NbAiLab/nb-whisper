@@ -637,6 +637,8 @@ def main():
             git_lfs_extensions = f.read()
             if "*.csv" not in git_lfs_extensions:
                 f.write("*.csv filter=lfs diff=lfs merge=lfs -text")
+            if "*.tsv" not in git_lfs_extensions:
+                f.write("*.tsv filter=lfs diff=lfs merge=lfs -text")
     else:
         # this is where we'll save our transcriptions
         if not os.path.exists(output_dir):
@@ -742,7 +744,7 @@ def main():
         )
         # make the split name pretty for librispeech etc
         split = split.replace(".", "-").split("/")[-1]
-        output_csv = os.path.join(output_dir, f"{split}-transcription.csv")
+        output_csv = os.path.join(output_dir, f"{split}-transcription.tsv")
 
         batches = tqdm(eval_loader, desc=f"Evaluating {split}...")
 
@@ -766,7 +768,7 @@ def main():
                 with open(output_csv, "w", encoding="UTF8", newline="") as f:
                     writer = csv.writer(f)
                     # write multiple rows
-                    writer.writerow(["file_id", "whisper_transcript"])
+                    writer.writerow(["id", model_args.model_name_or_path])
                     writer.writerows(csv_data)
 
                 if training_args.push_to_hub:
@@ -792,7 +794,7 @@ def main():
         batches.write(f"Saving final transcriptions for split {split}.")
         csv_data = [[eval_ids[i], pred_str[i]] for i in range(len(pred_str))]
         with open(output_csv, "w", encoding="UTF8", newline="") as f:
-            writer = csv.writer(f)
+            writer = csv.writer(f, delimiter='\t')
             # write multiple rows
             writer.writerow(["file_id", "whisper_transcript"])
             writer.writerows(csv_data)
