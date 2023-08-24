@@ -210,7 +210,7 @@ class DataTrainingArguments:
         },
     )
     wandb_project: str = field(
-        default="distil-whisper",
+        default=None,
         metadata={"help": "The name of the wandb project."},
     )
     wandb_name: str = field(
@@ -218,7 +218,7 @@ class DataTrainingArguments:
         metadata={"help": "The name of the wandb run."},
     )
     wandb_job_type: str = field(
-        default="distil-whisper",
+        default=None,
         metadata={"help": "The name of the wandb job type."},
     )
     wandb_dir: str = field(
@@ -446,7 +446,10 @@ def main():
     logger.info("Evaluation parameters %s", training_args)
 
     # Enable wandb only on the master node
-    has_wandb = is_wandb_available()
+    # has_wandb = is_wandb_available()
+    # Manually set to False for now
+    has_wandb = False
+    
     if "wandb" in training_args.report_to:
         if has_wandb and jax.process_index() == 0:
             import wandb as wandb_logger
