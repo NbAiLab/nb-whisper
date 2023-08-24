@@ -3,7 +3,7 @@
 MODEL_NAME="NbAiLab/nb-whisper-medium-fine4-npsc-norm-nohes"
 OUTPUT_DIR="./transcriptions-fine4"
 WANDB_PROJECT="nb-whisper-public-beta-transcription"
-BATCH_SIZE=160
+BATCH_SIZE=128
 NUM_BEAMS=5
 MAX_LABEL_LENGTH=256
 LOGGING_STEPS=1000  # or save steps
