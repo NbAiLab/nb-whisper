@@ -449,7 +449,7 @@ def main():
     # has_wandb = is_wandb_available()
     # Manually set to False for now
     has_wandb = False
-    
+
     if "wandb" in training_args.report_to:
         if has_wandb and jax.process_index() == 0:
             import wandb as wandb_logger
@@ -793,6 +793,7 @@ def main():
                 write_wandb_pred(wandb_logger, pred_str, label_str, norm_pred_str, norm_label_str, prefix=split)
         else:
             pred_str = tokenizer.batch_decode(eval_preds, skip_special_tokens=True)
+            label_str = tokenizer.batch_decode(eval_labels, skip_special_tokens=True)
 
         batches.write(f"Saving final transcriptions for split {split}.")
         csv_data = [[eval_ids[i], label_str[i], pred_str[i]] for i in range(len(pred_str))]
