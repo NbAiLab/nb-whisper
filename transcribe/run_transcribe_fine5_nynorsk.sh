@@ -12,7 +12,7 @@ LOGGING_STEPS=1000  # or save steps
 python run_pseudo_labelling.py \
   --model_name_or_path $MODEL_NAME \
   --dataset_name "NbAiLab/ncc_speech_v3" \
-  --language "Nynorsk" \
+  --language "nynorsk" \
   --language_code "<|nn|>" \
   --dataset_config_name "" \
   --data_split_name "train+validation+test" \
