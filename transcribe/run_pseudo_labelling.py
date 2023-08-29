@@ -554,7 +554,7 @@ def main():
     return_timestamps = data_args.return_timestamps
     if hasattr(model.generation_config, "is_multilingual") and model.generation_config.is_multilingual:
         # We need to set the language and task ids for multilingual checkpoints - for now we hardcode this to English
-        tokenizer.set_prefix_tokens(language=data_args.task, task=data_args.task, predict_timestamps=return_timestamps)
+        tokenizer.set_prefix_tokens(language=data_args.language, task=data_args.task, predict_timestamps=return_timestamps)
 
     # 6. Resample speech dataset: `datasets` takes care of automatically loading and resampling the audio,
     # so we just need to set the correct target sampling rate.
