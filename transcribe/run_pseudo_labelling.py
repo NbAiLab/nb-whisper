@@ -758,7 +758,8 @@ def main():
         )
         # make the split name pretty for librispeech etc
         split = split.replace(".", "-").split("/")[-1]
-        output_csv = os.path.join(output_dir, f"{model_args.model_name_or_path}-{data_args.language}-{data_args.task}-{split}-transcription.tsv")
+        model_name = model_args.model_name_or_path.replace("/", "-")
+        output_csv = os.path.join(output_dir, f"{model_name}-{data_args.language}-{data_args.task}-{split}-transcription.tsv")
 
         batches = tqdm(eval_loader, desc=f"Evaluating {split}...")
 
