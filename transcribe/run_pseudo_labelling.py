@@ -138,18 +138,7 @@ class DataTrainingArguments:
     """
     Arguments pertaining to what data we are going to input our model for training and eval.
     """
-    task: str = field(
-        default="transcribe",
-        metadata={"help": "The generation task."},
-    )
-    language: str = field(
-        default="Norwegian",
-        metadata={"help": "The langauge of the predictions."},
-    )
-    language_code: str = field(
-        default="<|no|>",
-        metadata={"help": "The langauge code of the predictions."},
-    )
+    
     dataset_name: str = field(
         default=None,
         metadata={"help": "The name of the dataset to use (via the datasets library)."},
@@ -554,7 +543,7 @@ def main():
     return_timestamps = data_args.return_timestamps
     if hasattr(model.generation_config, "is_multilingual") and model.generation_config.is_multilingual:
         # We need to set the language and task ids for multilingual checkpoints - for now we hardcode this to English
-        tokenizer.set_prefix_tokens(language=data_args.task, task=data_args.task, predict_timestamps=return_timestamps)
+        tokenizer.set_prefix_tokens(language="Norwegian", task="transcribe", predict_timestamps=return_timestamps)
 
     # 6. Resample speech dataset: `datasets` takes care of automatically loading and resampling the audio,
     # so we just need to set the correct target sampling rate.
@@ -723,8 +712,8 @@ def main():
     gen_kwargs = {
         "max_length": max_label_length,
         "num_beams": num_beams,
-        "language": data_args.language_code,  # forcing the language and task tokens helps the flax model in its generations
-        "task": data_args.task,
+        "language": "<|no|>",  # forcing the language and task tokens helps the flax model in its generations
+        "task": "transcribe",
         "return_timestamps": return_timestamps,
     }
 
@@ -758,7 +747,7 @@ def main():
         )
         # make the split name pretty for librispeech etc
         split = split.replace(".", "-").split("/")[-1]
-        output_csv = os.path.join(output_dir, f"{model_args.model_name_or_path}-{data_args.language}-{data_args.task}-{split}-transcription.tsv")
+        output_csv = os.path.join(output_dir, f"{split}-transcription.tsv")
 
         batches = tqdm(eval_loader, desc=f"Evaluating {split}...")
 
