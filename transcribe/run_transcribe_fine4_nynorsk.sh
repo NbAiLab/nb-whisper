@@ -15,7 +15,7 @@ python run_pseudo_labelling.py \
   --language "nynorsk" \
   --language_code "<|nn|>" \
   --dataset_config_name "" \
-  --data_split_name "train+validation+test" \
+  --data_split_name "validation+test" \
   --text_column_name "text" \
   --id_column_name "id" \
   --output_dir $OUTPUT_DIR \

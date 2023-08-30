@@ -781,7 +781,7 @@ def main():
                 csv_data = [[eval_ids[i], pred_str[i]] for i in range(len(pred_str))]
 
                 with open(output_csv, "w", encoding="UTF8", newline="") as f:
-                    writer = csv.writer(f)
+                    writer = csv.writer(f, delimiter="\t")
                     # write multiple rows
                     writer.writerow(["id", model_args.model_name_or_path])
                     writer.writerows(csv_data)
