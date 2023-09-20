@@ -15,7 +15,7 @@ python run_pseudo_labelling.py \
   --model_name_or_path $MODEL_NAME \
   --dataset_name "NbAiLab/ncc_speech_inference_v5" \
   --dataset_config_name "" \
-  --data_split_name "validation_fleurs" \
+  --data_split_name "train" \
   --text_column_name "text" \
   --id_column_name "id" \
   --output_dir $OUTPUT_DIR \
