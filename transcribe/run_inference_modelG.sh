@@ -3,7 +3,7 @@
 MODEL_NAME="NbAiLab/nb-whisper-medium-beta"
 OUTPUT_DIR="./ModelG"
 WANDB_PROJECT="nb-whisper-public-beta-transcription"
-BATCH_SIZE=80
+BATCH_SIZE=160
 NUM_BEAMS=1
 #BATCH_SIZE=32
 #NUM_BEAMS=3

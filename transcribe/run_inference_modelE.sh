@@ -3,7 +3,7 @@
 MODEL_NAME="NbAiLab/nb-whisper-medium-fine3-npsc-norm-raw"
 OUTPUT_DIR="./ModelE"
 WANDB_PROJECT="nb-whisper-public-beta-transcription"
-BATCH_SIZE=80
+BATCH_SIZE=160
 NUM_BEAMS=1
 #BATCH_SIZE=32
 #NUM_BEAMS=3
