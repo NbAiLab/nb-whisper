@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-MODEL_NAME="https://huggingface.co/openai/whisper-medium"
+MODEL_NAME="openai/whisper-medium"
 OUTPUT_DIR="./ModelH"
 WANDB_PROJECT="nb-whisper-public-beta-transcription"
 BATCH_SIZE=160
