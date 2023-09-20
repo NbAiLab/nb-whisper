@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-MODEL_NAME="NbAiLab/nb-whisper-medium-fine5b-ncc-audiobooks"
+MODEL_NAME="NbAiLab/nb-whisper-medium-beta"
 OUTPUT_DIR="./ModelC"
 WANDB_PROJECT="nb-whisper-public-beta-transcription"
 BATCH_SIZE=160
