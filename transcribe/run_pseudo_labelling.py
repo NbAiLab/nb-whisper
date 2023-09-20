@@ -629,7 +629,11 @@ def main():
         )
 
     # Handle the repository creation
-    repo_name = "trans_"+data_args.dataset_name.split("/")[-1]
+    if data_args.return_timestamps:
+        timestampstring = "timestamps_"
+    else:
+        timestampstring = ""
+    repo_name = "infer_"+data_args.language+"_"+data_args.task+"_"+timestampstring+data_args.dataset_name.split("/")[-1]
     output_dir = os.path.join(training_args.output_dir, repo_name)
     if training_args.push_to_hub:
         if training_args.hub_model_id is None:
