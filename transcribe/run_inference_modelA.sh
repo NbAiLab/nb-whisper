@@ -8,14 +8,14 @@ NUM_BEAMS=1
 #BATCH_SIZE=32
 #NUM_BEAMS=3
 MAX_LABEL_LENGTH=256
-LOGGING_STEPS=100  # or save steps
+LOGGING_STEPS=5000  # or save steps
 
 
 python run_pseudo_labelling.py \
   --model_name_or_path $MODEL_NAME \
   --dataset_name "NbAiLab/ncc_speech_v3" \
   --dataset_config_name "" \
-  --data_split_name "train" \
+  --data_split_name "validation_fleurs" \
   --text_column_name "text" \
   --id_column_name "id" \
   --output_dir $OUTPUT_DIR \

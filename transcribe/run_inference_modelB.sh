@@ -8,7 +8,7 @@ NUM_BEAMS=1
 #BATCH_SIZE=32
 #NUM_BEAMS=3
 MAX_LABEL_LENGTH=256
-LOGGING_STEPS=100  # or save steps
+LOGGING_STEPS=5000  # or save steps
 
 
 python run_pseudo_labelling.py \
