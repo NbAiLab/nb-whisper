@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-MODEL_NAME="NbAiLab/nb-whisper-medium-fine4-npsc-norm-raw"
+MODEL_NAME="NbAiLab/nb-whisper-medium-fine3-npsc-norm-raw"
 OUTPUT_DIR="./transcriptions-fine4"
 WANDB_PROJECT="nb-whisper-public-beta-transcription"
 BATCH_SIZE=160
