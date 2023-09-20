@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 
 MODEL_NAME="NbAiLab/nb-whisper-medium-beta"
-OUTPUT_DIR="./modelD"
+OUTPUT_DIR="./ModelC"
 WANDB_PROJECT="nb-whisper-public-beta-transcription"
 BATCH_SIZE=80
 NUM_BEAMS=1
 #BATCH_SIZE=32
 #NUM_BEAMS=3
 MAX_LABEL_LENGTH=256
-LOGGING_STEPS=10  # or save steps
+LOGGING_STEPS=100  # or save steps
 
 
 python run_pseudo_labelling.py \
