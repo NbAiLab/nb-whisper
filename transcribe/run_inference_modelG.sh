@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-MODEL_NAME="NbAiLab/nb-whisper-medium-fine4-npsc-norm-nohes"
-OUTPUT_DIR="./ModelD"
+MODEL_NAME="NbAiLab/nb-whisper-medium-beta"
+OUTPUT_DIR="./ModelG"
 WANDB_PROJECT="nb-whisper-public-beta-transcription"
 BATCH_SIZE=80
 NUM_BEAMS=1
@@ -28,8 +28,8 @@ python run_pseudo_labelling.py \
   --streaming \
   --push_to_hub \
   --dataloader_num_workers 32 \
-  --return_timestamps False \
-  --language "Nynorsk" \
-  --language_code "<|nn|>" \
+  --return_timestamps True \
+  --language "Norwegian" \
+  --language_code "<|no|>" \
   --task "transcribe" \
   --hub_token "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"

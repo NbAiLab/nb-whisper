@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-MODEL_NAME="NbAiLab/nb-whisper-medium-fine4-npsc-norm-nohes"
-OUTPUT_DIR="./ModelD"
+MODEL_NAME="NbAiLab/nb-whisper-medium-beta"
+OUTPUT_DIR="./ModelF"
 WANDB_PROJECT="nb-whisper-public-beta-transcription"
 BATCH_SIZE=80
 NUM_BEAMS=1
