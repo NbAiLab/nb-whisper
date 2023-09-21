@@ -31,6 +31,7 @@ import datasets
 import evaluate
 import flax
 import jax
+import time
 import jax.numpy as jnp
 import numpy as np
 import transformers
@@ -800,7 +801,6 @@ def main():
         batches = tqdm(eval_loader, desc=f"Evaluating {split}...")
 
         for step, batch in enumerate(batches):
-            logger.info(f"S={step}")
             # Model forward
             labels = batch["labels"]
             eval_ids.extend(batch.pop("file_ids"))
@@ -813,8 +813,16 @@ def main():
             eval_labels.extend(labels)
 
             if step % training_args.logging_steps == 0 and step > 0:
+                start_time_1 = time.time()
                 eval_preds_list = [arr.tolist() for arr in eval_preds]
+                end_time_1 = time.time() - start_time_1
+
+                start_time_2 = time.time()
                 pred_str = tokenizer.batch_decode(eval_preds_list, skip_special_tokens=True)
+                end_time_2 = time.time() - start_time_2
+
+                logging.info(f"Tokenizer time for 'eval_preds_list': {end_time_1} seconds, Time for 'pred_str': {end_time_2} seconds")
+
                 csv_data = [[eval_ids[i], pred_str[i]] for i in range(len(pred_str))]
 
                 with open(output_csv, "w", encoding="UTF8", newline="") as f:
