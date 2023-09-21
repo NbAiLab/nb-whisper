@@ -798,8 +798,6 @@ def main():
                         commit_message=f"Saving transcriptions for split {split} step {step}.",
                         blocking=False,
                     )
-                else:
-                    print("Here it should push to the bucket...")
 
         eval_time = time.time() - eval_start
 
@@ -837,8 +835,6 @@ def main():
                 commit_message=f"Saving final transcriptions for split {split.replace('.', '-').split('/')[-1]}",
                 blocking=False,
             )
-        else:
-            print("Final push....")
 
 
 if __name__ == "__main__":
