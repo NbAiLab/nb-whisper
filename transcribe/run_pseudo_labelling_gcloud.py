@@ -817,7 +817,7 @@ def main():
                 eval_preds_list = [arr.tolist() for arr in eval_preds] 
                 pred_str = tokenizer.batch_decode(eval_preds_list, skip_special_tokens=True)
                 
-                csv_data = [[eval_ids[i], label_str[i], pred_str[i]] for i in range(len(pred_str))]
+                csv_data = [[eval_ids[i], pred_str[i]] for i in range(len(pred_str))]
 
                 with open(output_csv, "w", encoding="UTF8", newline="") as f:
                     batches.write(f"Opening file split {split} step {step}")
@@ -825,7 +825,7 @@ def main():
                     writer = csv.writer(f, delimiter="\t")
             
                     # write multiple rows
-                    writer.writerow(["file_id", "target", model_args.model_name_or_path])
+                    writer.writerow(["file_id", model_args.model_name_or_path])
                     writer.writerows(csv_data)
                     batches.write(f"Finished writing split {split} step {step}")
 
@@ -839,7 +839,7 @@ def main():
                 else:
                     GCS_BUCKET = "gs://nb-whisper-transcript"
                     # Copy file to Google Cloud Storage
-                    gcs_path = os.path.join(GCS_BUCKET, output_csv.replace("./", "", 1))
+                    gcs_path = os.path.join(GCS_BUCKET, str(output_csv).replace("./", "", 1))
                     copy_command = f"gsutil cp {output_csv} {gcs_path}"
                     result = os.system(copy_command)
                     logger.info(f"{copy_command}")
@@ -850,16 +850,15 @@ def main():
 
         # compute WER metric for eval sets
         wer_desc = ""
-
-        pred_str = tokenizer.batch_decode(eval_preds, skip_special_tokens=True)
-        label_str = tokenizer.batch_decode(eval_labels, skip_special_tokens=True)
+        eval_preds_list = [arr.tolist() for arr in eval_preds] 
+        pred_str = tokenizer.batch_decode(eval_preds_list, skip_special_tokens=True)
 
         batches.write(f"Saving final transcriptions for split {split}.")
-        csv_data = [[eval_ids[i], label_str[i], pred_str[i]] for i in range(len(pred_str))]
+        csv_data = [[eval_ids[i], pred_str[i]] for i in range(len(pred_str))]
         with open(output_csv, "w", encoding="UTF8", newline="") as f:
             writer = csv.writer(f, delimiter='\t')
             # write multiple rows
-            writer.writerow(["file_id", "target", model_args.model_name_or_path])
+            writer.writerow(["file_id", model_args.model_name_or_path])
             writer.writerows(csv_data)
 
         # Print metrics
