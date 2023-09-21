@@ -65,8 +65,8 @@ require_version(
     "To fix: pip install -r examples/flax/speech-recogintion/requirements.txt",
 )
 
-logging.basicConfig(level=logging.DEBUG, stream=sys.stdout)
-logger = logging.getLogger(__name__)
+# logging.basicConfig(level=logging.DEBUG, stream=sys.stdout)
+# logger = logging.getLogger(__name__)
 
 
 @flax.struct.dataclass
@@ -424,12 +424,37 @@ def write_wandb_pred(
     )
 
 
+def setup_logger():
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.DEBUG)  # Set to the lowest level you want to log
+
+    # Create a file handler for logging all messages
+    file_handler = logging.FileHandler('all_logs.log')
+    file_handler.setLevel(logging.DEBUG)
+
+    # Create a stream handler for logging messages INFO and above to stdout
+    stream_handler = logging.StreamHandler(sys.stdout)
+    stream_handler.setLevel(logging.INFO)
+
+    # Create a formatter and set it for both handlers
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    file_handler.setFormatter(formatter)
+    stream_handler.setFormatter(formatter)
+
+    # Add handlers to logger
+    logger.addHandler(file_handler)
+    logger.addHandler(stream_handler)
+
+    return logger
+
 def main():
     # 1. Parse input arguments
     # See all possible arguments in src/transformers/training_args.py
     # or by passing the --help flag to this script.
     # We now keep distinct sets of args, for a cleaner separation of concerns.
     parser = HfArgumentParser((ModelArguments, DataTrainingArguments, Seq2SeqTrainingArguments))
+    logger = setup_logger()
+
 
     if len(sys.argv) == 2 and sys.argv[1].endswith(".json"):
         # If we pass only one argument to the script and it's the path to a json file,
