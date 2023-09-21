@@ -817,6 +817,8 @@ def main():
                 eval_preds_list = [arr.tolist() for arr in eval_preds]
                 pred_str = tokenizer.batch_decode(eval_preds_list, skip_special_tokens=True)
                 end_time_1 = time.time() - start_time_1
+                
+                breakpoint()
 
                 logger.info(f"Tokenizer time for tokenizing {len(eval_preds)}({len(eval_preds_list)}): {end_time_1} seconds")
 
