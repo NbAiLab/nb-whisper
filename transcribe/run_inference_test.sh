@@ -14,7 +14,7 @@ MAX_LABEL_LENGTH=256
 LOGGING_STEPS=10  # or save steps
 
 
-python run_pseudo_labelling_gcloud.py \
+python -m compileall run_pseudo_labelling_gcloud.py \
   --model_name_or_path $MODEL_NAME \
   --dataset_name "NbAiLab/ncc_speech_inference_v5" \
   --dataset_config_name "" \

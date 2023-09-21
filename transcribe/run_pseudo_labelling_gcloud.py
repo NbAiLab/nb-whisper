@@ -66,7 +66,7 @@ require_version(
 )
 
 logger = logging.getLogger(__name__)
-
+logger.info("Hi Freddy!!!")
 
 @flax.struct.dataclass
 class ModelArguments:
