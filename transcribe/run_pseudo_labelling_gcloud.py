@@ -815,12 +815,19 @@ def main():
                 batches.write(f"Saving transcriptions for split {split} step {step}")
                 pred_str = tokenizer.batch_decode(eval_preds, skip_special_tokens=True)
                 csv_data = [[eval_ids[i], pred_str[i]] for i in range(len(pred_str))]
+                batches.write(f"Finished conversion for split {split} step {step}")
 
                 with open(output_csv, "w", encoding="UTF8", newline="") as f:
+                    batches.write(f"Opening file split {split} step {step}")
+
                     writer = csv.writer(f, delimiter="\t")
+                    batches.write(f"Opened file split {split} step {step}")
+
                     # write multiple rows
                     writer.writerow(["id", model_args.model_name_or_path])
                     writer.writerows(csv_data)
+                    batches.write(f"Finished writing split {split} step {step}")
+
 
                 if training_args.push_to_hub:
                     logger.info("Pushing to hub.")
