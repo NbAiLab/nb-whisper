@@ -814,16 +814,20 @@ def main():
                 model_name = model_args.model_name_or_path.replace("/", "-")
                 output_csv = os.path.join(output_dir, f"step{step}-{model_name}-{data_args.language}-{data_args.task}-{split}-transcription.tsv")
 
-                start_time_1 = time.time()
-                eval_preds_list = [arr.tolist() for arr in eval_preds]
-                # pred_str = tokenizer.batch_decode(eval_preds_list, skip_special_tokens=True)
-                pred_str = [tokenizer.decode(t, skip_special_tokens=True) for t in eval_preds_list]
-
-                end_time_1 = time.time() - start_time_1
                 
-                breakpoint()
+                eval_preds_list = [arr.tolist() for arr in eval_preds]
+                start_time_1 = time.time()
+                pred_str = tokenizer.batch_decode(eval_preds_list, skip_special_tokens=True)
+                end_time_1 = time.time() - start_time_1
 
-                logger.info(f"Tokenizer time for tokenizing {len(eval_preds)}({len(eval_preds_list)}): {end_time_1} seconds")
+                start_time_2 = time.time()
+                pred_str2 = [tokenizer.decode(t, skip_special_tokens=True) for t in eval_preds_list]
+                end_time_2 = time.time() - start_time_2
+               
+                
+               
+
+                logger.info(f"Tokenizer time for tokenizing {len(eval_preds)}: {end_time_1} vs {end_time_2} seconds")
 
                 csv_data = [[eval_ids[i], pred_str[i]] for i in range(len(pred_str))]
 
