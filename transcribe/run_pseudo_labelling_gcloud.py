@@ -799,7 +799,7 @@ def main():
                         blocking=False,
                     )
                 else:
-                    print("Here it should push to the bucket...")
+                    x = x + 1
 
         print("x")
 
