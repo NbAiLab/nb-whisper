@@ -841,7 +841,7 @@ def main():
                 else:
                     GCS_BUCKET = "gs://nb-whisper-transcript"
                     # Copy file to Google Cloud Storage
-                    gcs_path = os.path.join(GCS_BUCKET, output_csv).replace("./", "", 1))
+                    gcs_path = os.path.join(GCS_BUCKET, output_csv.replace("./", "", 1))
                     copy_command = f"gsutil cp {output_csv} {gcs_path}"
                     result = os.system(copy_command)
                     
