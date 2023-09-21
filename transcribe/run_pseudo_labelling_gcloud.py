@@ -65,9 +65,9 @@ require_version(
     "To fix: pip install -r examples/flax/speech-recogintion/requirements.txt",
 )
 
+logging.basicConfig(level=logging.DEBUG, stream=sys.stdout)
 logger = logging.getLogger(__name__)
-logger.info("Hi Freddy!!!")
-breakpoint()
+
 
 @flax.struct.dataclass
 class ModelArguments:
@@ -799,9 +799,8 @@ def main():
                         blocking=False,
                     )
                 else:
-                    # logger.info("Here we should push to the bucket")
                     x = 5
-                    # logger.info("Here we should push to the bucket")
+                    logger.info("Here we should push to the bucket")
 
 
 
