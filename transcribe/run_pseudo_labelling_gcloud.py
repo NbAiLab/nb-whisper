@@ -28,6 +28,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
 import datasets
+from datasets.distributed import split_dataset_by_node
 import evaluate
 import flax
 import jax
@@ -784,16 +785,18 @@ def main():
     # Replicate params on each device
     params = jax_utils.replicate(params)
 
+    num_of_hosts = jax.process_count()
+    current_host_idx = jax.process_index()
+
     def eval_step_with_save(split="eval"):
         # ======================== Evaluating ==============================
         eval_preds = []
         eval_labels = []
         eval_ids = []
-        eval_start = time.time()
 
         eval_loader = get_data_loader(
-            vectorized_datasets[split],
-            batch_size=eval_batch_size,
+            split_dataset_by_node(vectorized_datasets[split], rank=current_host_idx, world_size=num_of_hosts)   
+            batch_size=eval_batch_size // num_of_hosts,
             data_collator=data_collator,
             dataloader_num_workers=dataloader_num_workers,
         )
@@ -816,7 +819,7 @@ def main():
             if step % training_args.logging_steps == 0 and step > 0:
                 split = split.replace(".", "-").split("/")[-1]
                 model_name = model_args.model_name_or_path.replace("/", "-")
-                output_csv = os.path.join(output_dir, f"step{step}-{model_name}-{data_args.language}-{data_args.task}-{split}-transcription.tsv")
+                output_csv = os.path.join(output_dir, f"step{step}-host{current_host_idx}-{model_name}-{data_args.language}-{data_args.task}-{split}-transcription.tsv")
 
                 eval_preds_list = [arr.tolist() for arr in eval_preds] 
                 pred_str = tokenizer.batch_decode(eval_preds_list, skip_special_tokens=True)
