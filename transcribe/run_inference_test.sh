@@ -35,4 +35,5 @@ python run_pseudo_labelling_gcloud.py \
   --language "Norwegian" \
   --language_code "<|no|>" \
   --task "transcribe" \
+  --gcs_bucket "gs://nb-whisper-transcript" \
   --hub_token "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"

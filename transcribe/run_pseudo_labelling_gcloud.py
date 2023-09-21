@@ -156,6 +156,10 @@ class DataTrainingArguments:
         default=None,
         metadata={"help": "The name of the dataset to use (via the datasets library)."},
     )
+    gcs_bucket: str = field(
+        default=None,
+        metadata={"help": "The name of the gcs bucket to copy the files to. Only valid if push_to_hub is False."},
+    )
     dataset_config_name: Optional[str] = field(
         default=None,
         metadata={"help": ("The configuration name of the dataset to use (via the datasets" " library).")},
@@ -837,17 +841,20 @@ def main():
                         blocking=False,
                     )
                 else:
-                    GCS_BUCKET = "gs://nb-whisper-transcript"
                     # Copy file to Google Cloud Storage
-                    gcs_path = os.path.join(GCS_BUCKET, str(output_csv).replace("./", "", 1))
+                    gcs_path = os.path.join(data_args.gcs_bucket, str(training_args.output_dir).replace("./", "", 1))
                     copy_command = f"gsutil cp {output_csv} {gcs_path}"
                     result = os.system(copy_command)
                     logger.info(f"{copy_command}")
                     logger.info(f"Result of gcs copy: {result}")
+                
+                # To make the files smaller
+                eval_preds = []
+                eval_labels = []
+                eval_ids = []
 
 
-        eval_time = time.time() - eval_start
-
+        
         # compute WER metric for eval sets
         wer_desc = ""
         eval_preds_list = [arr.tolist() for arr in eval_preds] 
