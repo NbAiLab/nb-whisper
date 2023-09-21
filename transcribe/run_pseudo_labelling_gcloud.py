@@ -794,9 +794,6 @@ def main():
             dataloader_num_workers=dataloader_num_workers,
         )
         # make the split name pretty for librispeech etc
-        split = split.replace(".", "-").split("/")[-1]
-        model_name = model_args.model_name_or_path.replace("/", "-")
-        output_csv = os.path.join(output_dir, f"{model_name}-{data_args.language}-{data_args.task}-{split}-transcription.tsv")
 
         batches = tqdm(eval_loader, desc=f"Evaluating {split}...")
 
@@ -813,9 +810,15 @@ def main():
             eval_labels.extend(labels)
 
             if step % training_args.logging_steps == 0 and step > 0:
+                split = split.replace(".", "-").split("/")[-1]
+                model_name = model_args.model_name_or_path.replace("/", "-")
+                output_csv = os.path.join(output_dir, f"step{step}-{model_name}-{data_args.language}-{data_args.task}-{split}-transcription.tsv")
+
                 start_time_1 = time.time()
                 eval_preds_list = [arr.tolist() for arr in eval_preds]
-                pred_str = tokenizer.batch_decode(eval_preds_list, skip_special_tokens=True)
+                # pred_str = tokenizer.batch_decode(eval_preds_list, skip_special_tokens=True)
+                pred_str = [tokenizer.decode(t, skip_special_tokens=True) for t in eval_preds_list]
+
                 end_time_1 = time.time() - start_time_1
                 
                 breakpoint()
@@ -843,8 +846,12 @@ def main():
                     )
                 else:
                     GCS_BUCKET = "gs://nb-whisper-transcript"
+                    # Copy file to Google Cloud Storage
+                    gcs_path = os.path.join(GCS_BUCKET, output_csv)
+                    copy_command = f"gsutil cp {output_csv} {gcs_path}"
+                    #result = os.system(copy_command)
                     
-                    logger.info("Here we should push to the bucket")
+                    logger.info(f"Result of gcs copy: {copy_command}")
 
 
         eval_time = time.time() - eval_start
