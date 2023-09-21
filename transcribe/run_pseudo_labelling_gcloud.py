@@ -799,7 +799,7 @@ def main():
                         blocking=False,
                     )
                 else:
-                    x = x + 1
+                    x = 3
 
         print("x")
 
