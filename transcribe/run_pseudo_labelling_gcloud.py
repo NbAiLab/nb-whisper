@@ -65,7 +65,7 @@ require_version(
     "To fix: pip install -r examples/flax/speech-recogintion/requirements.txt",
 )
 
-logging.basicConfig(level=logging.DEBUG, stream=sys.stdout)
+logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 logger = logging.getLogger(__name__)
 
 
@@ -799,9 +799,7 @@ def main():
                         blocking=False,
                     )
                 else:
-                    x = 5
                     logger.info("Here we should push to the bucket")
-
 
 
         eval_time = time.time() - eval_start
