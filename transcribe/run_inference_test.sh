@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
-
+export TOKENIZERS_PARALLELISM=false
+export CMALLOC_VERBOSE=0
+export TCMALLOC_VERBOSE=0
+export TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD=10000000000
 MODEL_NAME="NbAiLab/nb-whisper-medium-fine4-npsc-norm-nohes"
 OUTPUT_DIR="./ModelA"
 WANDB_PROJECT="nb-whisper-public-beta-transcription"
@@ -11,7 +14,7 @@ MAX_LABEL_LENGTH=256
 LOGGING_STEPS=10  # or save steps
 
 
-python run_pseudo_labelling.py \
+python run_pseudo_labelling_gcloud.py \
   --model_name_or_path $MODEL_NAME \
   --dataset_name "NbAiLab/ncc_speech_inference_v5" \
   --dataset_config_name "" \
