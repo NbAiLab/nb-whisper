@@ -635,7 +635,6 @@ def main():
         timestampstring = ""
     model_name = model_args.model_name_or_path.replace("/", "-")
     repo_name = "infer_"+data_args.language+"_"+data_args.task+"_"+timestampstring+model_name
-    print(repo_name)
     
     output_dir = os.path.join(training_args.output_dir, repo_name)
     if training_args.push_to_hub:
@@ -799,7 +798,7 @@ def main():
                         blocking=False,
                     )
                 else:
-                    x = 3
+                    logger.info("Here we should push to the bucket")
 
         eval_time = time.time() - eval_start
 
@@ -837,6 +836,8 @@ def main():
                 commit_message=f"Saving final transcriptions for split {split.replace('.', '-').split('/')[-1]}",
                 blocking=False,
             )
+        else:
+            logger.info("Final push to the bucket")
 
 
 if __name__ == "__main__":
