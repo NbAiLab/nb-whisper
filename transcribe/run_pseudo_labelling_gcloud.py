@@ -848,8 +848,7 @@ def main():
                     gcs_path = os.path.join(data_args.gcs_bucket, str(training_args.output_dir).replace("./", "", 1))
                     copy_command = f"gsutil cp {output_csv} {gcs_path}"
                     result = os.system(copy_command)
-                    logger.info(f"{copy_command}")
-                    logger.info(f"Result of gcs copy: {result}")
+                    logger.info(f"Result copied to gcs bucket - {result}")
                 
                 # To make the files smaller
                 eval_preds = []
@@ -887,7 +886,11 @@ def main():
                 blocking=False,
             )
         else:
-            logger.info("Final push to the bucket")
+            # Copy file to Google Cloud Storage
+            gcs_path = os.path.join(data_args.gcs_bucket, str(training_args.output_dir).replace("./", "", 1))
+            copy_command = f"gsutil cp {output_csv} {gcs_path}"
+            result = os.system(copy_command)
+            logger.info(f"Result copied to gcs bucket - {result}")
 
 
 if __name__ == "__main__":
