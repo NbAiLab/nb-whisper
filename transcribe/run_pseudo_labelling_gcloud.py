@@ -798,6 +798,8 @@ def main():
                         commit_message=f"Saving transcriptions for split {split} step {step}.",
                         blocking=False,
                     )
+                else:
+                    print("Here it should push to the bucket...")
 
         eval_time = time.time() - eval_start
 
