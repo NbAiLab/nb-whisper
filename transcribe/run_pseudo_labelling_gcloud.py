@@ -798,7 +798,8 @@ def main():
                         blocking=False,
                     )
                 else:
-                    logger.info("Here we should push to the bucket")
+                    ...
+                    #logger.info("Here we should push to the bucket")
 
         eval_time = time.time() - eval_start
 
@@ -837,7 +838,8 @@ def main():
                 blocking=False,
             )
         else:
-            logger.info("Final push to the bucket")
+            ...
+            #logger.info("Final push to the bucket")
 
 
 if __name__ == "__main__":
