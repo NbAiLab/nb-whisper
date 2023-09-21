@@ -798,8 +798,10 @@ def main():
                         blocking=False,
                     )
                 else:
+                    logger.info("Here we should push to the bucket")
                     x = 5
                     logger.info("Here we should push to the bucket")
+
 
 
         eval_time = time.time() - eval_start
