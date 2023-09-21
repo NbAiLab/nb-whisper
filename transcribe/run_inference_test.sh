@@ -30,7 +30,7 @@ python run_pseudo_labelling_gcloud.py \
   --dtype "bfloat16" \
   --streaming \
   --push_to_hub False \
-  --dataloader_num_workers 32 \
+  --dataloader_num_workers 1 \
   --return_timestamps False \
   --language "Norwegian" \
   --language_code "<|no|>" \
