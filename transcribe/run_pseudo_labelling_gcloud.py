@@ -801,9 +801,6 @@ def main():
                 else:
                     x = 3
 
-        print("x")
-
-
         eval_time = time.time() - eval_start
 
         # compute WER metric for eval sets
