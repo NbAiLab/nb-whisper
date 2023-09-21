@@ -809,17 +809,15 @@ def main():
             generated_ids = pad_shard_unpad(p_generate_step)(
                 params, batch.data, min_device_batch=per_device_eval_batch_size
             )
-            eval_preds.extend(jax.device_get(generated_ids.reshape(-1, gen_kwargs["max_length"])))
+            eval_preds.append(jax.device_get(generated_ids.reshape(-1, gen_kwargs["max_length"])).tolist())
             eval_labels.extend(labels)
 
             if step % training_args.logging_steps == 0 and step > 0:
                 batches.write(f"Saving transcriptions for split {split} step {step}")
-                logger.info("L1")
                 breakpoint()
-                pred_str = tokenizer.batch_decode(eval_preds, skip_special_tokens=True)
-                logger.info("L2")
+                eval_preds_list = [arr.tolist() for arr in eval_preds]
+                pred_str = tokenizer.batch_decode(eval_preds_list, skip_special_tokens=True)
                 csv_data = [[eval_ids[i], pred_str[i]] for i in range(len(pred_str))]
-                logger.info("L3")
 
                 batches.write(f"Finished conversion for split {split} step {step}")
 
