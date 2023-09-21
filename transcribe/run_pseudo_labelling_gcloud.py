@@ -842,6 +842,8 @@ def main():
                         blocking=False,
                     )
                 else:
+                    GCS_BUCKET = "gs://nb-whisper-transcript"
+                    
                     logger.info("Here we should push to the bucket")
 
 
