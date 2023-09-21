@@ -795,7 +795,7 @@ def main():
         eval_ids = []
 
         eval_loader = get_data_loader(
-            split_dataset_by_node(vectorized_datasets[split], rank=current_host_idx, world_size=num_of_hosts)   
+            split_dataset_by_node(vectorized_datasets[split], rank=current_host_idx, world_size=num_of_hosts),   
             batch_size=eval_batch_size // num_of_hosts,
             data_collator=data_collator,
             dataloader_num_workers=dataloader_num_workers,
