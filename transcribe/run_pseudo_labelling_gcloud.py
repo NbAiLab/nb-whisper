@@ -815,11 +815,12 @@ def main():
             if step % training_args.logging_steps == 0 and step > 0:
                 batches.write(f"Saving transcriptions for split {split} step {step}")
                 logger.info("L1")
+                breakpoint()
                 pred_str = tokenizer.batch_decode(eval_preds, skip_special_tokens=True)
                 logger.info("L2")
                 csv_data = [[eval_ids[i], pred_str[i]] for i in range(len(pred_str))]
-                logger.info("L2")
-                
+                logger.info("L3")
+
                 batches.write(f"Finished conversion for split {split} step {step}")
 
                 with open(output_csv, "w", encoding="UTF8", newline="") as f:
