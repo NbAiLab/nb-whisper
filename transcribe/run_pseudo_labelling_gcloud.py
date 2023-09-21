@@ -817,8 +817,6 @@ def main():
                 eval_preds_list = [arr.tolist() for arr in eval_preds] 
                 pred_str = tokenizer.batch_decode(eval_preds_list, skip_special_tokens=True)
                 
-                logger.info(f"Tokenizer time for tokenizing {len(eval_preds)}: {end_time_1} vs {end_time_2} seconds")
-
                 csv_data = [[eval_ids[i], pred_str[i]] for i in range(len(pred_str))]
 
                 with open(output_csv, "w", encoding="UTF8", newline="") as f:
