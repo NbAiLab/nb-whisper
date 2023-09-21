@@ -65,7 +65,7 @@ require_version(
     "To fix: pip install -r examples/flax/speech-recogintion/requirements.txt",
 )
 
-logging.basicConfig(level=logging.INFO, stream=sys.stdout)
+logging.basicConfig(level=logging.DEBUG, stream=sys.stdout)
 logger = logging.getLogger(__name__)
 
 
