@@ -664,6 +664,8 @@ def main():
     
     output_dir = os.path.join(training_args.output_dir, repo_name)
     if training_args.push_to_hub:
+        logger.info("Pushing to hub..")
+
         if training_args.hub_model_id is None:
             repo_name = get_full_repo_name(
                 Path(output_dir).absolute().name,
@@ -686,6 +688,8 @@ def main():
             if "*.tsv" not in git_lfs_extensions:
                 f.write("*.tsv filter=lfs diff=lfs merge=lfs -text")
     else:
+        logger.info("Saving locally.")
+
         # this is where we'll save our transcriptions
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
@@ -819,6 +823,7 @@ def main():
                     writer.writerows(csv_data)
 
                 if training_args.push_to_hub:
+                    logger.info("Pushing to hub.")
                     repo.push_to_hub(
                         commit_message=f"Saving transcriptions for split {split} step {step}.",
                         blocking=False,
@@ -859,13 +864,14 @@ def main():
     for split in data_splits:
         eval_step_with_save(split=split)
         if training_args.push_to_hub:
+            logger.info("Final push to hub.")
+
             repo.push_to_hub(
                 commit_message=f"Saving final transcriptions for split {split.replace('.', '-').split('/')[-1]}",
                 blocking=False,
             )
         else:
-            ...
-            #logger.info("Final push to the bucket")
+            logger.info("Final push to the bucket")
 
 
 if __name__ == "__main__":
