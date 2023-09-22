@@ -847,7 +847,6 @@ def main():
                     # Copy file to Google Cloud Storage
                     gcs_path = os.path.join(data_args.gcs_bucket, str(training_args.output_dir).replace("./", "", 1))
                     copy_command = f"gsutil cp {output_csv} {gcs_path}/"
-                    breakpoint()
                     result = os.system(copy_command)
                     logger.info(f"Result copied to gcs bucket - {result}")
                 
