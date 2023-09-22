@@ -11,12 +11,12 @@ NUM_BEAMS=1
 #BATCH_SIZE=32
 #NUM_BEAMS=3
 MAX_LABEL_LENGTH=256
-LOGGING_STEPS=50  # or save steps
+LOGGING_STEPS=500  # or save steps
 
 
 python run_pseudo_labelling_gcloud.py \
   --model_name_or_path $MODEL_NAME \
-  --dataset_name "NbAiLab/ncc_speech_inference_v5" \
+  --dataset_name "NbAiLab/ncc_speech_inference_v5x" \
   --dataset_config_name "" \
   --data_split_name "train" \
   --text_column_name "text" \
