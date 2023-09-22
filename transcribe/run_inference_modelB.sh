@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
-
+export TOKENIZERS_PARALLELISM=false
+export CMALLOC_VERBOSE=0
+export TCMALLOC_VERBOSE=0
+export TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD=10000000000
 MODEL_NAME="NbAiLab/nb-whisper-medium-fine3-npsc-norm-raw"
 OUTPUT_DIR="./ModelB"
 WANDB_PROJECT="nb-whisper-public-beta-transcription"
