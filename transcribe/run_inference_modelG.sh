@@ -26,7 +26,8 @@ python run_pseudo_labelling.py \
   --logging_steps $LOGGING_STEPS \
   --dtype "bfloat16" \
   --streaming \
-  --push_to_hub \
+  --push_to_hub False\
+  --gcs_bucket "gs://nb-whisper-transcript" \
   --dataloader_num_workers 32 \
   --return_timestamps True \
   --language "Norwegian" \
