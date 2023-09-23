@@ -886,6 +886,9 @@ def main():
                 blocking=False,
             )
         else:
+            split = split.replace(".", "-").split("/")[-1]
+            model_name = model_args.model_name_or_path.replace("/", "-")
+            output_csv = os.path.join(output_dir, f"steplast-host{current_host_idx}-{model_name}-{data_args.language}-{data_args.task}-{split}-transcription.tsv")
             # Copy file to Google Cloud Storage
             gcs_path = os.path.join(data_args.gcs_bucket, str(training_args.output_dir).replace("./", "", 1))
             copy_command = f"gsutil cp {output_csv} {gcs_path}"
