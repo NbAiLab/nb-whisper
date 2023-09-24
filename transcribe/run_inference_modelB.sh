@@ -16,7 +16,7 @@ LOGGING_STEPS=500  # or save steps
 
 python run_pseudo_labelling_gcloud.py \
   --model_name_or_path $MODEL_NAME \
-  --dataset_name "NbAiLab/ncc_speech_inference_v5x" \
+  --dataset_name "NbAiLab/ncc_speech_inference_v5y" \
   --dataset_config_name "" \
   --data_split_name "train" \
   --text_column_name "text" \
