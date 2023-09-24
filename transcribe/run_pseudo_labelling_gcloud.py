@@ -864,6 +864,7 @@ def main():
 
         batches.write(f"Saving final transcriptions for split {split}.")
         csv_data = [[eval_ids[i], pred_str[i]] for i in range(len(pred_str))]
+        output_csv = os.path.join(output_dir, f"steplast-host{current_host_idx}-{model_name}-{data_args.language}-{data_args.task}-{split}-transcription.tsv")
         with open(output_csv, "w", encoding="UTF8", newline="") as f:
             writer = csv.writer(f, delimiter='\t')
             # write multiple rows
@@ -886,10 +887,11 @@ def main():
                 blocking=False,
             )
         else:
+            # Copy file to Google Cloud Storage
             split = split.replace(".", "-").split("/")[-1]
             model_name = model_args.model_name_or_path.replace("/", "-")
             output_csv = os.path.join(output_dir, f"steplast-host{current_host_idx}-{model_name}-{data_args.language}-{data_args.task}-{split}-transcription.tsv")
-            # Copy file to Google Cloud Storage
+
             gcs_path = os.path.join(data_args.gcs_bucket, str(training_args.output_dir).replace("./", "", 1))
             copy_command = f"gsutil cp {output_csv} {gcs_path}"
             result = os.system(copy_command)
