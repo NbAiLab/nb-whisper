@@ -18,8 +18,8 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --dataset_load_fn "utils.dataset_load_public_beta.load_dataset_scream" \
     --test_split_name "test_audio_books_nn,test_audio_books_no,test_fleurs,test_nrk_no,test_nrk_nn,test_nst,test_stortinget_nn,test_stortinget_no" \
     --eval_split_name "validation_audio_books_nn,validation_audio_books_no,validation_fleurs,validation_nrk_no,validation_nrk_nn,validation_nst,validation_stortinget_nn,validation_stortinget_no" \
-    --hub_model_id NbAiLab/nb-whisper-small-publicbeta-25k \
-    --output_dir ../../../nb-whisper-small-publicbeta-25k \
+    --hub_model_id NbAiLab/nb-whisper-small-veryclean-25k \
+    --output_dir ../../../nb-whisper-small-veryclean-25k \
     --overwrite_output_dir \
     --do_train \
     --do_predict \
