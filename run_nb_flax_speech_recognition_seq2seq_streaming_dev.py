@@ -1218,6 +1218,10 @@ def main():
                 "predictions": predictions,
             })
             # Filter out rows with empty reference strings
+
+            print("Debug - remove later!!")
+            print(df[df["references"].str.strip() == ""])
+            
             df = df[df["references"].str.strip() != ""]
 
             df["wer"] = df.apply(lambda row: metric_wer.compute(predictions=[row["predictions"]], references=[row["references"]]), axis=1)
