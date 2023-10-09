@@ -1217,6 +1217,9 @@ def main():
                 "references": labels,
                 "predictions": predictions,
             })
+            # Filter out rows with empty reference strings
+            df = df[df["references"].str.strip() != ""]
+
             df["wer"] = df.apply(lambda row: metric_wer.compute(predictions=[row["predictions"]], references=[row["references"]]), axis=1)
             df["cer"] = df.apply(lambda row: metric_cer.compute(predictions=[row["predictions"]], references=[row["references"]]), axis=1)
             markdown_table = df.to_markdown(index=False)
