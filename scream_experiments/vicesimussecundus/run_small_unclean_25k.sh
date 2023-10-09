@@ -7,19 +7,19 @@ export TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD=10000000000
 # Running the Python script
 python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --model_name_or_path openai/whisper-small \
-    --run_name "NB-Whisper - small veryclean 25k" \
-    --run_description "A Small NB-Whisper Very Clean" \
+    --run_name "NB-Whisper - small unclean 25k" \
+    --run_description "A Small NB-Whisper Unlean" \
     --wandb_entity "nbailab" \
     --wandb_project "NB-Whisper Public Beta" \
-    --dataset_name NbAiLab/ncc_speech_v6_veryclean \
+    --dataset_name NbAiLab/ncc_speech_v6_unclean \
     --language Norwegian \
     --text_column_name text \
     --train_split_name train \
     --dataset_load_fn "utils.dataset_load_public_beta.load_dataset_scream" \
     --test_split_name "test_audio_books_nn,test_audio_books_no,test_fleurs,test_nrk_no,test_nrk_nn,test_nst,test_stortinget_nn,test_stortinget_no" \
     --eval_split_name "validation_audio_books_nn,validation_audio_books_no,validation_fleurs,validation_nrk_no,validation_nrk_nn,validation_nst,validation_stortinget_nn,validation_stortinget_no" \
-    --hub_model_id NbAiLab/nb-whisper-small-publicbeta-25k \
-    --output_dir ../../../nb-whisper-small-publicbeta-25k \
+    --hub_model_id NbAiLab/nb-whisper-small-unclean-25k \
+    --output_dir ../../../nb-whisper-small-unclean-25k \
     --overwrite_output_dir \
     --do_train \
     --do_predict \
