@@ -6,9 +6,9 @@ export TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD=10000000000
 
 # Running the Python script
 python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
-    --model_name_or_path openai/whisper-small \
-    --run_name "NB-Whisper - small RC1" \
-    --run_description "A small NB-Whisper RC1" \
+    --model_name_or_path openai/whisper-tiny \
+    --run_name "NB-Whisper - tiny RC1" \
+    --run_description "A tiny NB-Whisper RC1" \
     --wandb_entity "nbailab" \
     --wandb_project "NB-Whisper RC1" \
     --dataset_name NbAiLab/ncc_speech_v7 \
@@ -18,8 +18,8 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --dataset_load_fn "utils.dataset_load_rc.load_dataset_nbwhisper" \
     --test_split_name "test_audio_books_nn,test_audio_books_no,test_fleurs,test_nrk_no,test_nrk_nn,test_nst,test_stortinget_nn,test_stortinget_no,test_clean_audio_books_nn,test_clean_audio_books_no,test_clean_stortinget_no" \
     --eval_split_name "validation_audio_books_nn,validation_audio_books_no,validation_fleurs,validation_nrk_no,validation_nrk_nn,validation_nst,validation_stortinget_nn,validation_stortinget_no,validation_clean_audio_books_nn,validation_clean_audio_books_no,validation_clean_stortinget_no" \
-    --hub_model_id NbAiLab/nb-whisper-small-RC1 \
-    --output_dir ../../../nb-whisper-small-RC1 \
+    --hub_model_id NbAiLab/nb-whisper-tiny-RC1 \
+    --output_dir ../../../nb-whisper-tiny-RC1 \
     --overwrite_output_dir \
     --do_train \
     --do_predict \
@@ -29,7 +29,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --num_train_steps 200000 \
     --eval_steps 5000 \
     --lr_scheduler_type linear \
-    --learning_rate 5e-5 \
+    --learning_rate 1.5e-4 \
     --weight_decay 0.01 \
     --adam_beta1 0.9 \
     --adam_beta2 0.98 \
