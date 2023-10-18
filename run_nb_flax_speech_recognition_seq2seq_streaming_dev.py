@@ -1217,10 +1217,6 @@ def main():
                 "references": labels,
                 "predictions": predictions,
             })
-            # Filter out rows with empty reference strings
-
-            print("Debug - remove later!!")
-            print(df[df["references"].str.strip() == ""])
             
             df = df[df["references"].str.strip() != ""]
 
