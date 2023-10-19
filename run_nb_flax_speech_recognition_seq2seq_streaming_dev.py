@@ -1060,7 +1060,7 @@ def main():
             if do_remove_punctuation:
                 prev_str = normalizer(prev_str).strip()
             prev_tokens = tokenizer(prev_str, truncation=False, add_special_tokens=False).input_ids
-            max_prev_str = tokenizer.decode(prev_tokens[-(max_prev_length - 1):])
+            max_prev_str = tokenizer.decode(prev_tokens[-(max_prev_length - 1):], decode_with_timestamps=True)
             max_prev_tokens = tokenizer("<|startofprev|>", max_prev_str, add_special_tokens=False).input_ids
             batch["labels"] = max_prev_tokens + batch["labels"]
         return batch
@@ -1658,7 +1658,7 @@ def main():
                 formatted_ids = [f'\033[91m{token_id}\033[0m' if mask == 0 else str(token_id) for token_id, mask in zip(batch['decoder_input_ids'][0], batch['attention_mask'][0])]
                 formatted_string = "\n".join(["\t".join(formatted_ids[i:i+20]) for i in range(0, len(formatted_ids), 20)])
                 logger.info(f"Example of decoder_input_ids at step {step}:. \033[91m Red tokens \033[0m are masked by the attention_mask:\n{formatted_string}")
-                decoded_text = tokenizer.decode(batch['decoder_input_ids'][0], skip_special_tokens=False)
+                decoded_text = tokenizer.decode(batch['decoder_input_ids'][0], skip_special_tokens=False, decode_with_timestamps=True)
                 logger.info(f"Decoded example. :\n{decoded_text}")
             
             batch = shard(batch.data)
@@ -1698,7 +1698,7 @@ def main():
                         formatted_ids = [f'\033[91m{token_id}\033[0m' if mask == 0 else str(token_id) for token_id, mask in zip(batch['decoder_input_ids'][0], batch['attention_mask'][0])]
                         formatted_string = "\n".join(["\t".join(formatted_ids[i:i+20]) for i in range(0, len(formatted_ids), 20)])
                         logger.info(f"Example of decoder_input_ids at eval step {eval_step}:. \033[91m Red tokens \033[0m are masked by the attention_mask:\n{formatted_string}")
-                        decoded_text = tokenizer.decode(batch['decoder_input_ids'][0], skip_special_tokens=False)
+                        decoded_text = tokenizer.decode(batch['decoder_input_ids'][0], skip_special_tokens=False, decode_with_timestamps=True)
                         logger.info(f"Decoded example. :\n{decoded_text}")
 
                     labels = batch["labels"]
