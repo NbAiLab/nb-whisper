@@ -22,9 +22,6 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --output_dir ../../../nb-whisper-debug \
     --overwrite_output_dir \
     --do_train \
-    --do_predict \
-    --do_eval \
-    --predict_with_generate \
     --warmup_steps 100 \
     --num_train_steps 200000 \
     --eval_steps 1000 \
@@ -43,7 +40,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --prev_column_name "previous_text" \
     --log_max_eval_predictions 100 \
     --log_eval_predictions_fn "utils.log_predictions.write_predictions" \
-    --log_examples 5 \
+    --log_examples 1 \
     --streaming True \
     --use_auth_token True \
     --dtype bfloat16 \
