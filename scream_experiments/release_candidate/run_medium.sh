@@ -40,7 +40,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --per_device_eval_batch_size 8 \
     --preprocessing_num_workers 32 \
     --timestamp_column_name "timestamped_text" \
-    --prev_column_name "prompt" \
+    --prev_column_name "previous_text" \
     --log_max_eval_predictions 100 \
     --log_eval_predictions_fn "utils.log_predictions.write_predictions" \
     --log_examples 100 \
