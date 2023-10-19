@@ -2,7 +2,7 @@ import random
 import datasets
 
 def processor_normal(sample):
-    return {**sample, "text": "Processor_normal - " + sample["text"], "previous_text": None, "timestamped_text": None}
+    return {**sample, "text": "Processor_normal - " + sample["text"][0:100], "previous_text": None, "timestamped_text": None}
 
 def processor_normal_no(sample):
     sample = processor_normal(sample)
@@ -19,7 +19,7 @@ def processor_normal_en(sample):
     if sample and sample["text_en"] is not None and sample["source"] != "audio_books":
         return {
             **sample,
-            "text": "Processor_normal_en - " + sample["text_en"],
+            "text": "Processor_normal_en - " + sample["text_en"][0:100],
             "task": "transcribe",
             "text_language": "en",
             "previous_text": None,
@@ -28,20 +28,20 @@ def processor_normal_en(sample):
 
 def processor_timestamps(sample):
     if sample["timestamped_text"] is not None:
-        return {**sample, "text": "Processor_timestamps - " + sample["timestamped_text"], "previous_text": None}
+        return {**sample, "text": "Processor_timestamps - " + sample["timestamped_text"][0:100], "previous_text": None}
 
 def processor_timestamps_en(sample):
     if sample["timestamped_text_en"] is not None and sample["source"] != "audio_books":
-        return {**sample, "text": "Processor_timestamps_en - " + sample["timestamped_text_en"], "task": "transcribe", "text_language": "en","timestamped_text": sample["timestamped_text_en"], "previous_text": None}
+        return {**sample, "text": "Processor_timestamps_en - " + sample["timestamped_text_en"][0:100], "task": "transcribe", "text_language": "en","timestamped_text": sample["timestamped_text_en"][0:100], "previous_text": None}
 
 def processor_previous_text_prompts(sample):
     if sample["previous_text"] is not None:
-        return {**sample, "text": "Processor_previous_text_prompts - " + sample["text"], "timestamped_text": None}
+        return {**sample, "text": "Processor_previous_text_prompts - " + sample["text"][0:100], "timestamped_text": None}
 
 def processor_timestamps_previous_text(sample):
     if (sample["previous_text"] is not None
         and sample["timestamped_text"] is not None):
-        return {**sample, "text": "Processor_timestamps_previous - " + sample["timestamped_text"]}
+        return {**sample, "text": "Processor_timestamps_previous - " + sample["timestamped_text"][0:100]}
   
 def load_dataset_nbwhisper(dataset_name, dataset_config_name=None, split="train", streaming=True, **kwargs):
     if split == "train":
