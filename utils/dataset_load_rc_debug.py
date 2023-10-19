@@ -2,7 +2,7 @@ import random
 import datasets
 
 def processor_normal(sample):
-    return {**sample, "text": "Processor_normal - " + sample["timestamped_text"], "previous_text": None, "timestamped_text": None}
+    return {**sample, "text": "Processor_normal - " + sample["text"], "previous_text": None, "timestamped_text": None}
 
 def processor_normal_no(sample):
     sample = processor_normal(sample)
