@@ -51,7 +51,6 @@ def load_dataset_nbwhisper(dataset_name, dataset_config_name=None, split="train"
             processor_normal_en,
             processor_timestamps,
             processor_timestamps_en,
-            processor_previous_text_prompts,
         ]
     else:
         processors = [
