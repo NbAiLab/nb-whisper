@@ -1060,7 +1060,7 @@ def main():
             if do_remove_punctuation:
                 prev_str = normalizer(prev_str).strip()
             prev_tokens = tokenizer(prev_str, truncation=False, add_special_tokens=False).input_ids
-            max_prev_str = tokenizer.decode(prev_tokens[-(max_prev_length - 1):], decode_with_timestamps=True)
+            max_prev_str = tokenizer.decode(prev_tokens[-(max_prev_length - 1):], decode_with_timestamps=False)
             max_prev_tokens = tokenizer("<|startofprev|>", max_prev_str, add_special_tokens=False).input_ids
             batch["labels"] = max_prev_tokens + batch["labels"]
         return batch
