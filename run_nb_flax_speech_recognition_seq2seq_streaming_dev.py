@@ -976,7 +976,9 @@ def main():
     if timestamp_column_name:
         tokens_added = tokenizer.add_tokens([f"<|{i * 0.02:.2f}|>" for i in range(1501)], special_tokens=True)
         logging.warning(f"Tokenizer: added {tokens_added} timestamps tokens.")
-
+    else:
+        logging.warning(f"Tokenizer: No timestamps tokens added. This model will not support timestamps.")
+    
     # BPE dropout only added for training
     inference_tokenizer = tokenizer
     if training_args.do_train and model_args.bpe_dropout:
