@@ -52,12 +52,11 @@ def load_dataset_nbwhisper(dataset_name, dataset_config_name=None, split="train"
             processor_timestamps,
             processor_timestamps_en,
             processor_previous_text_prompts,
-            processor_timestamps_previous_text,
         ]
     else:
         processors = [
             processor_normal
         ]
-        
+
     ds = datasets.load_dataset(dataset_name, dataset_config_name, split=split, streaming=streaming, post_processors=processors, **kwargs)
     return ds
