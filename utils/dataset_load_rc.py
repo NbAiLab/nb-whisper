@@ -7,11 +7,13 @@ def processor_normal(sample):
 def processor_normal_no(sample):
     sample = processor_normal(sample)
     if sample and sample["language"] == "no":
-        return sample
-
+        return {**sample, "language": "no" }
+        #return sample
+    
 def processor_normal_nn(sample):
     sample = processor_normal(sample)
     if sample and sample["language"] == "nn":
+        return {**sample, "language": "nn" }
         return sample
 
 def processor_normal_en(sample):
@@ -55,9 +57,7 @@ def load_dataset_nbwhisper(dataset_name, dataset_config_name=None, split="train"
             processor_timestamps_previous_text,
         ]
     else:
-        processors = [
-            processor_normal
-        ]
+        processors = None
         
     ds = datasets.load_dataset(dataset_name, dataset_config_name, split=split, streaming=streaming, post_processors=processors, **kwargs)
     return ds
