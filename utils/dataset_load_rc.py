@@ -7,14 +7,12 @@ def processor_normal(sample):
 def processor_normal_no(sample):
     sample = processor_normal(sample)
     if sample and sample["language"] == "no":
-        return {**sample, "language": "no" }
-        #return sample
-    
+        return sample
+
 def processor_normal_nn(sample):
     sample = processor_normal(sample)
     if sample and sample["language"] == "nn":
-        return {**sample, "language": "nn" }
-        #return sample
+        return sample
 
 def processor_normal_en(sample):
     sample = processor_normal(sample)
