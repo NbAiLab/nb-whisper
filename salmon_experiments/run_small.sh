@@ -17,7 +17,6 @@ python ../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --task transcribe \
     --text_column_name transcription \
     --train_split_name train \
-    --dataset_load_fn "utils.dataset_load_salmon.load_dataset" \
     --test_split_name "test" \
     --eval_split_name "validation" \
     --hub_model_id NbAiLab/$MODEL_HUB_ID \
