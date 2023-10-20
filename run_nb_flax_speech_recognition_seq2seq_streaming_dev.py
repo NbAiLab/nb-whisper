@@ -289,7 +289,7 @@ class DataTrainingArguments:
             "help": "Truncate transcriptions that are longer than `max_label_length` tokens."},
     )
     max_prev_length: Optional[int] = field(
-        default=16,
+        default=184,
         metadata={
             "help": "Truncate previous text (initial prompt) on the left if they are longer than `max_prev_length` tokens."},
     )
