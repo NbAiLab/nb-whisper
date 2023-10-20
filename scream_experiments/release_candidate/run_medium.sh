@@ -27,7 +27,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --predict_with_generate \
     --warmup_steps 10000 \
     --num_train_steps 200000 \
-    --eval_steps 5000 \
+    --eval_steps 2500 \
     --lr_scheduler_type linear \
     --learning_rate 2.5e-5 \
     --weight_decay 0.01 \
@@ -52,4 +52,5 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --ignore_data_skip \
     --gradient_checkpointing True \
     --pad_target_to_multiple_of 448 \
+    --max_prev_length 184 \
     --push_to_hub
