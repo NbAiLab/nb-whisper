@@ -1165,7 +1165,8 @@ def main():
         # cer = 100 * metric_cer.compute(predictions=pred_str, references=label_str)
             
         if return_preds_labels:
-            return {"wer": wer, "cer": cer, "exact_wer": raw_wer, "exact_cer": raw_cer}, predictions, labels
+            #return {"wer": wer, "cer": cer, "exact_wer": raw_wer, "exact_cer": raw_cer}, predictions, labels
+            return {"wer": wer, "cer": cer, "exact_wer": raw_wer, "exact_cer": raw_cer}, tokenizer.batch_decode(pred_ids, skip_special_tokens=False, decode_with_timestamps=True), labels
         else:
             return {"wer": wer, "cer": cer, "exact_wer": raw_wer, "exact_cer": raw_cer}
 
