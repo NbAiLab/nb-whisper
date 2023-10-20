@@ -259,9 +259,9 @@ class DataTrainingArguments:
             "help": "The name of the dataset column specifying the task. Defaults to 'task'"},
     )
     language_column_name: str = field(
-        default="text_language",
+        default="language",
         metadata={
-            "help": "The name of the dataset column specifying the language. Defaults to 'text_language'"},
+            "help": "The name of the dataset column specifying the language. Defaults to 'language'"},
     )
     prev_column_name: Optional[str] = field(
         default=None,
@@ -301,7 +301,7 @@ class DataTrainingArguments:
         },
     )
     pad_target_to_multiple_of: Optional[int] = field(
-        default=None,
+        default=448,
         metadata={
             "help": "If set will pad the target sequence to a multiple of the provided value. "
             "This is important to avoid triggering recompilations on TPU. If unspecified, will default to padding the targets to max length."

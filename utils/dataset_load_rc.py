@@ -6,12 +6,12 @@ def processor_normal(sample):
 
 def processor_normal_no(sample):
     sample = processor_normal(sample)
-    if sample and sample["text_language"] == "no":
+    if sample and sample["language"] == "no":
         return sample
 
 def processor_normal_nn(sample):
     sample = processor_normal(sample)
-    if sample and sample["text_language"] == "nn":
+    if sample and sample["language"] == "nn":
         return sample
 
 def processor_normal_en(sample):
@@ -21,7 +21,7 @@ def processor_normal_en(sample):
             **sample,
             "text": sample["text_en"],
             "task": "transcribe",
-            "text_language": "en",
+            "language": "en",
             "previous_text": None,
             "timestamped_text": None
         }
@@ -32,7 +32,7 @@ def processor_timestamps(sample):
 
 def processor_timestamps_en(sample):
     if sample["timestamped_text_en"] is not None and sample["source"] != "audio_books":
-        return {**sample, "text": sample["timestamped_text_en"], "task": "transcribe", "text_language": "en","timestamped_text": sample["timestamped_text_en"], "previous_text": None}
+        return {**sample, "text": sample["timestamped_text_en"], "task": "transcribe", "language": "en","timestamped_text": sample["timestamped_text_en"], "previous_text": None}
 
 def processor_previous_text_prompts(sample):
     if sample["previous_text"] is not None:
