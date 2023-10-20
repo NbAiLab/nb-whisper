@@ -1702,15 +1702,15 @@ def main():
                         decoded_text = tokenizer.decode(batch['decoder_input_ids'][0], skip_special_tokens=False, decode_with_timestamps=True)
                         
                         #Debug code - delete
-                        if "I kveld spiller de i byen." in decoded_text:
-                            debug_error = True
-                        else:
-                            debug_error = False
+                        #if "I kveld spiller de i byen." in decoded_text:
+                        #    debug_error = True
+                        #else:
+                        #    debug_error = False
 
                         logger.info(f"Decoded example. :\n{decoded_text}")
 
-                    if debug_error:
-                        breakpoint()
+                    #if debug_error:
+                    #    breakpoint()
 
                     labels = batch["labels"]
                     # del batch["id"]
