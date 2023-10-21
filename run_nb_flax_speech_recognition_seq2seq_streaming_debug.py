@@ -259,9 +259,9 @@ class DataTrainingArguments:
             "help": "The name of the dataset column specifying the task. Defaults to 'task'"},
     )
     language_column_name: str = field(
-        default="language",
+        default="text_language",
         metadata={
-            "help": "The name of the dataset column specifying the language. Defaults to 'language'"},
+            "help": "The name of the dataset column specifying the language. Defaults to 'text_language'"},
     )
     prev_column_name: Optional[str] = field(
         default=None,
@@ -301,7 +301,7 @@ class DataTrainingArguments:
         },
     )
     pad_target_to_multiple_of: Optional[int] = field(
-        default=448,
+        default=None,
         metadata={
             "help": "If set will pad the target sequence to a multiple of the provided value. "
             "This is important to avoid triggering recompilations on TPU. If unspecified, will default to padding the targets to max length."
@@ -1035,7 +1035,7 @@ def main():
         if do_remove_punctuation:
             input_str = normalizer(input_str).strip()
         
-        # Process prefix tokens
+        # Process prefix tokens
         prefix_timestamps = (
             bool(batch.get(timestamp_column_name))
             and input_str.strip() not in ("<|nocaptions|>", "<|nospeech|>")
@@ -1165,8 +1165,7 @@ def main():
         # cer = 100 * metric_cer.compute(predictions=pred_str, references=label_str)
             
         if return_preds_labels:
-            #return {"wer": wer, "cer": cer, "exact_wer": raw_wer, "exact_cer": raw_cer}, predictions, labels
-            return {"wer": wer, "cer": cer, "exact_wer": raw_wer, "exact_cer": raw_cer}, tokenizer.batch_decode(pred_ids, skip_special_tokens=False, decode_with_timestamps=True), labels
+            return {"wer": wer, "cer": cer, "exact_wer": raw_wer, "exact_cer": raw_cer}, predictions, labels
         else:
             return {"wer": wer, "cer": cer, "exact_wer": raw_wer, "exact_cer": raw_cer}
 
@@ -1701,9 +1700,6 @@ def main():
                         logger.info(f"Example of decoder_input_ids at eval step {eval_step}:. \033[91m Red tokens \033[0m are masked by the attention_mask:\n{formatted_string}")
                         decoded_text = tokenizer.decode(batch['decoder_input_ids'][0], skip_special_tokens=False, decode_with_timestamps=True)
                         logger.info(f"Decoded example. :\n{decoded_text}")
-
-                    #if debug_error:
-                    #    breakpoint()
 
                     labels = batch["labels"]
                     # del batch["id"]
