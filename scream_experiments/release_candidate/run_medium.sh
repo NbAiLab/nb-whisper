@@ -16,8 +16,6 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --text_column_name text \
     --train_split_name train \
     --dataset_load_fn "utils.dataset_load_rc.load_dataset_nbwhisper" \
-    --test_split_name "test_audio_books_nn,test_audio_books_no,test_norwegian_fleurs,test_nrk_no,test_nrk_nn,test_nst,test_stortinget_nn,test_stortinget_no,test_clean_audio_books_nn,test_clean_audio_books_no,test_clean_stortinget_no" \
-    --eval_split_name "validation_audio_books_nn,validation_audio_books_no,validation_norwegian_fleurs,validation_nrk_no,validation_nrk_nn,validation_nst,validation_stortinget_nn,validation_stortinget_no,validation_clean_audio_books_nn,validation_clean_audio_books_no,validation_clean_stortinget_no" \
     --hub_model_id NbAiLab/nb-whisper-medium-RC1 \
     --output_dir ../../../nb-whisper-medium-RC1 \
     --overwrite_output_dir \
@@ -27,7 +25,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --predict_with_generate \
     --warmup_steps 10000 \
     --num_train_steps 200000 \
-    --eval_steps 2500 \
+    --eval_steps 5000 \
     --lr_scheduler_type linear \
     --learning_rate 2.5e-5 \
     --weight_decay 0.01 \
