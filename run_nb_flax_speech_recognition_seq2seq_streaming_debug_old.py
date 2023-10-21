@@ -32,7 +32,6 @@ import logging
 import shutil
 import socket
 import sys
-import re
 import tempfile
 import time
 from dataclasses import field
@@ -48,7 +47,6 @@ import jax.numpy as jnp
 import numpy as np
 import optax
 import pandas as pd
-import regex
 import torch
 # from jax.experimental.compilation_cache import compilation_cache; compilation_cache.initialize_cache(tempfile.gettempdir())
 from flax import jax_utils, traverse_util
@@ -63,7 +61,7 @@ import evaluate
 import transformers
 from datasets import Dataset, DatasetDict, IterableDatasetDict, interleave_datasets, load_dataset
 from datasets.distributed import split_dataset_by_node
-from huggingface_hub import create_repo
+from huggingface_hub import Repository, create_repo
 from transformers import (
     AutoConfig,
     AutoFeatureExtractor,
@@ -75,15 +73,13 @@ from transformers import (
     is_tensorboard_available,
 )
 from transformers.modelcard import TrainingSummary
-from transformers.models.whisper.english_normalizer import BasicTextNormalizer, remove_symbols_and_diacritics, remove_symbols
+from transformers.models.whisper.english_normalizer import BasicTextNormalizer
 from transformers.models.whisper.tokenization_whisper import TO_LANGUAGE_CODE
 from transformers.file_utils import get_full_repo_name
 from transformers.utils import check_min_version, send_example_telemetry
 from transformers.utils.versions import require_version
 
 from flax.training import checkpoints
-
-from utils.repository import Repository
 
 # Will error if the minimal version of Transformers is not installed. Remove at your own risks.
 check_min_version("4.27.0.dev0")
@@ -93,29 +89,6 @@ require_version("datasets>=1.18.2",
 
 
 logger = logging.getLogger(__name__)
-
-
-class SimpleTextNormalizer:
-    def __init__(self, remove_diacritics: bool = False, split_letters: bool = False):
-        self.clean = (
-            remove_symbols_and_diacritics if remove_diacritics else remove_symbols
-        )
-        self.split_letters = split_letters
-
-    def __call__(self, s: str):
-        s = s.lower()
-        # s = re.sub(r"[<\[][^>\]]*[>\]]", "", s)  # remove words between brackets
-        # s = re.sub(r"\(([^)]+?)\)", "", s)  # remove words between parenthesis
-        s = self.clean(s).lower()
-
-        if self.split_letters:
-            s = " ".join(regex.findall(r"\X", s, regex.U))
-
-        s = re.sub(
-            r"\s+", " ", s
-        )  # replace any successive whitespace characters with a space
-
-        return s
 
 
 @flax.struct.dataclass
@@ -253,18 +226,8 @@ class DataTrainingArguments:
         metadata={
             "help": "The name of the dataset column containing the text data. Defaults to 'text'"},
     )
-    task_column_name: str = field(
-        default="task",
-        metadata={
-            "help": "The name of the dataset column specifying the task. Defaults to 'task'"},
-    )
-    language_column_name: str = field(
-        default="language",
-        metadata={
-            "help": "The name of the dataset column specifying the language. Defaults to 'language'"},
-    )
     prev_column_name: Optional[str] = field(
-        default=None,
+        default="None",
         metadata={
             "help": "The name of the dataset column containing the previous text data. Defaults to 'None'"},
     )
@@ -289,7 +252,7 @@ class DataTrainingArguments:
             "help": "Truncate transcriptions that are longer than `max_label_length` tokens."},
     )
     max_prev_length: Optional[int] = field(
-        default=184,
+        default=16,
         metadata={
             "help": "Truncate previous text (initial prompt) on the left if they are longer than `max_prev_length` tokens."},
     )
@@ -301,7 +264,7 @@ class DataTrainingArguments:
         },
     )
     pad_target_to_multiple_of: Optional[int] = field(
-        default=448,
+        default=None,
         metadata={
             "help": "If set will pad the target sequence to a multiple of the provided value. "
             "This is important to avoid triggering recompilations on TPU. If unspecified, will default to padding the targets to max length."
@@ -422,14 +385,6 @@ class DataTrainingArguments:
             )
         },
     )
-    dataset_load_fn: Optional[str] = field(
-        default=None,
-        metadata={
-            "help": (
-                "Python path to function to load a dataset. Use like fn(dataset_name, dataset_config_name, split, streaming)."
-            )
-        },
-    )
     data_mapping_fn: Optional[str] = field(
         default=None,
         metadata={
@@ -459,14 +414,6 @@ class DataTrainingArguments:
         metadata={
             "help": (
                 "Weights & Biases project to log metrics to."
-            )
-        },
-    )
-    push_to_hub_auto_lfs_prune: bool = field(
-        default=False,
-        metadata={
-            "help": (
-                "Auto prune git lfs, event files referenced by 'recent' commits."
             )
         },
     )
@@ -577,35 +524,15 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
         labels = labels.filled(fill_value=-100)
 
         # Replace initial prompt tokens with -100 to they are ignore whem computing the loss
-        bos_index = np.argmax(labels==self.decoder_start_token_id, axis=1)
-        prompt_mask = np.arange(labels.shape[1]) < bos_index[:, np.newaxis]
-        labels = np.where(prompt_mask, -100, labels)
+        # bos_index = np.argmax(labels==self.decoder_start_token_id, axis=1)
+        # prompt_mask = np.arange(labels.shape[1]) < bos_index[:, np.newaxis]
+        # labels = np.where(prompt_mask, -100, labels)
 
         batch["labels"] = labels
         batch["decoder_input_ids"] = decoder_input_ids
         batch["attention_mask"] = labels_batch.attention_mask  # Add attention_mask to the batch
         
         return batch
-
-
-def flatten_eval_lines(eval_lines: List[dict], by: str="step") -> list:
-    """
-    Flattens a list of dictionaries based on a specified key.
-
-    Args:
-        eval_lines (list[dict]): A list of dictionaries to be flattened.
-        by (str, optional): The key based on which the dictionaries should be flattened. 
-            Defaults to "step".
-
-    Returns:
-        list[dict]: A list of flattened dictionaries.
-    """
-    flattened_eval_lines = {}
-    for line in eval_lines:
-        if line[by] not in flattened_eval_lines:
-            flattened_eval_lines[line[by]] = {}
-        flattened_eval_lines[line[by]].update(line)
-    return list(flattened_eval_lines.values())
 
 
 def load_maybe_streaming_dataset(dataset_name, dataset_config_name, split="train", streaming=True, **kwargs):
@@ -793,15 +720,10 @@ def main():
     
     
     # Load dataset
-    if data_args.dataset_load_fn:
-        module, fname = data_args.dataset_load_fn.rsplit('.', 1)
-        dataset_load = getattr(import_module(module), fname)
-    else:
-        dataset_load = load_maybe_streaming_dataset
     raw_datasets = IterableDatasetDict() if data_args.streaming else DatasetDict()
 
     if training_args.do_train:
-        raw_datasets["train"] = dataset_load(
+        raw_datasets["train"] = load_maybe_streaming_dataset(
             data_args.dataset_name,
             data_args.dataset_config_name,
             split=data_args.train_split_name,
@@ -811,39 +733,32 @@ def main():
         )
 
     if training_args.do_eval:
-        for eval_split_name in map(str.strip, data_args.eval_split_name.split(",")):
-            raw_datasets[eval_split_name] = dataset_load(
-                data_args.dataset_name,
-                data_args.dataset_config_name,
-                split=eval_split_name,
-                cache_dir=data_args.dataset_cache_dir,
-                streaming=data_args.streaming,
-                use_auth_token=True if model_args.use_auth_token else None,
-            )
+        raw_datasets["eval"] = load_maybe_streaming_dataset(
+            data_args.dataset_name,
+            data_args.dataset_config_name,
+            split=data_args.eval_split_name,
+            cache_dir=data_args.dataset_cache_dir,
+            streaming=data_args.streaming,
+            use_auth_token=True if model_args.use_auth_token else None,
+        )
 
     if training_args.do_predict:
-        for test_split_name in map(str.strip, data_args.test_split_name.split(",")):
-            raw_datasets[test_split_name] = dataset_load(
-                data_args.dataset_name,
-                data_args.dataset_config_name,
-                split=test_split_name,
-                cache_dir=data_args.dataset_cache_dir,
-                streaming=data_args.streaming,
-                use_auth_token=True if model_args.use_auth_token else None,
-            )
+        raw_datasets["test"] = load_maybe_streaming_dataset(
+            data_args.dataset_name,
+            data_args.dataset_config_name,
+            split=data_args.test_split_name,
+            cache_dir=data_args.dataset_cache_dir,
+            streaming=data_args.streaming,
+            use_auth_token=True if model_args.use_auth_token else None,
+        )
 
     if not training_args.do_train and not training_args.do_eval and not training_args.do_predict:
         raise ValueError(
             "There is nothing to do. Please pass `do_train`, `do_eval` and/or `do_predict`."
         )
 
-    try:
-        raw_datasets_features = list(next(iter(raw_datasets.values())).features.keys())
-    except AttributeError:
-        # If this fails, try an alternative approach: Works for older datasets.
-        first_item = next(iter(next(iter(raw_datasets.values()))))
-        raw_datasets_features = list(first_item.keys())
-
+    raw_datasets_features = list(
+        next(iter(raw_datasets.values())).features.keys())
 
     if data_args.audio_column_name not in raw_datasets_features:
         raise ValueError(
@@ -916,10 +831,9 @@ def main():
             "Make sure that `config.decoder_start_token_id` is correctly defined")
 
     # Enable scan if necessary
-    params = model.params
     if data_args.use_scan:
         model.enable_scan()  # to enable scan in the nn.Module
-        params = model.convert_unroll_to_scan(params)  # to convert the unrolled params to scan
+        # params = model.convert_unroll_to_scan(params)  # to convert the unrolled params to scan
 
     # Activate gradient checkpointing if needed
     if training_args.gradient_checkpointing:
@@ -927,18 +841,8 @@ def main():
 
     # Resample speech dataset: `datasets` takes care of automatically loading and resampling the audio,
     # so we just need to set the correct target sampling rate.
-    # dataset_sampling_rate = next(
-    #    iter(raw_datasets.values())).features[data_args.audio_column_name].sampling_rate
-
-    try:
-        dataset_sampling_rate = next(iter(raw_datasets.values())).features[data_args.audio_column_name].sampling_rate
-    except (AttributeError, TypeError):
-        first_item = next(iter(next(iter(raw_datasets.values()))))
-        if first_item and data_args.audio_column_name in first_item and first_item[data_args.audio_column_name] is not None:
-            dataset_sampling_rate = first_item[data_args.audio_column_name]['sampling_rate']
-        else:
-            dataset_sampling_rate = 16000
-
+    dataset_sampling_rate = next(
+        iter(raw_datasets.values())).features[data_args.audio_column_name].sampling_rate
 
     if dataset_sampling_rate != feature_extractor.sampling_rate:
         raw_datasets = raw_datasets.cast_column(
@@ -959,31 +863,24 @@ def main():
     pad_input_to_multiple_of = data_args.pad_input_to_multiple_of
     pad_target_to_multiple_of = data_args.pad_target_to_multiple_of
     audio_column_name = data_args.audio_column_name
-    task_column_name = data_args.task_column_name
-    language_column_name = data_args.language_column_name
     timestamp_column_name = data_args.timestamp_column_name
-    data_task = data_args.task
-    data_language = data_args.language
     num_workers = data_args.preprocessing_num_workers
     text_column_name = data_args.text_column_name
     prev_column_name = data_args.prev_column_name
     model_input_name = feature_extractor.model_input_names[0]
     do_lower_case = data_args.do_lower_case
     do_remove_punctuation = data_args.do_remove_punctuation
-    # normalizer = BasicTextNormalizer()  # 'official' text normalizer from OpenAI
-    normalizer = SimpleTextNormalizer()
+    normalizer = BasicTextNormalizer()  # 'official' text normalizer from OpenAI
 
     if timestamp_column_name:
         tokens_added = tokenizer.add_tokens([f"<|{i * 0.02:.2f}|>" for i in range(1501)], special_tokens=True)
-        logging.warning(f"Tokenizer: added {tokens_added} timestamps tokens.")
-    else:
-        logging.warning(f"Tokenizer: No timestamps tokens added. This model will not support timestamps.")
-    
+        logging.info(f"Tokenizer: added {tokens_added} timestamps tokens.")
+
     # BPE dropout only added for training
     inference_tokenizer = tokenizer
     if training_args.do_train and model_args.bpe_dropout:
         if not model_args.use_fast_tokenizer:
-            logging.warning("BPE Dropout can only be used with fast tokenizers. Try enabling --use_fast_tokenizer")
+            logging.warn("BPE Dropout can only be used with fast tokenizers. Try enabling --use_fast_tokenizer")
         else:
             # Workaround to enable BPE dropout, cf. https://github.com/huggingface/tokenizers/issues/201#issuecomment-720392299
             tokenizer = AutoTokenizer.from_pretrained(
@@ -1001,9 +898,6 @@ def main():
             tokenizer._tokenizer.model = type(tokenizer._tokenizer.model)(
                 *tokenizer_files, dropout=model_args.bpe_dropout
             )
-            if timestamp_column_name:
-                tokens_added = tokenizer.add_tokens([f"<|{i * 0.02:.2f}|>" for i in range(1501)], special_tokens=True)
-                logging.warning(f"BPE Tokenizer: added {tokens_added} timestamps tokens.")
 
     if data_args.language is not None:
         # We only need to set the task id when the language is specified (i.e. in a multilingual setting)
@@ -1011,15 +905,13 @@ def main():
             language=data_args.language, task=data_args.task)
     
     if training_args.do_train and data_args.max_train_samples is not None:
-        raw_datasets["train"] = raw_datasets["train"].take(data_args.max_train_samples)
+        raw_datasets["train"] = raw_datasets["train"].select(range(data_args.max_train_samples))
 
     if training_args.do_eval and data_args.max_eval_samples is not None:
-        for eval_split_name in map(str.strip, data_args.eval_split_name.split(",")):
-            raw_datasets[eval_split_name] = raw_datasets[eval_split_name].take(data_args.max_eval_samples)
+        raw_datasets["eval"] = raw_datasets["eval"].select(range(data_args.max_eval_samples))
 
     if training_args.do_predict and data_args.max_predict_samples is not None:
-        for test_split_name in map(str.strip, data_args.test_split_name.split(",")):
-            raw_datasets[test_split_name] = raw_datasets[test_split_name].take(data_args.max_predict_samples)
+        raw_datasets["test"] = raw_datasets["test"].select(range(data_args.max_predict_samples))
 
     def prepare_dataset(batch, tokenizer, add_previous_text=True):
         # Process audio
@@ -1034,33 +926,21 @@ def main():
         input_str = batch[text_column_name].lower() if do_lower_case else batch[text_column_name]
         if do_remove_punctuation:
             input_str = normalizer(input_str).strip()
-        
-        # Process prefix tokens
-        prefix_timestamps = (
-            bool(batch.get(timestamp_column_name))
-            and input_str.strip() not in ("<|nocaptions|>", "<|nospeech|>")
-        )
-        prefix_task = (batch[task_column_name]
-            if batch.get(task_column_name)
-            else data_task
-        )
-        prefix_language = (
-            batch[language_column_name]
-            if batch.get(language_column_name)
-            else data_language
-        )
-        tokenizer.set_prefix_tokens(language=prefix_language, task=prefix_task, predict_timestamps=prefix_timestamps)
 
-        # Tokenize labels
+        if timestamp_column_name in batch and batch[timestamp_column_name]:
+            tokenizer.set_prefix_tokens(predict_timestamps=True)
+        else:
+            tokenizer.set_prefix_tokens(predict_timestamps=False)
+        
         batch["labels"] = tokenizer(input_str, truncation=True, max_length=max_label_length).input_ids
 
         # Prepend previous text tokens
-        if max_prev_length and add_previous_text and batch.get(prev_column_name):
+        if max_prev_length and add_previous_text and prev_column_name in batch and batch[prev_column_name].strip():
             prev_str = batch[prev_column_name].lower() if do_lower_case else batch[prev_column_name]
             if do_remove_punctuation:
                 prev_str = normalizer(prev_str).strip()
             prev_tokens = tokenizer(prev_str, truncation=False, add_special_tokens=False).input_ids
-            max_prev_str = tokenizer.decode(prev_tokens[-(max_prev_length - 1):], decode_with_timestamps=False)
+            max_prev_str = tokenizer.decode(prev_tokens[-(max_prev_length - 1):])
             max_prev_tokens = tokenizer("<|startofprev|>", max_prev_str, add_special_tokens=False).input_ids
             batch["labels"] = max_prev_tokens + batch["labels"]
         return batch
@@ -1071,7 +951,7 @@ def main():
         fn = getattr(import_module(module), fname)
         raw_datasets = fn(raw_datasets)
 
-    # Make vectorized datasets
+    # Make vecotrized datasets. 
     with training_args.main_process_first(desc="dataset map pre-processing"):
         vectorized_datasets = IterableDatasetDict() if data_args.streaming else DatasetDict()
         if training_args.do_train:
@@ -1081,18 +961,16 @@ def main():
             )
 
         if training_args.do_eval:
-            for eval_split_name in map(str.strip, data_args.eval_split_name.split(",")):
-                vectorized_datasets[eval_split_name] = raw_datasets[eval_split_name].map(
-                    partial(prepare_dataset, tokenizer=inference_tokenizer, add_previous_text=False),
-                    remove_columns=raw_datasets_features
-                )
+            vectorized_datasets["eval"] = raw_datasets["eval"].map(
+                partial(prepare_dataset, tokenizer=inference_tokenizer, add_previous_text=False),
+                remove_columns=raw_datasets_features
+            )
 
         if training_args.do_predict:
-            for test_split_name in map(str.strip, data_args.test_split_name.split(",")):
-                vectorized_datasets[test_split_name] = raw_datasets[test_split_name].map(
-                    partial(prepare_dataset, tokenizer=inference_tokenizer, add_previous_text=False),
-                    remove_columns=raw_datasets_features
-                )
+            vectorized_datasets["test"] = raw_datasets["test"].map(
+                partial(prepare_dataset, tokenizer=inference_tokenizer, add_previous_text=False),
+                remove_columns=raw_datasets_features
+            )
 
     # Filter training data with inputs longer than max_input_length
     def is_audio_in_length_range(length):
@@ -1105,17 +983,16 @@ def main():
         )
 
     if training_args.do_eval:
-        for eval_split_name in map(str.strip, data_args.eval_split_name.split(",")):
-            vectorized_datasets[eval_split_name] = vectorized_datasets[eval_split_name].filter(
-                is_audio_in_length_range,
-                input_columns=["input_length"],
-            )
+        vectorized_datasets["eval"] = vectorized_datasets["eval"].filter(
+            is_audio_in_length_range,
+            input_columns=["input_length"],
+        )
 
-    # if training_args.do_predict:
-    #     vectorized_datasets["test"] = vectorized_datasets["test"].filter(
-    #         is_audio_in_length_range,
-    #         input_columns=["input_length"],
-    #     )
+    if training_args.do_predict:
+        vectorized_datasets["test"] = vectorized_datasets["test"].filter(
+            is_audio_in_length_range,
+            input_columns=["input_length"],
+        )
 
     # Load metrics and write stats
     metric_wer = evaluate.load("wer")
@@ -1130,45 +1007,26 @@ def main():
         predictions = tokenizer.batch_decode(pred_ids, skip_special_tokens=True)
         # We do not want to group tokens when computing the metrics
         labels = tokenizer.batch_decode(label_ids, skip_special_tokens=True)
-        # Filtering step to only evaluate the samples that correspond to non-zero references:
-        pred_str = [predictions[i]
-                    for i in range(len(predictions)) if len(labels[i]) > 0]
-        label_str = [labels[i]
-                        for i in range(len(labels)) if len(labels[i]) > 0]
-        # Raw metrics
-        raw_wer = 100 * metric_wer.compute(predictions=pred_str, references=label_str)
-        raw_cer = 100 * metric_cer.compute(predictions=pred_str, references=label_str)
-        # Normalized metrics
-        pred_str = [normalizer(pred) for pred in predictions]
-        label_str = [normalizer(label) for label in labels]
-        # Filtering step to only evaluate the samples that correspond to non-zero references:
-        pred_str = [pred_str[i]
-                    for i in range(len(pred_str)) if len(label_str[i]) > 0]
-        label_str = [label_str[i]
-                        for i in range(len(label_str)) if len(label_str[i]) > 0]
+
+        if do_normalize_eval:
+            pred_str = [normalizer(pred) for pred in predictions]
+            label_str = [normalizer(label) for label in labels]
+            # Filtering step to only evaluate the samples that correspond to non-zero references:
+            pred_str = [pred_str[i]
+                        for i in range(len(pred_str)) if len(label_str[i]) > 0]
+            label_str = [label_str[i]
+                         for i in range(len(label_str)) if len(label_str[i]) > 0]
+        else:
+            pred_str = predictions
+            label_str = labels
+
         wer = 100 * metric_wer.compute(predictions=pred_str, references=label_str)
         cer = 100 * metric_cer.compute(predictions=pred_str, references=label_str)
-
-        # if do_normalize_eval:
-        #     pred_str = [normalizer(pred) for pred in predictions]
-        #     label_str = [normalizer(label) for label in labels]
-        #     # Filtering step to only evaluate the samples that correspond to non-zero references:
-        #     pred_str = [pred_str[i]
-        #                 for i in range(len(pred_str)) if len(label_str[i]) > 0]
-        #     label_str = [label_str[i]
-        #                  for i in range(len(label_str)) if len(label_str[i]) > 0]
-        # else:
-        #     pred_str = predictions
-        #     label_str = labels
-
-        # wer = 100 * metric_wer.compute(predictions=pred_str, references=label_str)
-        # cer = 100 * metric_cer.compute(predictions=pred_str, references=label_str)
             
         if return_preds_labels:
-            #return {"wer": wer, "cer": cer, "exact_wer": raw_wer, "exact_cer": raw_cer}, predictions, labels
-            return {"wer": wer, "cer": cer, "exact_wer": raw_wer, "exact_cer": raw_cer}, tokenizer.batch_decode(pred_ids, skip_special_tokens=False, decode_with_timestamps=True), labels
+            return {"wer": wer, "cer": cer}, predictions, labels
         else:
-            return {"wer": wer, "cer": cer, "exact_wer": raw_wer, "exact_cer": raw_cer}
+            return {"wer": wer, "cer": cer}
 
     def update_training_state(training_state, train_metrics, eval_metrics, step):
         safe_value = lambda x: float(x.tolist() if isinstance(x, jnp.ndarray) else x)
@@ -1182,20 +1040,19 @@ def main():
             for i, value in enumerate(values):
                 train_metrics_dict[step - len(values) + i + 1] = {tag: safe_value(value)}
 
-        for eval_name, eval_metric in eval_metrics.items():
-            eval_metric_dict = {}
-            for metric_name, value in eval_metric.items():
-                tag = f"{eval_name}_{metric_name}"
-                eval_metric_dict.update({
-                    "step": step,
-                    tag: safe_value(value),
-                })
-                if step in train_metrics_dict:
-                    eval_metric_dict.update(train_metrics_dict[step])
-            eval_lines.append(eval_metric_dict)
-        return {**state, "eval_lines": flatten_eval_lines(eval_lines)}
+        eval_metrics_dict = {}
+        for metric_name, value in eval_metrics.items():
+            tag = f"eval_{metric_name}"
+            eval_metrics_dict.update({
+                "step": step,
+                tag: safe_value(value),
+            })
+            if step in train_metrics_dict:
+                eval_metrics_dict.update(train_metrics_dict[step])
+        eval_lines.append(eval_metrics_dict)
+        return {**state, "eval_lines": eval_lines}
 
-    def write_metric(summary_writer, train_metrics, eval_metrics, train_time, step, eval_name=None, predictions=None, labels=None, do_predict=False):
+    def write_metric(summary_writer, train_metrics, eval_metrics, train_time, step, predictions=None, labels=None, do_predict=False):
         if not do_predict:
             summary_writer.scalar("train_time", train_time, step)
 
@@ -1206,10 +1063,10 @@ def main():
                     summary_writer.scalar(tag, val, step - len(vals) + i + 1)
 
             predictions_fn = data_args.log_eval_predictions_fn
-            summary_prefix = eval_name or "eval"
+            summary_prefix = "eval"
         else:
             predictions_fn = data_args.log_test_predictions_fn or data_args.log_eval_predictions_fn
-            summary_prefix = eval_name or "test"
+            summary_prefix = "test"
 
         for metric_name, value in eval_metrics.items():
             summary_writer.scalar(f"{summary_prefix}_{metric_name}", value, step)
@@ -1220,9 +1077,6 @@ def main():
                 "references": labels,
                 "predictions": predictions,
             })
-            
-            df = df[df["references"].str.strip() != ""]
-
             df["wer"] = df.apply(lambda row: metric_wer.compute(predictions=[row["predictions"]], references=[row["references"]]), axis=1)
             df["cer"] = df.apply(lambda row: metric_cer.compute(predictions=[row["predictions"]], references=[row["references"]]), axis=1)
             markdown_table = df.to_markdown(index=False)
@@ -1232,7 +1086,7 @@ def main():
             if predictions_fn:
                 module, fname = predictions_fn.rsplit('.', 1)
                 fn = getattr(import_module(module), fname)
-                fn(summary_writer, train_metrics, eval_metrics, train_time, step, predictions=predictions, labels=labels, training_args=training_args, eval_name=eval_name)
+                fn(summary_writer, train_metrics, eval_metrics, train_time, step, predictions=predictions, labels=labels, training_args=training_args, do_predict=do_predict)
 
     # Save feature extractor, tokenizer and config
     feature_extractor.save_pretrained(training_args.output_dir)
@@ -1366,7 +1220,7 @@ def main():
 
     # Setup train state
     state = TrainState.create(
-        apply_fn=model.__call__, params=params, tx=optimizer, dropout_rng=dropout_rng)
+        apply_fn=model.__call__, params=model.params, tx=optimizer, dropout_rng=dropout_rng)
 
     # Label smoothed cross entropy
     def loss_fn(logits, labels, label_smoothing_factor=0.0):
@@ -1492,7 +1346,7 @@ def main():
         f"  Number of hosts = {num_of_hosts}")
     if num_of_hosts > 1:
         logger.info(
-            f"  Current host idx = {current_host_idx} ({socket.gethostname()})")
+            f"  Current host idx = {current_host_idx}")
     logger.info(
         f"  Instantaneous batch size per device = {training_args.per_device_train_batch_size}")
     logger.info(
@@ -1558,10 +1412,6 @@ def main():
             "total_num_training_examples": f"{data_args.num_train_steps * train_batch_size:,}",
             "steps_per_epoch": "_To be computed after first epoch_",
             "num_beams": model_args.num_beams,
-            "weight_decay": training_args.weight_decay,
-            "adam_beta1": training_args.adam_beta1,
-            "adam_beta2": training_args.adam_beta2,
-            "adam_epsilon": training_args.adam_epsilon,
         },
         # TODO: Adapt https://github.com/huggingface/transformers/blob/main/src/transformers/modelcard.py#L855
         # "hyperparameters": training_args.to_sanitized_dict()
@@ -1571,7 +1421,7 @@ def main():
         training_summary["hyperparameters"]["gradient_accumulation_steps"] = f"{training_args.gradient_accumulation_steps:,}"
         training_summary["hyperparameters"]["effective_total_train_batch_size"] = f"{train_batch_size * training_args.gradient_accumulation_steps:,}"
     
-    if model_args.dropout or model_args.bpe_dropout or model_args.attention_dropout or model_args.activation_dropout or model_args.encoder_dropout or model_args.decoder_dropout:
+    if model_args.dropout or model_args.attention_dropout or model_args.activation_dropout or model_args.encoder_dropout or model_args.decoder_dropout:
         training_summary["hyperparameters"]["dropout"] = True
         if model_args.dropout:
             training_summary["hyperparameters"]["dropout_probability"] = model_args.dropout
@@ -1608,10 +1458,7 @@ def main():
         train_loader = data_loader(train_dataset, train_batch_size // num_of_hosts, num_workers=num_workers)
 
     if training_args.do_eval:
-        eval_datasets = {
-            eval_split_name: vectorized_datasets[eval_split_name]
-            for eval_split_name in map(str.strip, data_args.eval_split_name.split(","))
-        }
+        eval_dataset = vectorized_datasets["eval"]
     
     if training_args.do_train and not training_args.ignore_data_skip and training_state["step"] > 0:
         logger.info(
@@ -1659,7 +1506,7 @@ def main():
                 formatted_ids = [f'\033[91m{token_id}\033[0m' if mask == 0 else str(token_id) for token_id, mask in zip(batch['decoder_input_ids'][0], batch['attention_mask'][0])]
                 formatted_string = "\n".join(["\t".join(formatted_ids[i:i+20]) for i in range(0, len(formatted_ids), 20)])
                 logger.info(f"Example of decoder_input_ids at step {step}:. \033[91m Red tokens \033[0m are masked by the attention_mask:\n{formatted_string}")
-                decoded_text = tokenizer.decode(batch['decoder_input_ids'][0], skip_special_tokens=False, decode_with_timestamps=True)
+                decoded_text = tokenizer.decode(batch['decoder_input_ids'][0], skip_special_tokens=False)
                 logger.info(f"Decoded example. :\n{decoded_text}")
             
             batch = shard(batch.data)
@@ -1677,97 +1524,86 @@ def main():
             logger.info(
                 f"Starting evaluation at step {step} of num_training_step {data_args.num_train_steps} steps. Planned evaluation every {training_args.eval_steps} steps." 
             )
-            eval_metrics_dict = {}
-            for eval_name, eval_dataset in eval_datasets.items():
-                eval_metrics = []
-                eval_preds = []
-                eval_labels = []
-                eval_loader = data_loader(eval_dataset, eval_batch_size, drop_last=False)
-                if data_args.max_eval_samples:
-                    max_eval_steps_iter = range(1 + data_args.max_eval_samples // eval_batch_size)
-                else:
-                    max_eval_steps_iter = itertools.count()
-                for eval_step in tqdm(max_eval_steps_iter, desc=f"Evaluating {eval_name}...", position=2, leave=False):
-                    # Model forward
-                    try:
-                        samples = next(eval_loader)
-                    except StopIteration:
-                        break
-                    batch = data_collator(samples)
-                    
-                    if eval_step is None or eval_step % data_args.log_examples == 0:
-                        formatted_ids = [f'\033[91m{token_id}\033[0m' if mask == 0 else str(token_id) for token_id, mask in zip(batch['decoder_input_ids'][0], batch['attention_mask'][0])]
-                        formatted_string = "\n".join(["\t".join(formatted_ids[i:i+20]) for i in range(0, len(formatted_ids), 20)])
-                        logger.info(f"Example of decoder_input_ids at eval step {eval_step}:. \033[91m Red tokens \033[0m are masked by the attention_mask:\n{formatted_string}")
-                        decoded_text = tokenizer.decode(batch['decoder_input_ids'][0], skip_special_tokens=False, decode_with_timestamps=True)
-                        
-                        #Debug code - delete
-                        #if "I kveld spiller de i byen." in decoded_text:
-                        #    debug_error = True
-                        #else:
-                        #    debug_error = False
-
-                        logger.info(f"Decoded example. :\n{decoded_text}")
-
-                    #if debug_error:
-                    #    breakpoint()
-
-                    labels = batch["labels"]
-                    # del batch["id"]
-
-                    metrics = pad_shard_unpad(p_eval_step, static_return=True)(
-                        state.params, batch.data, min_device_batch=training_args.per_device_eval_batch_size
-                    )
-                    eval_metrics.append(metrics)
-
-                    # Generation
-                    if training_args.predict_with_generate:
-                        generated_ids = pad_shard_unpad(
-                            p_generate_step)(state.params, batch.data)
-                        eval_preds.extend(jax.device_get(
-                            generated_ids.reshape(-1, gen_kwargs["max_length"])))
-                        eval_labels.extend(labels)
-
-                # Normalize eval metrics
-                eval_metrics = get_metrics(eval_metrics)
-                eval_metrics = jax.tree_util.tree_map(jnp.mean, eval_metrics)
-
-                # Compute metrics
-                metric_desc = ""
-                if training_args.predict_with_generate:
-                    metric_values, pred_str, label_str = compute_metrics(
-                        eval_preds, eval_labels, return_preds_labels=True
-                    )
-                    eval_metrics.update(metric_values)
-                    metric_desc = " | ".join(
-                        [f"Eval {key}: {value}" for key, value in metric_values.items()])
-                eval_metrics_dict[eval_name] = eval_metrics
+            eval_metrics = []
+            eval_preds = []
+            eval_labels = []
+            eval_loader = data_loader(eval_dataset, eval_batch_size, drop_last=False)
+            if data_args.max_eval_samples:
+                max_eval_steps_iter = range(1 + data_args.max_eval_samples // eval_batch_size)
+            else:
+                max_eval_steps_iter = itertools.count()
+            for eval_step in tqdm(max_eval_steps_iter, desc="Evaluating...", position=2, leave=False):
+                # Model forward
+                try:
+                    samples = next(eval_loader)
+                except StopIteration:
+                    break
+                batch = data_collator(samples)
                 
-                # Print metrics
-                desc = f"[{eval_name}] Step: {step} | Epoch: {epoch} (Eval Loss: {eval_metrics['loss']} | {metric_desc})"
-                logger.info(desc)
+                if eval_step is None or eval_step % data_args.log_examples == 0:
+                    formatted_ids = [f'\033[91m{token_id}\033[0m' if mask == 0 else str(token_id) for token_id, mask in zip(batch['decoder_input_ids'][0], batch['attention_mask'][0])]
+                    formatted_string = "\n".join(["\t".join(formatted_ids[i:i+20]) for i in range(0, len(formatted_ids), 20)])
+                    logger.info(f"Example of decoder_input_ids at eval step {eval_step}:. \033[91m Red tokens \033[0m are masked by the attention_mask:\n{formatted_string}")
+                    decoded_text = tokenizer.decode(batch['decoder_input_ids'][0], skip_special_tokens=False)
+                    logger.info(f"Decoded example. :\n{decoded_text}")
 
-                # Save metrics
-                if has_tensorboard and current_host_idx == 0:
-                    log_max_predictions = data_args.log_max_eval_predictions if data_args.log_max_eval_predictions else 0
-                    write_metric(
-                        summary_writer,
-                        train_metrics,
-                        eval_metrics,
-                        train_time,
-                        step,
-                        eval_name=eval_name,
-                        predictions=pred_str[:log_max_predictions],
-                        labels=label_str[:log_max_predictions]
-                    )
+
+
+                labels = batch["labels"]
+                # del batch["id"]
+                
+                
+                metrics = pad_shard_unpad(p_eval_step, static_return=True)(
+                    state.params, batch.data, min_device_batch=training_args.per_device_eval_batch_size
+                )
+                eval_metrics.append(metrics)
+
+                # Generation
+                if training_args.predict_with_generate:
+                    generated_ids = pad_shard_unpad(
+                        p_generate_step)(state.params, batch.data)
+                    eval_preds.extend(jax.device_get(
+                        generated_ids.reshape(-1, gen_kwargs["max_length"])))
+                    eval_labels.extend(labels)
+
+            # Normalize eval metrics
+            eval_metrics = get_metrics(eval_metrics)
+            eval_metrics = jax.tree_util.tree_map(jnp.mean, eval_metrics)
+
+            # Compute metrics
+            metric_desc = ""
+            if training_args.predict_with_generate:
+                metric_values, pred_str, label_str = compute_metrics(
+                    eval_preds, eval_labels, return_preds_labels=True
+                )
+                eval_metrics.update(metric_values)
+                metric_desc = " | ".join(
+                    [f"Eval {key}: {value}" for key, value in metric_values.items()])
+
+            # Print metrics
+            desc = f"Step: {step} | Epoch: {epoch} (Eval Loss: {eval_metrics['loss']} | {metric_desc})"
+            logger.info(desc)
 
             # Update training state
             training_state = update_training_state(
                 training_state,
                 train_metrics,
-                eval_metrics_dict,
+                eval_metrics,
                 step,
             )
+
+            # Save metrics
+            if has_tensorboard and current_host_idx == 0:
+                log_max_predictions = data_args.log_max_eval_predictions if data_args.log_max_eval_predictions else 0
+                write_metric(
+                    summary_writer,
+                    train_metrics,
+                    eval_metrics,
+                    train_time,
+                    step,
+                    predictions=pred_str[:log_max_predictions],
+                    labels=label_str[:log_max_predictions]
+                )
 
             # Save checkpoint at each eval_steps and push checkpoint to the hub
             if current_host_idx  == 0:
@@ -1785,97 +1621,88 @@ def main():
                 readme.write_text(TrainingSummary(**training_summary).to_model_card())
                 if training_args.push_to_hub:
                     repo.push_to_hub(
-                        commit_message=f"Saving weights and logs of step {step} - epoch {epoch}",
-                        blocking=False,
-                        auto_lfs_prune=data_args.push_to_hub_auto_lfs_prune,
-                    )
+                        commit_message=f"Saving weights and logs of step {step} - epoch {epoch}", blocking=False)
 
     # ======================== Prediction loop ==============================
     if training_args.do_predict:
         logger.info("***** Runing prediction *****")
-        metric_values_dict = {}
-        for pred_name in map(str.strip, data_args.test_split_name.split(",")):
-            predict_dataset = vectorized_datasets[pred_name]
+        predict_dataset = vectorized_datasets["test"]
+        
+        pred_metrics = []
+        pred_preds = []
+        pred_labels = []
+        pred_loader = data_loader(predict_dataset, eval_batch_size, drop_last=False)
+        if data_args.max_predict_samples:
+            max_pred_steps_iter = range(1 + data_args.max_predict_samples // eval_batch_size)
+        else:
+            max_pred_steps_iter = itertools.repeat(None)
+        for _ in tqdm(max_pred_steps_iter, desc="Predicting...", position=2, leave=False):
+            # Model forward
+            try:
+                samples = next(pred_loader)
+            except StopIteration:
+                break
+            batch = data_collator(samples)
             
-            pred_metrics = []
-            pred_preds = []
-            pred_labels = []
-            pred_loader = data_loader(predict_dataset, eval_batch_size, drop_last=False)
-            if data_args.max_predict_samples:
-                max_pred_steps_iter = range(1 + data_args.max_predict_samples // eval_batch_size)
-            else:
-                max_pred_steps_iter = itertools.repeat(None)
-            for _ in tqdm(max_pred_steps_iter, desc=f"Predicting {pred_name}...", position=2, leave=False):
-                # Model forward
-                try:
-                    samples = next(pred_loader)
-                except StopIteration:
-                    break
-                batch = data_collator(samples)
-                
-                labels = batch["labels"]
+            labels = batch["labels"]
 
-                metrics = pad_shard_unpad(p_eval_step, static_return=True)(
-                    state.params, batch.data, min_device_batch=training_args.per_device_eval_batch_size
-                )
-                pred_metrics.append(metrics)
+            metrics = pad_shard_unpad(p_eval_step, static_return=True)(
+                state.params, batch.data, min_device_batch=training_args.per_device_eval_batch_size
+            )
+            pred_metrics.append(metrics)
 
-                # Generation
-                if training_args.predict_with_generate:
-                    generated_ids = pad_shard_unpad(
-                        p_generate_step)(state.params, batch.data)
-                    pred_preds.extend(jax.device_get(
-                        generated_ids.reshape(-1, gen_kwargs["max_length"])))
-                    pred_labels.extend(labels)
-                    
-            # Normalize eval metrics
-            pred_metrics = get_metrics(pred_metrics)
-            pred_metrics = jax.tree_util.tree_map(jnp.mean, pred_metrics)
-
-            # Compute metrics
-            metric_desc = ""
+            # Generation
             if training_args.predict_with_generate:
-                metric_values, pred_str, label_str = compute_metrics(
-                    pred_preds, pred_labels, return_preds_labels=True
-                )
-                pred_metrics.update(metric_values)
-                metric_desc = " | ".join(
-                    [f"Predict {key}: {value}" for key, value in metric_values.items()])
-            metric_values_dict[pred_name] = metric_values
-            # Print metrics
-            desc = f"[{pred_name}] Predict Loss: {pred_metrics['loss']} | {metric_desc})"
-            logger.info(desc)
+                generated_ids = pad_shard_unpad(
+                    p_generate_step)(state.params, batch.data)
+                pred_preds.extend(jax.device_get(
+                    generated_ids.reshape(-1, gen_kwargs["max_length"])))
+                pred_labels.extend(labels)
+                
+        # Normalize eval metrics
+        pred_metrics = get_metrics(pred_metrics)
+        pred_metrics = jax.tree_util.tree_map(jnp.mean, pred_metrics)
 
-            # Save metrics
-            if has_tensorboard and current_host_idx == 0:
-                log_max_predictions = data_args.log_max_test_predictions if data_args.log_max_test_predictions else 0
-                write_metric(
-                    summary_writer,
-                    [],
-                    pred_metrics,
-                    0,
-                    0,
-                    eval_name=pred_name,
-                    predictions=pred_str[:log_max_predictions],
-                    labels=label_str[:log_max_predictions],
-                    do_predict=True,
-                )
+        # Compute metrics
+        metric_desc = ""
+        if training_args.predict_with_generate:
+            metric_values, pred_str, label_str = compute_metrics(
+                pred_preds, pred_labels, return_preds_labels=True
+            )
+            pred_metrics.update(metric_values)
+            metric_desc = " | ".join(
+                [f"Predict {key}: {value}" for key, value in metric_values.items()])
+
+        # Print metrics
+        desc = f"Predict Loss: {pred_metrics['loss']} | {metric_desc})"
+        logger.info(desc)
+
+        # Save metrics
+        if has_tensorboard and current_host_idx == 0:
+            log_max_predictions = data_args.log_max_test_predictions if data_args.log_max_test_predictions else 0
+            write_metric(
+                summary_writer,
+                [],
+                pred_metrics,
+                0,
+                0,
+                predictions=pred_str[:log_max_predictions],
+                labels=label_str[:log_max_predictions],
+                do_predict=True,
+            )
 
         # Save final metrics in json
         if current_host_idx == 0:
             if has_wandb:
                 wandb.log({"successful_run": 1})
 
-            pred_metrics = {
-                pred_name: {metric_name: value for metric_name, value in metric_values.items()}
-                for pred_name, metric_values in metric_values_dict.items()
-            }
+            pred_metrics = {f"test_{metric_name}": value for metric_name, value in metric_values.items()}
             (output_dir / "test_results.json").write_text(
                 json.dumps(pred_metrics, indent=4, sort_keys=True)
             )
             if training_args.push_to_hub:
                 repo.push_to_hub(
-                    commit_message=f"Saving test results", blocking=False, auto_lfs_prune=data_args.push_to_hub_auto_lfs_prune)
+                    commit_message=f"Saving test results", blocking=False)
 
 
 if __name__ == "__main__":
