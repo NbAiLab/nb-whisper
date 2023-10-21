@@ -22,6 +22,8 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_debug.py \
     --output_dir ../../../nb-whisper-debug2 \
     --overwrite_output_dir \
     --do_train \
+    --do_eval \
+    --do_predict \
     --warmup_steps 100 \
     --num_train_steps 200000 \
     --eval_steps 10 \
