@@ -1700,13 +1700,6 @@ def main():
                         formatted_string = "\n".join(["\t".join(formatted_ids[i:i+20]) for i in range(0, len(formatted_ids), 20)])
                         logger.info(f"Example of decoder_input_ids at eval step {eval_step}:. \033[91m Red tokens \033[0m are masked by the attention_mask:\n{formatted_string}")
                         decoded_text = tokenizer.decode(batch['decoder_input_ids'][0], skip_special_tokens=False, decode_with_timestamps=True)
-                        
-                        #Debug code - delete
-                        #if "I kveld spiller de i byen." in decoded_text:
-                        #    debug_error = True
-                        #else:
-                        #    debug_error = False
-
                         logger.info(f"Decoded example. :\n{decoded_text}")
 
                     #if debug_error:
