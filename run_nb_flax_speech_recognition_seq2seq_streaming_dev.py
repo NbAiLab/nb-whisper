@@ -1165,8 +1165,8 @@ def main():
         # cer = 100 * metric_cer.compute(predictions=pred_str, references=label_str)
             
         if return_preds_labels:
-            #return {"wer": wer, "cer": cer, "exact_wer": raw_wer, "exact_cer": raw_cer}, predictions, labels
-            return {"wer": wer, "cer": cer, "exact_wer": raw_wer, "exact_cer": raw_cer}, tokenizer.batch_decode(pred_ids, skip_special_tokens=False, decode_with_timestamps=True), labels
+            return {"wer": wer, "cer": cer, "exact_wer": raw_wer, "exact_cer": raw_cer}, predictions, labels
+            #return {"wer": wer, "cer": cer, "exact_wer": raw_wer, "exact_cer": raw_cer}, tokenizer.batch_decode(pred_ids, skip_special_tokens=False, decode_with_timestamps=True), labels
         else:
             return {"wer": wer, "cer": cer, "exact_wer": raw_wer, "exact_cer": raw_cer}
 
@@ -1700,17 +1700,7 @@ def main():
                         formatted_string = "\n".join(["\t".join(formatted_ids[i:i+20]) for i in range(0, len(formatted_ids), 20)])
                         logger.info(f"Example of decoder_input_ids at eval step {eval_step}:. \033[91m Red tokens \033[0m are masked by the attention_mask:\n{formatted_string}")
                         decoded_text = tokenizer.decode(batch['decoder_input_ids'][0], skip_special_tokens=False, decode_with_timestamps=True)
-                        
-                        #Debug code - delete
-                        #if "I kveld spiller de i byen." in decoded_text:
-                        #    debug_error = True
-                        #else:
-                        #    debug_error = False
-
                         logger.info(f"Decoded example. :\n{decoded_text}")
-
-                    #if debug_error:
-                    #    breakpoint()
 
                     labels = batch["labels"]
                     # del batch["id"]
