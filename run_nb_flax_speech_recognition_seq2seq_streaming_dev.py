@@ -1442,7 +1442,7 @@ def main():
 
     # Define generation function
     num_beams = model_args.num_beams if model_args.num_beams is not None else model.config.num_beams
-    gen_kwargs = {"max_length": max_label_length, "num_beams": num_beams, "task": data_args.task, "language": data_args.language}
+    gen_kwargs = {"max_length": max_label_length, "num_beams": num_beams, "task": data_args.task, "language": "no"}
 
      
     def generate_step(params, batch):
