@@ -16,7 +16,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --text_column_name text \
     --train_split_name train \
     --dataset_load_fn "utils.dataset_load_rc.load_dataset_nbwhisper" \
-     --test_split_name "test_audio_books_no,test_norwegian_fleurs,test_nrk_no,test_nst,test_stortinget_no,test_clean_audio_books_no,test_clean_stortinget_no" \
+    --test_split_name "test_audio_books_no,test_norwegian_fleurs,test_nrk_no,test_nst,test_stortinget_no,test_clean_audio_books_no,test_clean_stortinget_no" \
     --eval_split_name "validation_audio_books_no,validation_norwegian_fleurs,validation_nrk_no,validation_nst,validation_stortinget_no,validation_clean_audio_books_no,validation_clean_stortinget_no" \
     --hub_model_id NbAiLab/nb-whisper-base-RC1 \
     --output_dir ../../../nb-whisper-base-RC1 \
