@@ -76,7 +76,7 @@ from transformers import (
 )
 from transformers.modelcard import TrainingSummary
 from transformers.models.whisper.english_normalizer import BasicTextNormalizer, remove_symbols_and_diacritics, remove_symbols
-from transformers.models.whisper.tokenization_whisper import LANGUAGES, TO_LANGUAGE_CODE
+from transformers.models.whisper.tokenization_whisper import TO_LANGUAGE_CODE
 from transformers.file_utils import get_full_repo_name
 from transformers.utils import check_min_version, send_example_telemetry
 from transformers.utils.versions import require_version
@@ -588,8 +588,8 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
         return batch
 
 
-def get_language(language):
-    langs = tuple(LANGUAGES.keys())
+def get_language_code(language):
+    language_id = None
     if language is not None:
         language = language.lower()
         if language in TO_LANGUAGE_CODE:
@@ -602,8 +602,7 @@ def get_language(language):
                 f"Unsupported language: {language}. Language should be one of:"
                 f" {list(TO_LANGUAGE_CODE.values()) if is_language_code else list(TO_LANGUAGE_CODE.keys())}."
             )
-
-    return langs.index(language_id)
+    return language_id
 
 
 def flatten_eval_lines(eval_lines: List[dict], by: str="step") -> list:
@@ -1467,7 +1466,7 @@ def main():
 
     # Define generation function
     num_beams = model_args.num_beams if model_args.num_beams is not None else model.config.num_beams
-    language_code = get_language(data_args.language) if data_args.language else None
+    language_code = get_language_code(data_args.language) if data_args.language else None
     gen_kwargs = {
         "max_length": max_label_length,
         "num_beams": num_beams,
