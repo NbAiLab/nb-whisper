@@ -31,6 +31,15 @@ python ../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --eval_steps 1000 \
     --lr_scheduler_type linear \
     --learning_rate 1.5e-4 \
+    --weight_decay 0.01 \
+    --adam_beta1 0.9 \
+    --adam_beta2 0.98 \
+    --adam_epsilon 1e-6 \
+    --bpe_dropout 0.2 \
+    --activation_dropout 0.1 \
+    --per_device_train_batch_size 32 \
+    --per_device_eval_batch_size 8 \
+    --preprocessing_num_workers 32 \
     --log_max_eval_predictions 100 \
     --log_eval_predictions_fn "utils.log_predictions.write_predictions" \
     --log_examples 100 \
