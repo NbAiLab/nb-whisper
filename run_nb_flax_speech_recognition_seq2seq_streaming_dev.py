@@ -76,7 +76,7 @@ from transformers import (
 )
 from transformers.modelcard import TrainingSummary
 from transformers.models.whisper.english_normalizer import BasicTextNormalizer, remove_symbols_and_diacritics, remove_symbols
-from transformers.models.whisper.tokenization_whisper import TO_LANGUAGE_CODE
+from transformers.models.whisper.tokenization_whisper import LANGUAGES, TO_LANGUAGE_CODE
 from transformers.file_utils import get_full_repo_name
 from transformers.utils import check_min_version, send_example_telemetry
 from transformers.utils.versions import require_version
@@ -588,6 +588,24 @@ class FlaxDataCollatorSpeechSeq2SeqWithPadding:
         return batch
 
 
+def get_language(language):
+    langs = tuple(LANGUAGES.keys())
+    if language is not None:
+        language = language.lower()
+        if language in TO_LANGUAGE_CODE:
+            language_id = TO_LANGUAGE_CODE[language]
+        elif language in TO_LANGUAGE_CODE.values():
+            language_id = language
+        else:
+            is_language_code = len(language) == 2
+            raise ValueError(
+                f"Unsupported language: {language}. Language should be one of:"
+                f" {list(TO_LANGUAGE_CODE.values()) if is_language_code else list(TO_LANGUAGE_CODE.keys())}."
+            )
+
+    return langs.index(language_id)
+
+
 def flatten_eval_lines(eval_lines: List[dict], by: str="step") -> list:
     """
     Flattens a list of dictionaries based on a specified key.
@@ -1049,7 +1067,14 @@ def main():
             if batch.get(language_column_name)
             else data_language
         )
-        tokenizer.set_prefix_tokens(language=prefix_language, task=prefix_task, predict_timestamps=prefix_timestamps)
+        # get_decoder_prompt_ids() is equivalent to set_prefix_tokens() but also returns
+        # forced_decoder_ids, which is useful for evaluation
+        forced_decoder_ids = tokenizer.get_decoder_prompt_ids(
+            language=prefix_language,
+            task=prefix_task,
+            no_timestamps=not prefix_timestamps
+        )
+        batch["forced_decoder_ids"] = forced_decoder_ids
 
         # Tokenize labels
         batch["labels"] = tokenizer(input_str, truncation=True, max_length=max_label_length).input_ids
@@ -1442,16 +1467,29 @@ def main():
 
     # Define generation function
     num_beams = model_args.num_beams if model_args.num_beams is not None else model.config.num_beams
-    gen_kwargs = {"max_length": max_label_length, "num_beams": num_beams, "task": data_args.task, "language": "<|no|>"}
+    language_code = get_language(data_args.language) if data_args.language else None
+    gen_kwargs = {
+        "max_length": max_label_length,
+        "num_beams": num_beams,
+        "task": data_args.task,
+        "language": f"<|{language_code}|>" if language_code else None,
+    }
 
      
     def generate_step(params, batch):
         model.params = params
         
         attention_mask = batch.get("attention_mask")
-        
+
         #if attention_mask is not None:
-        output_ids = model.generate(batch[model_input_name], attention_mask=attention_mask, **gen_kwargs)
+        output_ids = model.generate(
+            batch[model_input_name],
+            attention_mask=attention_mask,
+            **{
+                **gen_kwargs,
+                "forced_decoder_ids": batch.get("forced_decoder_ids"),
+            },
+        )
         #else:
         #    output_ids = model.generate(batch[model_input_name], **gen_kwargs)
         
@@ -1525,13 +1563,6 @@ def main():
     train_time = 0
 
     # Training summary
-    language_code = None  # Maybe 'multilingual'?
-    if data_args.language is not None:
-        language = data_args.language.lower()
-        if language in TO_LANGUAGE_CODE:
-            language_code = TO_LANGUAGE_CODE[language]
-        elif len(language) == 2:
-            language_code = language
     training_summary = {
         "model_name": repo_name.split("/")[-1] if repo_name else model_name_or_path,
         "language": language_code,
