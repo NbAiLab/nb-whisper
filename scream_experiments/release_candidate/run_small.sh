@@ -20,7 +20,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev_no.py \
     --eval_split_name "validation_audio_books_no,validation_norwegian_fleurs,validation_nrk_no,validation_nst,validation_stortinget_no,validation_clean_audio_books_no,validation_clean_stortinget_no" \
     --hub_model_id NbAiLab/nb-whisper-small-RC1 \
     --output_dir ../../../nb-whisper-small-RC1 \
-    --overwrite_output_dir s\
+    --overwrite_output_dir \
     --do_train \
     --do_predict \
     --do_eval \
