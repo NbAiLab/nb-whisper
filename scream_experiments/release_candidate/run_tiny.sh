@@ -5,7 +5,7 @@ export TCMALLOC_VERBOSE=0
 export TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD=10000000000
 
 # Running the Python script
-python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
+python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev_no.py \
     --model_name_or_path openai/whisper-tiny \
     --run_name "NB-Whisper - tiny RC1" \
     --run_description "A tiny NB-Whisper RC1" \
@@ -51,6 +51,6 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --resume_from_checkpoint True \
     --ignore_data_skip \
     --gradient_checkpointing True \
-    --max_prev_length 184 \
+    --max_prev_length 120 \
     --pad_target_to_multiple_of 448 \
     --push_to_hub
