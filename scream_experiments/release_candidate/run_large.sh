@@ -5,7 +5,7 @@ export TCMALLOC_VERBOSE=0
 export TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD=10000000000
 
 # Running the Python script
-python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
+python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev_no.py \
     --model_name_or_path openai/whisper-large \
     --run_name "NB-Whisper - large RC1" \
     --run_description "A large NB-Whisper RC1" \
@@ -36,7 +36,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --adam_epsilon 1e-6 \
     --bpe_dropout 0.2 \
     --activation_dropout 0.1 \
-    --per_device_train_batch_size 32 \
+    --per_device_train_batch_size 8 \
     --per_device_eval_batch_size 8 \
     --preprocessing_num_workers 32 \
     --timestamp_column_name "timestamped_text" \

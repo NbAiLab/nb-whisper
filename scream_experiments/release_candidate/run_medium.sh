@@ -5,7 +5,7 @@ export TCMALLOC_VERBOSE=0
 export TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD=10000000000
 
 # Running the Python script
-python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
+python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev_no.py \
     --model_name_or_path openai/whisper-medium \
     --run_name "NB-Whisper - medium RC1" \
     --run_description "A medium NB-Whisper RC1" \
