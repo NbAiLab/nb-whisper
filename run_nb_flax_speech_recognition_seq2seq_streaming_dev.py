@@ -1071,7 +1071,17 @@ def main():
         batch["task"] = prefix_task
 
         # Tokenize labels
-        batch["labels"] = tokenizer(input_str, truncation=True, max_length=max_label_length).input_ids
+        batch_encoding = tokenizer(
+            input_str,
+            truncation=True,
+            max_length=max_label_length,
+            return_overflowing_tokens=True,
+        )
+        if batch_encoding.num_truncated_tokens:
+            logger.warning(
+                    f"Overflowing {batch_encoding.num_truncated_tokens} tokens: {batch_encoding.overflowing_tokens}"
+            )
+        batch["labels"] =  batch_encoding.input_ids
 
         # Prepend previous text tokens
         if max_prev_length and add_previous_text and batch.get(prev_column_name):
