@@ -1477,12 +1477,6 @@ def main():
         batch_language = f"<|{batch['language']}|>" if batch.get("language") else gen_kwargs.get("language")
 
         #if attention_mask is not None:
-        print({
-                **gen_kwargs,
-                "task": batch.get("task", gen_kwargs.get("task")),
-                "language": batch_language,
-            }, len(batch)
-        )
         output_ids = model.generate(
             batch[model_input_name],
             attention_mask=attention_mask,
