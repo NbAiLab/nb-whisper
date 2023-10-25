@@ -1066,14 +1066,9 @@ def main():
             if batch.get(language_column_name)
             else data_language
         )
-        # get_decoder_prompt_ids() is equivalent to set_prefix_tokens() but also returns
-        # forced_decoder_ids, which is useful for evaluation
-        forced_decoder_ids = tokenizer.get_decoder_prompt_ids(
-            language=prefix_language,
-            task=prefix_task,
-            no_timestamps=not prefix_timestamps
-        )
-        batch["forced_decoder_ids"] = forced_decoder_ids
+        tokenizer.set_prefix_tokens(language=prefix_language, task=prefix_task, predict_timestamps=prefix_timestamps)
+        batch["language"] = prefix_language
+        batch["task"] = prefix_task
 
         # Tokenize labels
         batch["labels"] = tokenizer(input_str, truncation=True, max_length=max_label_length).input_ids
@@ -1479,14 +1474,22 @@ def main():
         model.params = params
         
         attention_mask = batch.get("attention_mask")
+        batch_language = f"<|{batch['language']}|>" if batch.get("language") else gen_kwargs.get("language")
 
         #if attention_mask is not None:
+        print({
+                **gen_kwargs,
+                "task": batch.get("task", gen_kwargs.get("task")),
+                "language": batch_language,
+            }, len(batch)
+        )
         output_ids = model.generate(
             batch[model_input_name],
             attention_mask=attention_mask,
             **{
                 **gen_kwargs,
-                "forced_decoder_ids": batch.get("forced_decoder_ids"),
+                "task": batch.get("task", gen_kwargs.get("task")),
+                "language": batch_language,
             },
         )
         #else:
