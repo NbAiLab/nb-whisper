@@ -3,13 +3,13 @@ export TOKENIZERS_PARALLELISM=false
 export CMALLOC_VERBOSE=0
 export TCMALLOC_VERBOSE=0
 export TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD=10000000000
-export MODEL_HUB_ID=whisper-small-smj
+export MODEL_HUB_ID=salmon-whisper-tiny-smj
 
 # Running the Python script
-python ../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
-    --model_name_or_path openai/whisper-small \
-    --run_name "Salmon Whisper - small" \
-    --run_description "A small Whisper for Lule Sámi" \
+python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
+    --model_name_or_path openai/whisper-tiny \
+    --run_name "Salmon Whisper - tiny" \
+    --run_description "A tiny Whisper for Lule Sámi" \
     --wandb_entity "nbailab" \
     --wandb_project "salmon" \
     --dataset_name NbAiLab/salmon-asr-smj \
@@ -20,7 +20,7 @@ python ../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --test_split_name "test" \
     --eval_split_name "validation" \
     --hub_model_id NbAiLab/$MODEL_HUB_ID \
-    --output_dir ../../$MODEL_HUB_ID \
+    --output_dir ../../../$MODEL_HUB_ID \
     --overwrite_output_dir \
     --do_train \
     --do_predict \
@@ -30,7 +30,7 @@ python ../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --num_train_steps 10000 \
     --eval_steps 1000 \
     --lr_scheduler_type linear \
-    --learning_rate 5e-5 \
+    --learning_rate 1.5e-4 \
     --weight_decay 0.01 \
     --adam_beta1 0.9 \
     --adam_beta2 0.98 \
