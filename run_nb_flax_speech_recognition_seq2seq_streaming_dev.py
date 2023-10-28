@@ -1077,9 +1077,9 @@ def main():
             max_length=max_label_length,
             return_overflowing_tokens=True,
         )
-        if batch_encoding.num_truncated_tokens:
+        if batch_encoding.overflowing_tokens:
             logger.warning(
-                    f"Overflowing {batch_encoding.num_truncated_tokens} tokens: {batch_encoding.overflowing_tokens}"
+                    f"Overflowing {len(batch_encoding.overflowing_tokens)} tokens: {batch_encoding.overflowing_tokens}"
             )
         batch["labels"] =  batch_encoding.input_ids
 
@@ -1283,6 +1283,7 @@ def main():
 
     # Enable tensorboard only on the master node
     has_tensorboard = is_tensorboard_available()
+    has_wandb = False
     if has_tensorboard and current_host_idx == 0:
         try:
             # TODO: Decouple wandb from tensorboard
