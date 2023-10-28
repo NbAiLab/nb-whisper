@@ -1015,7 +1015,7 @@ def main():
             tokenizer_files = tokenizer._tokenizer.model.save(
                 model_args.cache_dir or training_args.output_dir, "training_tokenizer"
             )
-            tokenizer._tokenizer.model = type(tokenizer._tokenizer.model)(
+            tokenizer._tokenizer.model = type(tokenizer._tokenizer.model).from_file(
                 *tokenizer_files, dropout=model_args.bpe_dropout
             )
             if timestamp_column_name:
@@ -1077,10 +1077,10 @@ def main():
             max_length=max_label_length,
             return_overflowing_tokens=True,
         )
-        if batch_encoding.overflowing_tokens:
-            logger.warning(
-                    f"Overflowing {len(batch_encoding.overflowing_tokens)} tokens: {batch_encoding.overflowing_tokens}"
-            )
+        # if batch_encoding.overflowing_tokens:
+        #     logger.warning(
+        #             f"Overflowing {len(batch_encoding.overflowing_tokens)} tokens: {batch_encoding.overflowing_tokens}"
+        #     )
         batch["labels"] =  batch_encoding.input_ids
 
         # Prepend previous text tokens
