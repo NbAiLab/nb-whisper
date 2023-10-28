@@ -1075,11 +1075,11 @@ def main():
             input_str,
             truncation=True,
             max_length=max_label_length,
-            return_overflowing_tokens=True,
+            # return_overflowing_tokens=True,
         )
-        # if batch_encoding.overflowing_tokens:
+        # if batch_encoding.num_truncated_tokens:
         #     logger.warning(
-        #             f"Overflowing {len(batch_encoding.overflowing_tokens)} tokens: {batch_encoding.overflowing_tokens}"
+        #             f"Overflowing {batch_encoding.num_truncated_tokens} tokens: {batch_encoding.overflowing_tokens}"
         #     )
         batch["labels"] =  batch_encoding.input_ids
 
