@@ -168,6 +168,15 @@ class ModelArguments:
             )
         },
     )
+    dtype_params: Optional[str] = field(
+        default="float32",
+        metadata={
+            "help": (
+                "Floating-point format in which the model weights should be stored in memory. Choose one of"
+                " `[float32, float16, bfloat16]`."
+            )
+        },
+    )
     num_beams: Optional[int] = field(
         default=None,
         metadata={
@@ -924,10 +933,16 @@ def main():
         use_auth_token=True if model_args.use_auth_token else None,
     )
 
+    # Model params dtype
+    if model_args.dtype_params == "bfloat16":
+        model.params = model.to_bf16(model.params)
+    elif model_args.dtype_params == "float16":
+        model.params = model.to_f16(model.params)
+
     logger.info(
-        f"Successfully loaded the model '{model_name_or_path}'."
+        f"Successfully loaded the model '{model_name_or_path} ({str(getattr(jnp, model_args.dtype))})'."
     )
-    
+
     if model.config.decoder_start_token_id is None:
         raise ValueError(
             "Make sure that `config.decoder_start_token_id` is correctly defined")
