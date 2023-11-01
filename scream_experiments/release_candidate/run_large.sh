@@ -35,9 +35,9 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --adam_beta2 0.98 \
     --adam_epsilon 1e-6 \
     --bpe_dropout 0.2 \
-    --attention_dropout 0.1 \
-    --per_device_train_batch_size 1 \
-    --per_device_eval_batch_size 1 \
+    --activtion_dropout 0.1 \
+    --per_device_train_batch_size 4 \
+    --per_device_eval_batch_size 4 \
     --preprocessing_num_workers 8 \
     --timestamp_column_name "timestamped_text" \
     --prev_column_name "previous_text" \
@@ -47,6 +47,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --streaming True \
     --use_auth_token True \
     --dtype bfloat16 \
+    --dtype_params bfloat16 \
     --hub_private_repo True \
     --resume_from_checkpoint True \
     --ignore_data_skip \
