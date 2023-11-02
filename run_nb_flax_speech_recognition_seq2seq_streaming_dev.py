@@ -795,7 +795,10 @@ def main():
                     repo_name, exist_ok=True, token=training_args.hub_token, private=training_args.hub_private_repo
                 )
             except:
-                time.sleep(1)
+                logger.info(
+                    f"Failed to create repo {repo_name}. Retrying in 10 second."
+                )
+                time.sleep(10)
 
         repo = Repository(training_args.output_dir,
                           clone_from=repo_name, token=training_args.hub_token)
