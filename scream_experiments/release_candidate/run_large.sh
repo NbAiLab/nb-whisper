@@ -37,7 +37,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --bpe_dropout 0.2 \
     --activation_dropout 0.1 \
     --per_device_train_batch_size 8 \
-    --per_device_eval_batch_size 8 \
+    --per_device_eval_batch_size 4 \
     --preprocessing_num_workers 8 \
     --timestamp_column_name "timestamped_text" \
     --prev_column_name "previous_text" \
@@ -52,6 +52,6 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --resume_from_checkpoint True \
     --ignore_data_skip \
     --gradient_checkpointing True \
-    --pad_target_to_multiple_of 448 \
-    --max_prev_length 184 \
+    --pad_target_to_multiple_of 400 \
+    --max_prev_length 120 \
     --push_to_hub
