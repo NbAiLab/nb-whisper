@@ -791,9 +791,10 @@ def main():
         while not repo_url:
             # Workaround for an internal HuggingFace error if the repo is being created by another worker
             try:
-                repo_url = create_repo(
-                    repo_name, exist_ok=True, token=training_args.hub_token, private=training_args.hub_private_repo
-                )
+                repo_url = repo_name 
+                #create_repo(
+                #    repo_name, exist_ok=True, token=training_args.hub_token, private=training_args.hub_private_repo
+                #)
             except:
                 logger.info(
                     f"Failed to create repo {repo_name}. Retrying in 10 second."
