@@ -36,8 +36,8 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --adam_epsilon 1e-6 \
     --bpe_dropout 0.2 \
     --activation_dropout 0.1 \
-    --per_device_train_batch_size 4 \
-    --per_device_eval_batch_size 4 \
+    --per_device_train_batch_size 16 \
+    --per_device_eval_batch_size 16 \
     --preprocessing_num_workers 8 \
     --timestamp_column_name "timestamped_text" \
     --prev_column_name "previous_text" \
