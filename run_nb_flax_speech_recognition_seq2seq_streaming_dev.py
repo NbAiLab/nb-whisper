@@ -796,7 +796,7 @@ def main():
                 )
             except:
                 logger.info(
-                    f"Failed to create repo {repo_name}. Retrying in 10 second."
+                    f"Failed to create repo {repo_name}. Retrying in 10 second. If this keeps happening, you might want to create it manually. There is a potential limit on the number of create repo commands you can create per day."
                 )
                 time.sleep(10)
 
