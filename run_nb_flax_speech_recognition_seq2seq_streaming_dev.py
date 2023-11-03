@@ -796,7 +796,7 @@ def main():
                         repo_name, exist_ok=True, token=training_args.hub_token, private=training_args.hub_private_repo
                     )
                 except Exception as err:
-                    logger.error(f"Repo creation '{repo_name}' failed: {str(err)}. Waiting 10 secdons to retry.")
+                    logger.error(f"Repo creation failed for '{repo_name}': {str(err)}. Waiting 10 seconds to retry.")
                     time.sleep(10)
         else:
             # The rest will actively wait for it to be ready
