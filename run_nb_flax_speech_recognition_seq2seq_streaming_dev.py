@@ -63,7 +63,7 @@ import evaluate
 import transformers
 from datasets import Dataset, DatasetDict, IterableDatasetDict, interleave_datasets, load_dataset
 from datasets.distributed import split_dataset_by_node
-from huggingface_hub import create_repo
+from huggingface_hub import HfApi, create_repo
 from transformers import (
     AutoConfig,
     AutoFeatureExtractor,
@@ -786,19 +786,25 @@ def main():
             )
         else:
             repo_name = training_args.hub_model_id
-         
-        repo_url = None  
-        while not repo_url:
-            # Workaround for an internal HuggingFace error if the repo is being created by another worker
-            try:
-                repo_url = create_repo(
-                    repo_name, exist_ok=True, token=training_args.hub_token, private=training_args.hub_private_repo
-                )
-            except:
-                logger.info(
-                    f"Failed to create repo {repo_name}. Retrying in 10 second. If this keeps happening, you might want to create it manually. There is a potential limit on the number of create repo commands you can create per day."
-                )
-                time.sleep(10)
+
+        if current_host_idx == 0:
+            # Only one host should issue repo creation requests
+            repo_url = None  
+            while not repo_url:
+                try:
+                    repo_url = create_repo(
+                        repo_name, exist_ok=True, token=training_args.hub_token, private=training_args.hub_private_repo
+                    )
+                except Exception as err:
+                    logger.error(f"Repo creation failed for '{repo_name}': {str(err)}. Waiting 10 seconds to retry.")
+                    time.sleep(10)
+        else:
+            # The rest will actively wait for it to be ready
+            hf_api = HfApi()
+            repo_exists = False
+            while not repo_exists:
+                repo_exists = hf_api.repo_exists(model_args.model_name_or_path, token=training_args.hub_token)
+                time.sleep(1)
 
         repo = Repository(training_args.output_dir,
                           clone_from=repo_name, token=training_args.hub_token)
@@ -1703,8 +1709,8 @@ def main():
                 train_loader = data_loader(train_dataset, train_batch_size // num_of_hosts, num_workers=num_workers)
                 samples = next(train_loader)
                 logger.info(
-                    f"Completed epoch ({epoch} | Loss: {train_metric['loss']}, Learning Rate:"
-                    f" {train_metric['learning_rate']})"
+                    f"Completed epoch: {epoch} | Loss: {train_metric['loss']} "
+                    f" (Learning Rate: {train_metric['learning_rate']})"
                 )
                 training_summary["hyperparameters"]["steps_per_epoch"] = step // epoch
 
