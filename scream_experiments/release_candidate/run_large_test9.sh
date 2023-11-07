@@ -18,8 +18,8 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --dataset_load_fn "utils.dataset_load_rc.load_dataset_nbwhisper" \
     --test_split_name "test_norwegian_fleurs,test_nst,test_clean_audio_books_no" \
     --eval_split_name "validation_norwegian_fleurs,validation_nst,validation_clean_audio_books_no" \
-    --hub_model_id NbAiLab/nb-whisper-large-v3-test-7e-5 \
-    --output_dir ../../../nb-whisper-large-v3-test-7e-5 \
+    --hub_model_id NbAiLab/nb-whisper-large-v3-versae-test-7e-5 \
+    --output_dir ../../../nb-whisper-large-v3-varsae-test-7e-5 \
     --overwrite_output_dir \
     --do_train \
     --do_predict \
