@@ -8,7 +8,7 @@ export TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD=10000000000
 python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --model_name_or_path openai/whisper-large-v2 \
     --run_name "NB-Whisper - large memtest" \
-    --run_description "A large NB-Whisper memtest" \
+    --run_description "A large NB-Whisper memtest2" \
     --wandb_entity "nbailab" \
     --wandb_project "NB-Whisper" \
     --dataset_name NbAiLab/ncc_speech_v7 \
@@ -18,8 +18,8 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --dataset_load_fn "utils.dataset_load_rc.load_dataset_nbwhisper" \
     --test_split_name "test_norwegian_fleurs,test_nst,test_clean_audio_books_no" \
     --eval_split_name "validation_norwegian_fleurs,validation_nst,validation_clean_audio_books_no" \
-    --hub_model_id NbAiLab/nb-whisper-large-memtest \
-    --output_dir ../../../nb-whisper-large-memtest \
+    --hub_model_id NbAiLab/nb-whisper-large-memtest2 \
+    --output_dir ../../../nb-whisper-large-memtest2 \
     --overwrite_output_dir \
     --do_train \
     --do_predict \
