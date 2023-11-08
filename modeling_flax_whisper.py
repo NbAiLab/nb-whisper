@@ -974,7 +974,7 @@ class FlaxWhisperPreTrainedModel(FlaxPreTrainedModel):
     def __init__(
         self,
         config: WhisperConfig,
-        input_shape: Tuple[int] = (1, 80, 3000),
+        input_shape: Tuple[int] = None,
         seed: int = 0,
         dtype: jnp.dtype = jnp.float32,
         param_dtype: jnp.dtype = jnp.float32,
@@ -987,6 +987,8 @@ class FlaxWhisperPreTrainedModel(FlaxPreTrainedModel):
         self.gradient_checkpointing = gradient_checkpointing
 
         module = self.module_class(config=config, dtype=dtype, gradient_checkpointing=gradient_checkpointing, use_scan=use_scan, **kwargs)
+        if input_shape is None:
+            input_shape = (1, config.num_mel_bins, 2 * config.max_source_positions)
         super().__init__(config, module, input_shape=input_shape, seed=seed, dtype=dtype, _do_init=_do_init)
 
     def enable_gradient_checkpointing(self):
