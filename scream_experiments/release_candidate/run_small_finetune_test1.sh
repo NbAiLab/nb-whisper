@@ -16,8 +16,8 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --text_column_name text \
     --train_split_name train \
     --dataset_load_fn "utils.dataset_load_rc_finetune.load_dataset_nbwhisper_finetune" \
-    --test_split_name "test_norwegian_fleurs,test_nst,test_clean_audio_books_no" \
-    --eval_split_name "validation_norwegian_fleurs,validation_nst,validation_clean_audio_books_no" \
+    --test_split_name "test_fleurs,test_nst,test_clean_audio_books_no" \
+    --eval_split_name "validation_fleurs,validation_nst,validation_clean_audio_books_no" \
     --hub_model_id NbAiLab/nb-whisper-small-RC1-finetune-test1 \
     --output_dir ../../../nb-whisper-small-RC1-finetune-test1 \
     --overwrite_output_dir \
