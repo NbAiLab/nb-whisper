@@ -16,8 +16,8 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --text_column_name text \
     --train_split_name train \
     --dataset_load_fn "utils.dataset_load_rc_finetune.load_dataset_nbwhisper_finetune" \
-    --test_split_name "test_nst,test_clean_stortinget_no" \
-    --eval_split_name "validation_nst,validation_clean_stortinget_no" \
+    --test_split_name "test_audio_books_no,test_norwegian_fleurs,test_nrk_no,test_nst,test_stortinget_no,test_clean_audio_books_no,test_clean_stortinget_no" \
+    --eval_split_name "validation_audio_books_no,validation_norwegian_fleurs,validation_nrk_no,validation_nst,validation_stortinget_no,validation_clean_audio_books_no,validation_clean_stortinget_no" \
     --hub_model_id NbAiLab/nb-whisper-small-style-bs32-test \
     --output_dir ../../../nb-whisper-small-style-bs32-test1 \
     --overwrite_output_dir \
@@ -26,10 +26,10 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --do_eval \
     --predict_with_generate \
     --warmup_steps 500 \
-    --num_train_steps 10000 \
+    --num_train_steps 100000 \
     --eval_steps 500 \
     --lr_scheduler_type linear \
-    --learning_rate 5e-5 \
+    --learning_rate 1e-5 \
     --weight_decay 0.01 \
     --adam_beta1 0.9 \
     --adam_beta2 0.98 \
@@ -41,6 +41,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --preprocessing_num_workers 32 \
     --timestamp_column_name "timestamped_text" \
     --prev_column_name "previous_text" \
+    --task_column_name "task" \
     --log_max_eval_predictions 100 \
     --log_eval_predictions_fn "utils.log_predictions.write_predictions" \
     --log_examples 100 \
