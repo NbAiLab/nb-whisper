@@ -1450,18 +1450,17 @@ def main():
 
     from jax import device_get
     from jax import lax
+    from jax.experimental import host_callback
+
+    def log_values(step, learning_rate):
+        logger.info("Step: " + str(step))
+        logger.info("Learning Rate: " + str(learning_rate))
+
 
     # Define gradient update step fn
     def train_step(state, batch, label_smoothing_factor=0.0):
-        def true_fun(_):
-            step_value = jax.device_get(state.step)
-            learning_rate_value = jax.device_get(linear_decay_lr_schedule_fn(state.step))
-            logger.info("Running train step")
-            logger.info(str(step_value))
-            logger.info(learning_rate_value)
-            return _
-        # Use a dummy condition that always evaluates to True
-        lax.cond(True, true_fun, lambda _: _, None)
+        logger.info("Running train step")
+        host_callback.call(log_values, (state.step, linear_decay_lr_schedule_fn(state.step)), result_shape=jax.ShapeDtypeStruct((), jax.numpy.float32))
 
         dropout_rng, new_dropout_rng = jax.random.split(state.dropout_rng)
 
@@ -1489,16 +1488,8 @@ def main():
         metrics = {"loss": loss,
                    "learning_rate": linear_decay_lr_schedule_fn(state.step)}
 
-        # Debug
-        def true_fun2(_):
-            step_value = jax.device_get(state.step)
-            learning_rate_value = jax.device_get(linear_decay_lr_schedule_fn(state.step))
-            logger.info("Finished train step")
-            logger.info(str(step_value))
-            logger.info(learning_rate_value)
-            return _
-        # Use a dummy condition that always evaluates to True
-        lax.cond(True, true_fun2, lambda _: _, None)
+        logger.info("Finishing train step")
+        host_callback.call(log_values, (state.step, linear_decay_lr_schedule_fn(state.step)), result_shape=jax.ShapeDtypeStruct((), jax.numpy.float32))
         
         return new_state, metrics
 
