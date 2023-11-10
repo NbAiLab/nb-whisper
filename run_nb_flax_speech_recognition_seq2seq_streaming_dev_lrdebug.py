@@ -1448,20 +1448,9 @@ def main():
         num_labels = padding_mask.sum()
         return loss, num_labels
 
-    from jax import device_get
-    from jax import lax
-    from jax.experimental import host_callback
-
-    def log_values(step, learning_rate):
-        logger.info("Step: " + str(step))
-        logger.info("Learning Rate: " + str(learning_rate))
-
 
     # Define gradient update step fn
     def train_step(state, batch, label_smoothing_factor=0.0):
-        logger.info("Running train step")
-        host_callback.call(log_values, (state.step, linear_decay_lr_schedule_fn(state.step)), result_shape=jax.ShapeDtypeStruct((), jax.numpy.float32))
-
         dropout_rng, new_dropout_rng = jax.random.split(state.dropout_rng)
 
         def compute_loss(params):
@@ -1488,9 +1477,7 @@ def main():
         metrics = {"loss": loss,
                    "learning_rate": linear_decay_lr_schedule_fn(state.step)}
 
-        logger.info("Finishing train step")
-        host_callback.call(log_values, (state.step, linear_decay_lr_schedule_fn(state.step)), result_shape=jax.ShapeDtypeStruct((), jax.numpy.float32))
-        
+
         return new_state, metrics
 
     # Define eval fn
@@ -1739,8 +1726,9 @@ def main():
                 logger.info(f"Decoded example. :\n{decoded_text}")
             
             batch = shard(batch.data)
-            
-                      
+
+            logger.info(f"Step: {step} | State.step: {state.step} | Learning Rate: {linear_decay_lr_schedule_fn(state.step)}")   
+
             state, train_metric = p_train_step(state, batch)
             train_metrics.append(train_metric)
 
