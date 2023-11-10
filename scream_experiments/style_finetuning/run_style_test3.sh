@@ -7,8 +7,8 @@ export TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD=10000000000
 # Running the Python script
 python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --model_name_or_path NbAiLab/nb-whisper-small-RC1 \
-    --run_name "NB-Whisper - style bs8 test" \
-    --run_description "A small NB-Whisper style bs8 test" \
+    --run_name "NB-Whisper - style bs128 test" \
+    --run_description "A small NB-Whisper style bs128 test" \
     --wandb_entity "nbailab" \
     --wandb_project "NB-Whisper style tests" \
     --dataset_name NbAiLab/ncc_speech_styling_v1 \
@@ -18,8 +18,8 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --dataset_load_fn "utils.dataset_load_rc_finetune.load_dataset_nbwhisper_finetune" \
     --test_split_name "test_nst,test_clean_stortinget_no" \
     --eval_split_name "validation_nst,validation_clean_stortinget_no" \
-    --hub_model_id NbAiLab/nb-whisper-small-style-bs8-test \
-    --output_dir ../../../nb-whisper-small-style-bs8-test1 \
+    --hub_model_id NbAiLab/nb-whisper-small-style-bs128-test \
+    --output_dir ../../../nb-whisper-small-style-bs128-test1 \
     --overwrite_output_dir \
     --do_train \
     --do_predict \
