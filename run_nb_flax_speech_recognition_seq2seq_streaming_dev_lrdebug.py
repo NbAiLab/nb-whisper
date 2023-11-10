@@ -1730,6 +1730,9 @@ def main():
             logger.info(f"Step: {step} | State.step: {state.step} | Learning Rate: {linear_decay_lr_schedule_fn(state.step)}")   
 
             state, train_metric = p_train_step(state, batch)
+            
+            logger.info(f"Step: {step} | State.step: {state.step} | Learning Rate: {linear_decay_lr_schedule_fn(state.step)}")   
+
             train_metrics.append(train_metric)
 
             train_time += time.time() - train_start
@@ -1752,6 +1755,7 @@ def main():
                 else:
                     max_eval_steps_iter = itertools.count()
                 for eval_step in tqdm(max_eval_steps_iter, desc=f"Evaluating {eval_name}...", position=2, leave=False):
+                    
                     # Model forward
                     try:
                         samples = next(eval_loader)
@@ -1800,6 +1804,8 @@ def main():
                 # Print metrics
                 desc = f"[{eval_name}] Step: {step} | Epoch: {epoch} (Eval Loss: {eval_metrics['loss']} | {metric_desc})"
                 logger.info(desc)
+                
+                logger.into(eval_metrics)
 
                 # Save metrics
                 if has_tensorboard and current_host_idx == 0:
