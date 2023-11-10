@@ -18,8 +18,8 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --dataset_load_fn "utils.dataset_load_rc_finetune.load_dataset_nbwhisper_finetune" \
     --test_split_name "test_nst,test_clean_stortinget_no" \
     --eval_split_name "validation_nst,validation_clean_stortinget_no" \
-    --hub_model_id NbAiLab/nb-whisper-small-style-bs128-test \
-    --output_dir ../../../nb-whisper-small-style-bs128-test1 \
+    --hub_model_id NbAiLab/nb-whisper-small-style-bs64-test \
+    --output_dir ../../../nb-whisper-small-style-bs64-test1 \
     --overwrite_output_dir \
     --do_train \
     --do_predict \
@@ -36,7 +36,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --adam_epsilon 1e-6 \
     --bpe_dropout 0.2 \
     --activation_dropout 0.1 \
-    --per_device_train_batch_size 128 \
+    --per_device_train_batch_size 64 \
     --per_device_eval_batch_size 8 \
     --preprocessing_num_workers 32 \
     --timestamp_column_name "timestamped_text" \
