@@ -1448,12 +1448,17 @@ def main():
         num_labels = padding_mask.sum()
         return loss, num_labels
 
+    from jax import device_get
+
     # Define gradient update step fn
     def train_step(state, batch, label_smoothing_factor=0.0):
-        #Debug
+        # Debug
+        step_value = device_get(state.step)  # Fetch the actual value of the step
+        learning_rate_value = device_get(linear_decay_lr_schedule_fn(state.step))  # Fetch the actual value of the learning rate
+
         logger.info("Running train step")
-        logger.info(str(state.step))
-        logger.info(linear_decay_lr_schedule_fn(state.step))
+        logger.info(str(step_value))
+        logger.info(learning_rate_value)
 
         dropout_rng, new_dropout_rng = jax.random.split(state.dropout_rng)
 
@@ -1481,9 +1486,13 @@ def main():
         metrics = {"loss": loss,
                    "learning_rate": linear_decay_lr_schedule_fn(state.step)}
 
-        logger.info("Finished train step")
-        logger.info(str(state.step))
-        logger.info(linear_decay_lr_schedule_fn(state.step))
+        # Debug
+        step_value = device_get(state.step)  # Fetch the actual value of the step
+        learning_rate_value = device_get(linear_decay_lr_schedule_fn(state.step))  # Fetch the actual value of the learning rate
+
+        logger.info("Finishing train step")
+        logger.info(str(step_value))
+        logger.info(learning_rate_value)
 
         return new_state, metrics
 
