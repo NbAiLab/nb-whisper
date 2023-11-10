@@ -1805,7 +1805,7 @@ def main():
                 desc = f"[{eval_name}] Step: {step} | Epoch: {epoch} (Eval Loss: {eval_metrics['loss']} | {metric_desc})"
                 logger.info(desc)
                 
-                logger.into(eval_metrics)
+                logger.info(eval_metrics)
 
                 # Save metrics
                 if has_tensorboard and current_host_idx == 0:
