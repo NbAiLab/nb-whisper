@@ -1450,7 +1450,11 @@ def main():
 
     # Define gradient update step fn
     def train_step(state, batch, label_smoothing_factor=0.0):
-        
+        #Debug
+        logger.info("Running train step")
+        logger.info(str(state.step))
+        logger.into(linear_decay_lr_schedule_fn(state.step))
+
         dropout_rng, new_dropout_rng = jax.random.split(state.dropout_rng)
 
         def compute_loss(params):
@@ -1476,6 +1480,10 @@ def main():
 
         metrics = {"loss": loss,
                    "learning_rate": linear_decay_lr_schedule_fn(state.step)}
+
+        logger.info("Finished train step")
+        logger.info(str(state.step))
+        logger.into(linear_decay_lr_schedule_fn(state.step))
 
         return new_state, metrics
 
