@@ -16,10 +16,10 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --text_column_name text \
     --train_split_name train \
     --dataset_load_fn "utils.dataset_load_rc_finetune.load_dataset_nbwhisper_finetune" \
-    --test_split_name "test_nst,test_clean_stortinget_no" \
-    --eval_split_name "validation_nst,validation_clean_stortinget_no" \
-    --hub_model_id NbAiLab/nb-whisper-small-style-bs64-test \
-    --output_dir ../../../nb-whisper-small-style-bs64-test1 \
+    --test_split_name "test_norwegian_fleurs" \
+    --eval_split_name "validation_norwegian_fleurs" \
+    --hub_model_id NbAiLab/nb-whisper-small-style-bs16-test \
+    --output_dir ../../../nb-whisper-small-style-bs16-test1 \
     --overwrite_output_dir \
     --do_train \
     --do_predict \
@@ -43,7 +43,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --prev_column_name "previous_text" \
     --log_max_eval_predictions 100 \
     --log_eval_predictions_fn "utils.log_predictions.write_predictions" \
-    --log_examples 100 \
+    --log_examples 1 \
     --streaming True \
     --use_auth_token True \
     --dtype bfloat16 \
