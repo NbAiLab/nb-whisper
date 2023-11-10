@@ -18,8 +18,8 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev_lrdebug.py \
     --dataset_load_fn "utils.dataset_load_rc_finetune.load_dataset_nbwhisper_finetune" \
     --test_split_name "test_norwegian_fleurs" \
     --eval_split_name "validation_norwegian_fleurs" \
-    --hub_model_id NbAiLab/nb-whisper-tiny-ledebug \
-    --output_dir ../../../nb-whisper-tiny-lrdebug \
+    --hub_model_id NbAiLab/nb-whisper-tiny-ledebug2 \
+    --output_dir ../../../nb-whisper-tiny-lrdebug2 \
     --overwrite_output_dir \
     --do_train \
     --do_predict \
