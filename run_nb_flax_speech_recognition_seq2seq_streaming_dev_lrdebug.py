@@ -1453,7 +1453,7 @@ def main():
         #Debug
         logger.info("Running train step")
         logger.info(str(state.step))
-        logger.into(linear_decay_lr_schedule_fn(state.step))
+        logger.info(linear_decay_lr_schedule_fn(state.step))
 
         dropout_rng, new_dropout_rng = jax.random.split(state.dropout_rng)
 
@@ -1483,7 +1483,7 @@ def main():
 
         logger.info("Finished train step")
         logger.info(str(state.step))
-        logger.into(linear_decay_lr_schedule_fn(state.step))
+        logger.info(linear_decay_lr_schedule_fn(state.step))
 
         return new_state, metrics
 
