@@ -43,7 +43,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev_lrdebug.py \
     --prev_column_name "previous_text" \
     --log_max_eval_predictions 100 \
     --log_eval_predictions_fn "utils.log_predictions.write_predictions" \
-    --log_examples 10000 \
+    --log_examples 100 \
     --streaming True \
     --use_auth_token True \
     --dtype bfloat16 \
