@@ -1805,7 +1805,6 @@ def main():
                 desc = f"[{eval_name}] Step: {step} | Epoch: {epoch} (Eval Loss: {eval_metrics['loss']} | {metric_desc})"
                 logger.info(desc)
                 
-                logger.info(eval_metrics)
 
                 # Save metrics
                 if has_tensorboard and current_host_idx == 0:
@@ -1828,6 +1827,8 @@ def main():
                 eval_metrics_dict,
                 step,
             )
+            
+            logger.info(train_metrics)
 
             # Save checkpoint at each eval_steps and push checkpoint to the hub
             if current_host_idx  == 0:
