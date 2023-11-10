@@ -26,8 +26,8 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev_lrdebug.py \
     --do_eval \
     --predict_with_generate \
     --warmup_steps 100 \
-    --num_train_steps 100000 \
-    --eval_steps 1000 \
+    --num_train_steps 10000 \
+    --eval_steps 10000 \
     --lr_scheduler_type linear \
     --learning_rate 1e-5 \
     --weight_decay 0.01 \
@@ -43,7 +43,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev_lrdebug.py \
     --prev_column_name "previous_text" \
     --log_max_eval_predictions 100 \
     --log_eval_predictions_fn "utils.log_predictions.write_predictions" \
-    --log_examples 100 \
+    --log_examples 10000 \
     --streaming True \
     --use_auth_token True \
     --dtype bfloat16 \
