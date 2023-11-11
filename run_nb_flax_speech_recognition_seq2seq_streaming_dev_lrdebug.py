@@ -1809,8 +1809,8 @@ def main():
                 # Save metrics
                 if has_tensorboard and current_host_idx == 0:
                     log_max_predictions = data_args.log_max_eval_predictions if data_args.log_max_eval_predictions else 0
-                    breakpoint()
-                    savestep = max(0, step - training_args.eval_steps)
+                    
+                    savestep = max(0, int(step - training_args.eval_steps))
 
                     write_metric(
                         summary_writer,
@@ -1828,7 +1828,7 @@ def main():
                 training_state,
                 train_metrics,
                 eval_metrics_dict,
-                step-training_args.eval_steps,
+                savestep,
             )
             
             train_metrics=[]
