@@ -1809,12 +1809,14 @@ def main():
                 # Save metrics
                 if has_tensorboard and current_host_idx == 0:
                     log_max_predictions = data_args.log_max_eval_predictions if data_args.log_max_eval_predictions else 0
+                    savestep = max(0, step - training_args.eval_steps)
+
                     write_metric(
                         summary_writer,
                         train_metrics,
                         eval_metrics,
                         train_time,
-                        step-training_args.eval_steps,
+                        savestep,
                         eval_name=eval_name,
                         predictions=pred_str[:log_max_predictions],
                         labels=label_str[:log_max_predictions]
