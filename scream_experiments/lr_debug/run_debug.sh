@@ -10,7 +10,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev_lrdebug.py \
     --run_name "NB-Whisper - lrdebug2 " \
     --run_description "A Tiny LR debug" \
     --wandb_entity "nbailab" \
-    --wandb_project "NB-Whisper LRDebug5" \
+    --wandb_project "NB-Whisper LRDebug6" \
     --dataset_name NbAiLab/ncc_speech_v7 \
     --language Norwegian \
     --text_column_name text \
@@ -18,8 +18,8 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev_lrdebug.py \
     --dataset_load_fn "utils.dataset_load_rc_finetune.load_dataset_nbwhisper_finetune" \
     --test_split_name "test_norwegian_fleurs" \
     --eval_split_name "validation_norwegian_fleurs" \
-    --hub_model_id NbAiLab/nb-whisper-tiny-lrdebug5 \
-    --output_dir ../../../nb-whisper-tiny-lrdebug5 \
+    --hub_model_id NbAiLab/nb-whisper-tiny-lrdebug6 \
+    --output_dir ../../../nb-whisper-tiny-lrdebug6 \
     --overwrite_output_dir \
     --do_train \
     --do_predict \
