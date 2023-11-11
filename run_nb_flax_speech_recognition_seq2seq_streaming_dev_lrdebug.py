@@ -1745,7 +1745,6 @@ def main():
                 f"Starting evaluation at step {step} of num_training_step {data_args.num_train_steps} steps. Planned evaluation every {training_args.eval_steps} steps." 
             )
             eval_metrics_dict = {}
-                        # Reset train metrics
             for eval_name, eval_dataset in eval_datasets.items():
                 eval_metrics = []
                 eval_preds = []
@@ -1820,8 +1819,6 @@ def main():
                         predictions=pred_str[:log_max_predictions],
                         labels=label_str[:log_max_predictions]
                     )
-                train_metrics = []
-
 
             # Update training state
             training_state = update_training_state(
@@ -1830,9 +1827,8 @@ def main():
                 eval_metrics_dict,
                 step,
             )
-            train_metrics = []
-            print(training_state)
-
+            
+            logger.info(train_metrics)
 
             # Save checkpoint at each eval_steps and push checkpoint to the hub
             if current_host_idx  == 0:
