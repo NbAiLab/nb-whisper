@@ -1828,9 +1828,6 @@ def main():
                 step-training_args.eval_steps,
             )
             
-            logger.info(train_metrics)
-            logger.info(training_state)
-            logger.info(step)
             train_metrics=[]
 
             # Save checkpoint at each eval_steps and push checkpoint to the hub
