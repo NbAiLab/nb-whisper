@@ -7,7 +7,7 @@ export TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD=10000000000
 # Running the Python script
 python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev_lrdebug.py \
     --model_name_or_path openai/whisper-tiny \
-    --run_name "NB-Whisper - lrdebug 3" \
+    --run_name "NB-Whisper - lrdebug 4" \
     --run_description "A Tiny LR debug" \
     --wandb_entity "nbailab" \
     --wandb_project "NB-Whisper LRDebug" \
