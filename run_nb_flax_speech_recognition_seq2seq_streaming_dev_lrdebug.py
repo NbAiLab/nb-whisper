@@ -1828,7 +1828,8 @@ def main():
                 step,
             )
             
-            logger.info(train_metrics)
+            # Reset train metrics
+            train_metrics = []
 
             # Save checkpoint at each eval_steps and push checkpoint to the hub
             if current_host_idx  == 0:
