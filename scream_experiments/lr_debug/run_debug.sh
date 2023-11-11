@@ -7,7 +7,7 @@ export TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD=10000000000
 # Running the Python script
 python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev_lrdebug.py \
     --model_name_or_path openai/whisper-tiny \
-    --run_name "NB-Whisper - lrdebug 4" \
+    --run_name "NB-Whisper - lrdebug 5" \
     --run_description "A Tiny LR debug" \
     --wandb_entity "nbailab" \
     --wandb_project "NB-Whisper LRDebug" \
@@ -18,8 +18,8 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev_lrdebug.py \
     --dataset_load_fn "utils.dataset_load_rc_finetune.load_dataset_nbwhisper_finetune" \
     --test_split_name "test_norwegian_fleurs" \
     --eval_split_name "validation_norwegian_fleurs" \
-    --hub_model_id NbAiLab/nb-whisper-tiny-ledebug3 \
-    --output_dir ../../../nb-whisper-tiny-lrdebug3 \
+    --hub_model_id NbAiLab/nb-whisper-tiny-ledebug5 \
+    --output_dir ../../../nb-whisper-tiny-lrdebug5 \
     --overwrite_output_dir \
     --do_train \
     --do_predict \
