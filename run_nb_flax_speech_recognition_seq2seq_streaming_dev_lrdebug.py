@@ -1746,7 +1746,6 @@ def main():
             )
             eval_metrics_dict = {}
             # Reset train metrics
-            train_metrics = []
             for eval_name, eval_dataset in eval_datasets.items():
                 eval_metrics = []
                 eval_preds = []
