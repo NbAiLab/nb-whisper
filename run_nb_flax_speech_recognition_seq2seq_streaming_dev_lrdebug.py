@@ -1823,6 +1823,8 @@ def main():
                         predictions=pred_str[:log_max_predictions],
                         labels=label_str[:log_max_predictions]
                     )
+            
+            train_metrics=[]
 
             # Update training state
             training_state = update_training_state(
