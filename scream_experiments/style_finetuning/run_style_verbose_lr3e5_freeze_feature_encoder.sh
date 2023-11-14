@@ -7,8 +7,8 @@ export TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD=10000000000
 # Running the Python script
 python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev_freeze.py \
     --model_name_or_path NbAiLab/nb-whisper-small-RC1 \
-    --run_name "NB-Whisper - verbose - lr3e5 - freeze encoder" \
-    --run_description "A small NB-Whisper verbose lr3e5 freeze encoder" \
+    --run_name "NB-Whisper - verbose - lr3e5 - freeze feature encoder" \
+    --run_description "A small NB-Whisper verbose lr3e5 freeze feature encoder" \
     --wandb_entity "nbailab" \
     --wandb_project "NB-Whisper verbose tests" \
     --dataset_name NbAiLab/ncc_speech_styling_v1 \
@@ -18,8 +18,8 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev_freeze.py \
     --dataset_load_fn "utils.dataset_load_rc_verbose.load_dataset_nbwhisper_verbose" \
     --test_split_name "test_audio_books_no,test_norwegian_fleurs,test_nrk_no,test_nst,test_stortinget_no,test_clean_audio_books_no,test_clean_stortinget_no" \
     --eval_split_name "validation_audio_books_no,validation_norwegian_fleurs,validation_nrk_no,validation_nst,validation_stortinget_no,validation_clean_audio_books_no,validation_clean_stortinget_no" \
-    --hub_model_id NbAiLab/nb-whisper-small-style-verbose-lr3e5-freeze-featureencoder \
-    --output_dir ../../../nb-whisper-small-style-verbose-lr3e5-freeze-featureencoder \
+    --hub_model_id NbAiLab/nb-whisper-small-style-verbose-lr3e5-freeze-feature-encoder \
+    --output_dir ../../../nb-whisper-small-style-verbose-lr3e5-freeze-feature-encoder \
     --overwrite_output_dir \
     --do_train \
     --do_predict \
@@ -53,5 +53,5 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev_freeze.py \
     --gradient_checkpointing True \
     --pad_target_to_multiple_of 448 \
     --max_prev_length 120 \
-    --freeze_encoder True \
+    --freeze_feature_encoder True \
     --push_to_hub
