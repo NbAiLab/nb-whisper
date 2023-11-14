@@ -159,9 +159,6 @@ class ModelArguments:
             "with private models)."
         },
     )
-    freeze_feature_encoder: bool = field(
-        default=False, metadata={"help": "Whether to freeze the feature encoder layers of the model."}
-    )
     freeze_encoder: bool = field(
         default=False, metadata={"help": "Whether to freeze the entire encoder of the seq2seq model."}
     )
@@ -954,12 +951,7 @@ def main():
     elif model_args.dtype_params == "float16":
         model.params = model.to_f16(model.params)
 
-    # Freeze encoder if specified
-    if model_args.freeze_feature_encoder:
-        model.freeze_feature_encoder()
 
-    if model_args.freeze_encoder:
-        model.freeze_encoder()
 
     logger.info(
         f"Successfully loaded the model '{model_name_or_path} ({str(getattr(jnp, model_args.dtype))})'."
@@ -974,6 +966,16 @@ def main():
     if data_args.use_scan:
         model.enable_scan()  # to enable scan in the nn.Module
         params = model.convert_unroll_to_scan(params)  # to convert the unrolled params to scan
+
+    # Freeze encoder if specified
+    if model_args.freeze_encoder:
+        # Function to filter out encoder parameters
+        def is_encoder_param(path, _):
+            return path.startswith('encoder')
+
+        # The non-encoder params in the model
+        params = traverse_util.ModelParamTraversal(lambda path, _: not is_encoder_param(path, _)).update(lambda p: p, model.params)
+
 
     # Activate gradient checkpointing if needed
     if training_args.gradient_checkpointing:
