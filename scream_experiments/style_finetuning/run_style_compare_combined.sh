@@ -7,19 +7,19 @@ export TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD=10000000000
 # Running the Python script
 python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --model_name_or_path NbAiLab/nb-whisper-small-RC1 \
-    --run_name "NB-Whisper - verbose - compare style semantic" \
-    --run_description "A small NB-Whisper compare style semantic" \
+    --run_name "NB-Whisper - verbose - compare style combined" \
+    --run_description "A small NB-Whisper compare style combined" \
     --wandb_entity "nbailab" \
     --wandb_project "NB-Whisper compare style" \
     --dataset_name NbAiLab/ncc_speech_styling_v1 \
     --language Norwegian \
     --text_column_name text \
     --train_split_name train \
-    --dataset_load_fn "utils.dataset_load_rc_semantic.load_dataset_nbwhisper_semantic" \
+    --dataset_load_fn "utils.dataset_load_rc_combined.load_dataset_nbwhisper_combined" \
     --test_split_name "test_audio_books_no,test_norwegian_fleurs,test_nrk_no,test_nst,test_stortinget_no,test_clean_audio_books_no,test_clean_stortinget_no" \
     --eval_split_name "validation_audio_books_no,validation_norwegian_fleurs,validation_nrk_no,validation_nst,validation_stortinget_no,validation_clean_audio_books_no,validation_clean_stortinget_no" \
-    --hub_model_id NbAiLab/nb-whisper-small-style-compare-style-semantic \
-    --output_dir ../../../nb-whisper-small-style-compare-style-semantic \
+    --hub_model_id NbAiLab/nb-whisper-small-style-compare-style-combined \
+    --output_dir ../../../nb-whisper-small-style-compare-style-combined \
     --overwrite_output_dir \
     --do_train \
     --do_predict \
