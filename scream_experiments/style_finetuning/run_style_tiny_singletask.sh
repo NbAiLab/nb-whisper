@@ -6,7 +6,7 @@ export TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD=10000000000
 
 # Running the Python script
 python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
-    --model_name_or_path NbAiLab/nb-whisper-tiny-singletask \
+    --model_name_or_path NbAiLab/nb-whisper-tiny-RC1 \
     --run_name "NB-Whisper - tiny - singletask" \
     --run_description "A NB-Whisper singletask" \
     --wandb_entity "nbailab" \
