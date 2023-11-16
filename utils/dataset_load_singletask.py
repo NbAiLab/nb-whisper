@@ -13,7 +13,7 @@ def processor_timestamps(sample):
     if sample["task"] == "transcribe" and sample["timestamped_text"] is not None and sample["language"] == "no":
         return {**sample, "text": sample["timestamped_text"], "previous_text": None}
 
-d
+
 def processor_previous_text_prompts(sample):
     if sample["task"] == "transcribe" and sample["previous_text"] is not None and sample["language"] == "no":
         return {**sample, "timestamped_text": None}
