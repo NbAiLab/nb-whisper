@@ -42,7 +42,7 @@ def processor_timestamps_previous_text(sample):
         and sample["timestamped_text"] is not None):
         return {**sample, "text": sample["timestamped_text"]}
   
-def load_dataset_nbwhisper_verbose(dataset_name, dataset_config_name=None, split="train", streaming=True, **kwargs):
+def load_dataset_nbwhisper_rc_verbose(dataset_name, dataset_config_name=None, split="train", streaming=True, **kwargs):
     if split == "train":
         processors = [
             processor_normal_no,
