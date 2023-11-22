@@ -6,7 +6,7 @@ export TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD=10000000000
 
 # Running the Python script
 python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
-    --model_name_or_path NbAiLab/nb-whisper-small-RC0 \
+    --model_name_or_path NbAiLab/nb-whisper-small-RC1 \
     --run_name "NB-Whisper - small - dynamic eval verbatim lowerverbatim RC0" \
     --run_description "A NB-Whisper dynamic eval verbatim lowerverbatim RC0" \
     --wandb_entity "nbailab" \
