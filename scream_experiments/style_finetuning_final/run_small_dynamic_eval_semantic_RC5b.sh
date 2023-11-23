@@ -7,8 +7,8 @@ export TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD=10000000000
 # Running the Python script
 python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --model_name_or_path NbAiLab/nb-whisper-small-RC1 \
-    --run_name "NB-Whisper - small - dynamic eval semantic RC5b - trained on same type of tpu pod" \
-    --run_description "A NB-Whisper dynamic eval semantic RC5b" \
+    --run_name "NB-Whisper - small - dynamic eval semantic RC5" \
+    --run_description "A NB-Whisper dynamic eval semantic RC5" \
     --wandb_entity "nbailab" \
     --wandb_project "NB-Whisper dynamic tests" \
     --dataset_name NbAiLab/ncc_speech_styling_v4 \
@@ -18,8 +18,8 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --dataset_load_fn "utils.dataset_load_rc_dynamic.load_dataset_nbwhisper_rc_dynamic_eval_semantic" \
     --test_split_name "test_nst,test_clean_stortinget_no" \
     --eval_split_name "validation_nst,validation_clean_stortinget_no" \
-    --hub_model_id NbAiLab/nb-whisper-small-dynamic-eval-semantic-RC5b \
-    --output_dir ../../../nb-whisper-small-dynamic-eval-semantic-RC5b \
+    --hub_model_id NbAiLab/nb-whisper-small-dynamic-eval-semantic-RC5 \
+    --output_dir ../../../nb-whisper-small-dynamic-eval-semantic-RC5 \
     --overwrite_output_dir \
     --do_train \
     --do_predict \
@@ -36,7 +36,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --adam_epsilon 1e-6 \
     --bpe_dropout 0.2 \
     --activation_dropout 0.1 \
-    --per_device_train_batch_size 32 \
+    --per_device_train_batch_size 64 \
     --per_device_eval_batch_size 8 \
     --preprocessing_num_workers 32 \
     --timestamp_column_name "timestamped_text" \
