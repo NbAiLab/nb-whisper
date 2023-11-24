@@ -29,7 +29,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --num_train_steps 15000 \
     --eval_steps 1000 \
     --lr_scheduler_type linear \
-    --learning_rate 1e-5 \
+    --learning_rate 2e-5 \
     --weight_decay 0.01 \
     --adam_beta1 0.9 \
     --adam_beta2 0.98 \
