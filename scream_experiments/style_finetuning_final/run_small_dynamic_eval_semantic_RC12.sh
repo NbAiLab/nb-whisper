@@ -15,7 +15,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --language Norwegian \
     --text_column_name text \
     --train_split_name train \
-    --dataset_load_fn "utils.dataset_load_rc_dynamic_notranslate.load_dataset_nbwhisper_rc_dynamic_eval_semantic" \
+    --dataset_load_fn "utils.dataset_load_rc_dynamic_downsampled_notranslate.load_dataset_nbwhisper_rc_dynamic_eval_verbatim" \
     --test_split_name "test_nst,test_clean_stortinget_no" \
     --eval_split_name "validation_nst,validation_clean_stortinget_no" \
     --hub_model_id NbAiLab/nb-whisper-small-dynamic-eval-semantic-RC12 \
