@@ -102,7 +102,7 @@ def load_dataset_nbwhisper_rc_dynamic_eval_verbatim(dataset_name, dataset_config
     ]
 
     if split == "train":
-        processors = [downsample_wrapper(proc) for proc in processors]
+        processors = [filtered_wrapper(proc) for proc in processors]
     else:
         processors = [processor_test_verbatim]
         
@@ -121,7 +121,7 @@ def load_dataset_nbwhisper_rc_dynamic_eval_semantic(dataset_name, dataset_config
     ]
 
     if split == "train":
-        processors = [downsample_wrapper(proc) for proc in processors]
+        processors = [filtered_wrapper(proc) for proc in processors]
     else:
         processors = [processor_test_semantic]
         
