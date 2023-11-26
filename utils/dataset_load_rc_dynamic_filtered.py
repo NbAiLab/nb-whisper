@@ -27,7 +27,12 @@ def filtered_wrapper(processor_function):
         if processed_sample.get("task") == "translate":
             if processed_sample.get("source") in ["nst", "audio_books"]:
                 return None
-            if "…" in processed_sample.get("text", "") or "…" in processed_sample.get("timestamped_text", ""):
+
+            text = processed_sample.get("text", "")
+            timestamped_text = processed_sample.get("timestamped_text", "")
+            if text is not None and "…" in text:
+                return None
+            if timestamped_text is not None and "…" in timestamped_text:
                 return None
         
         return processed_sample
