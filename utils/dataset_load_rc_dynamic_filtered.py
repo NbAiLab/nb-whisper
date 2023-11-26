@@ -17,18 +17,22 @@ def processor_test_semantic(sample):
 
 def filtered_wrapper(processor_function):
     """
-    Wrapper function that applies downsampling to samples with task 'translate' after the primary processor function.
+    Wrapper function that applies various filters to samples with task 'translate' after the primary processor function.
     """
     def wrapped_processor(sample):
         processed_sample = processor_function(sample)
-        if processed_sample and processed_sample.get("task") == "translate" and processed_sample.get("source") == "nst":
+        if processed_sample is None:
             return None
-        if processed_sample and processed_sample.get("task") == "translate" and processed_sample.get("source") == "audio_books":
-            return None
-        if processed_sample and processed_sample.get("task") == "translate" and ("…" in processed_sample.get("text", "") or "…" in processed_sample.get("timestamped_text", "")):
-            return None
+
+        if processed_sample.get("task") == "translate":
+            if processed_sample.get("source") in ["nst", "audio_books"]:
+                return None
+            if "…" in processed_sample.get("text", "") or "…" in processed_sample.get("timestamped_text", ""):
+                return None
+        
         return processed_sample
     return wrapped_processor
+
 
 
 def processor_normal(sample):
