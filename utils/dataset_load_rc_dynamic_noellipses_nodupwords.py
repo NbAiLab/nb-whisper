@@ -17,6 +17,8 @@ def processor_test_semantic(sample):
         return {**sample, "previous_text": None, "timestamped_text": None, "task": "translate"}
 
 
+import re
+
 def filtered_wrapper(processor_function):
     """
     Wrapper function that applies various filters to samples with task 'translate' after the primary processor function.
@@ -44,11 +46,15 @@ def filtered_wrapper(processor_function):
             if timestamped_text and is_duplicate_word_present(timestamped_text):
                 return None
 
-            if "…" in text or "…" in timestamped_text:
+            # Ensure text and timestamped_text are not None before checking for "…"
+            if text is not None and "…" in text:
+                return None
+            if timestamped_text is not None and "…" in timestamped_text:
                 return None
         
         return processed_sample
     return wrapped_processor
+
 
 
 def processor_normal(sample):
