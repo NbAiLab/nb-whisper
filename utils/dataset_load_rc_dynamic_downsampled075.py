@@ -26,7 +26,6 @@ def downsample_wrapper(processor_function):
         return processed_sample
     return wrapped_processor
 
-
 def processor_normal(sample):
     return {**sample, "previous_text": None, "timestamped_text": None}
 
