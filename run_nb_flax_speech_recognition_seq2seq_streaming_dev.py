@@ -1736,7 +1736,7 @@ def main():
                 train_dataset.set_epoch(epoch)
                 train_loader = data_loader(train_dataset, train_batch_size // num_of_hosts, num_workers=num_workers)
                 if data_args.multipack_task:
-                    train_loader = multipack_iterator(train_loader, batch_size=train_batch_size, drop_last=True)
+                    train_loader = multipack_iterator(train_loader, batch_size=train_batch_size // num_of_hosts, drop_last=True)
                 samples = next(train_loader)
                 logger.info(
                     f"Completed epoch: {epoch} | Loss: {train_metric['loss']} "
