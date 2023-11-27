@@ -1696,6 +1696,8 @@ def main():
 
         logger.info(f"  Number of train dataset workers = {num_workers} {'(Capped by the number of dataset shards)' if train_dataset.n_shards < data_args.preprocessing_num_workers else ''} {'(ADVICE: In most cases you will speed up training considerably if you increase the value of --preprocessing_num_workers!)' if num_workers < 10 else ''}")
         train_loader = data_loader(train_dataset, train_batch_size // num_of_hosts, num_workers=num_workers)
+        if data_args.multipack_task:
+            train_loader = multipack_iterator(train_loader, batch_size=train_batch_size // num_of_hosts, drop_last=True)
 
     if training_args.do_eval:
         eval_datasets = {
@@ -1716,6 +1718,8 @@ def main():
                 epoch += 1
                 train_dataset.set_epoch(epoch)
                 train_loader = data_loader(train_dataset, train_batch_size // num_of_hosts, num_workers=num_workers)
+                if data_args.multipack_task:
+                    train_loader = multipack_iterator(train_loader, batch_size=train_batch_size // num_of_hosts, drop_last=True)
                 samples = next(train_loader)
             batch = data_collator(samples)
             # batch = shard(batch.data)
