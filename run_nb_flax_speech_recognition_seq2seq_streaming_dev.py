@@ -447,6 +447,11 @@ class DataTrainingArguments:
             )
         },
     )
+    multipack_task: bool = field(
+        default=False,
+        metadata={
+            "help": "Whether to pack samples of the same task per batch (works at global batch size scan."},
+    )
     run_description: Optional[str] = field(
         default=None,
         metadata={
@@ -704,6 +709,29 @@ def create_learning_rate_fn(
         return schedule_fn(step + start_step)
     
     return learning_rate_fn
+
+
+def multipack_iterator(iterator, batch_size=25, drop_last=True):
+    transcribe_batch = []
+    translate_batch = []
+    for batch in iterator:
+        for sample in batch:
+            # "<|transcribe|>": 50360,
+            if 50360 in sample['labels']:
+                transcribe_batch.append(sample)
+                if len(transcribe_batch) == batch_size:
+                    yield transcribe_batch
+                    transcribe_batch = []
+            # "<|translate|>": 50359,
+            elif 50359 in sample['labels']:
+                translate_batch.append(sample)
+                if len(translate_batch) == batch_size:
+                    yield translate_batch
+                    translate_batch = []
+    if not drop_last and (transcribe_batch or translate_batch):
+        last_batch = [transcribe_batch + translate_batch][:batch_size]
+        if last_batch:
+            yield last_batch[0]
 
 
 def main():
@@ -1707,6 +1735,8 @@ def main():
                 epoch += 1
                 train_dataset.set_epoch(epoch)
                 train_loader = data_loader(train_dataset, train_batch_size // num_of_hosts, num_workers=num_workers)
+                if data_args.multipack_task:
+                    train_loader = multipack_iterator(train_loader, batch_size=train_batch_size, drop_last=True)
                 samples = next(train_loader)
                 logger.info(
                     f"Completed epoch: {epoch} | Loss: {train_metric['loss']} "
