@@ -7,8 +7,8 @@ export TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD=10000000000
 # Running the Python script
 python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --model_name_or_path NbAiLab/nb-whisper-small-RC1 \
-    --run_name "NB-Whisper - small - dynamic eval semantic RCb" \
-    --run_description "A NB-Whisper dynamic eval semantic RC5b" \
+    --run_name "NB-Whisper - small - dynamic eval semantic RC23" \
+    --run_description "A NB-Whisper dynamic eval semantic RC23" \
     --wandb_entity "nbailab" \
     --wandb_project "NB-Whisper dynamic tests" \
     --dataset_name NbAiLab/ncc_speech_styling_v4 \
@@ -16,10 +16,11 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --text_column_name text \
     --train_split_name train \
     --dataset_load_fn "utils.dataset_load_rc_dynamic.load_dataset_nbwhisper_rc_dynamic_eval_semantic" \
+    --multipack_task \
     --test_split_name "test_nst,test_clean_stortinget_no" \
     --eval_split_name "validation_nst,validation_clean_stortinget_no" \
-    --hub_model_id NbAiLab/nb-whisper-small-dynamic-eval-semantic-RC5b \
-    --output_dir ../../../nb-whisper-small-dynamic-eval-semantic-RC5b \
+    --hub_model_id NbAiLab/nb-whisper-small-dynamic-eval-semantic-RC23 \
+    --output_dir ../../../nb-whisper-small-dynamic-eval-semantic-RC23 \
     --overwrite_output_dir \
     --do_train \
     --do_predict \
