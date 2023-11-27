@@ -450,7 +450,7 @@ class DataTrainingArguments:
     multipack_task: bool = field(
         default=False,
         metadata={
-            "help": "Whether to pack samples of the same task per batch (works at global batch size scan."},
+            "help": "Whether to pack samples of the same task per batch (works at global batch size)."},
     )
     run_description: Optional[str] = field(
         default=None,
