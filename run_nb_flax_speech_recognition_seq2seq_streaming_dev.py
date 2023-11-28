@@ -712,8 +712,23 @@ def create_learning_rate_fn(
 
 
 def multipack_iterator(iterator, batch_size=25, drop_last=True):
-    transcribe_batch = {key: [] for key in iterator[0]}  # Assuming all batches have the same structure
-    translate_batch = {key: [] for key in iterator[0]}
+    # Initialize iterator for the purpose of structure detection
+    init_iter = iter(iterator)
+    try:
+        first_batch = next(init_iter)
+    except StopIteration:
+        # Handle case where iterator is empty
+        return
+
+    # Initialize transcribe_batch and translate_batch based on the first batch structure
+    transcribe_batch = {key: [] for key in first_batch}
+    translate_batch = {key: [] for key in first_batch}
+
+    # Function to yield and reset batch
+    def yield_batch(batch):
+        if batch[next(iter(batch))]:
+            yield batch
+        return {key: [] for key in batch}
 
     for batch in iterator:
         for i in range(len(batch[next(iter(batch))])):
@@ -724,19 +739,18 @@ def multipack_iterator(iterator, batch_size=25, drop_last=True):
                     transcribe_batch[key].append(batch[key][i])
                 if len(transcribe_batch[next(iter(transcribe_batch))]) == batch_size:
                     yield transcribe_batch
-                    transcribe_batch = {key: [] for key in batch}
+                    transcribe_batch = yield_batch(transcribe_batch)
+
             elif 50359 in sample['labels']:
                 for key in batch:
                     translate_batch[key].append(batch[key][i])
                 if len(translate_batch[next(iter(translate_batch))]) == batch_size:
                     yield translate_batch
-                    translate_batch = {key: [] for key in batch}
+                    translate_batch = yield_batch(translate_batch)
 
     if not drop_last:
         remaining_batch = {key: transcribe_batch[key] + translate_batch[key] for key in transcribe_batch}
-        if remaining_batch[next(iter(remaining_batch))]:
-            yield remaining_batch
-
+        yield_batch(remaining_batch)
 
 
 def main():
