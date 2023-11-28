@@ -43,7 +43,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --prev_column_name "previous_text" \
     --log_max_eval_predictions 100 \
     --log_eval_predictions_fn "utils.log_predictions.write_predictions" \
-    --log_examples 1 \
+    --log_examples 100 \
     --streaming True \
     --use_auth_token True \
     --dtype bfloat16 \
@@ -51,6 +51,6 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --resume_from_checkpoint True \
     --ignore_data_skip \
     --gradient_checkpointing True \
-    --pad_target_to_multiple_of 448 \
+    --pad_target_to_multiple_of 400 \
     --max_prev_length 120 \
     --push_to_hub
