@@ -719,13 +719,13 @@ def multipack_iterator(iterator, batch_size=25, drop_last=True):
         # Iterate through each element of the batch
         for i in range(len(batch[next(iter(batch))])):
             # Check the condition for each type of task
-            if 50360 in batch['labels'][i]:
+            if 50359 in batch['labels'][i]:
                 for key in batch:
                     transcribe_batch[key].append(batch[key][i])
                 if len(transcribe_batch[next(iter(transcribe_batch))]) == batch_size:
                     yield transcribe_batch
                     transcribe_batch = {key: [] for key in batch}
-            elif 50359 in batch['labels'][i]:
+            elif 50358 in batch['labels'][i]:
                 for key in batch:
                     translate_batch[key].append(batch[key][i])
                 if len(translate_batch[next(iter(translate_batch))]) == batch_size:
