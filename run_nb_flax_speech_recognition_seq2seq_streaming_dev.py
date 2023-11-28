@@ -715,17 +715,9 @@ def multipack_iterator(iterator, batch_size=25, drop_last=True):
     transcribe_batch = []
     translate_batch = []
     for batch in iterator:
-        for sample in batch:
-            # Debugging: Check the type of sample
-            if not isinstance(sample, dict):
-                print(f"Unexpected type for 'sample': {type(sample)}, value: {sample}")
-                continue
+        batch_as_list_of_dicts = [{key: batch[key][i] for key in batch} for i in range(len(batch[next(iter(batch))]))]
 
-            labels = sample.get('labels', [])
-            if not isinstance(labels, (list, set)):
-                print(f"Unexpected type for 'labels': {type(labels)}, value: {labels}")
-                continue
-            
+        for sample in batch_as_list_of_dicts:
             # "<|transcribe|>": 50360,
             if 50360 in sample['labels']:
                 transcribe_batch.append(sample)
