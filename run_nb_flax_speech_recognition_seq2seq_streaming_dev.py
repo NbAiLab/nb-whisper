@@ -712,28 +712,31 @@ def create_learning_rate_fn(
 
 
 def multipack_iterator(iterator, batch_size=25, drop_last=True):
-    transcribe_batch = []
-    translate_batch = []
-    for batch in iterator:
-        batch_as_list_of_dicts = [{key: batch[key][i] for key in batch} for i in range(len(batch[next(iter(batch))]))]
+    transcribe_batch = {key: [] for key in iterator[0]}  # Assuming all batches have the same structure
+    translate_batch = {key: [] for key in iterator[0]}
 
-        for sample in batch_as_list_of_dicts:
-            # "<|transcribe|>": 50360,
+    for batch in iterator:
+        for i in range(len(batch[next(iter(batch))])):
+            sample = {key: batch[key][i] for key in batch}
+
             if 50360 in sample['labels']:
-                transcribe_batch.append(sample)
-                if len(transcribe_batch) == batch_size:
+                for key in batch:
+                    transcribe_batch[key].append(batch[key][i])
+                if len(transcribe_batch[next(iter(transcribe_batch))]) == batch_size:
                     yield transcribe_batch
-                    transcribe_batch = []
-            # "<|translate|>": 50359,
+                    transcribe_batch = {key: [] for key in batch}
             elif 50359 in sample['labels']:
-                translate_batch.append(sample)
-                if len(translate_batch) == batch_size:
+                for key in batch:
+                    translate_batch[key].append(batch[key][i])
+                if len(translate_batch[next(iter(translate_batch))]) == batch_size:
                     yield translate_batch
-                    translate_batch = []
-    if not drop_last and (transcribe_batch or translate_batch):
-        last_batch = [transcribe_batch + translate_batch][:batch_size]
-        if last_batch:
-            yield last_batch[0]
+                    translate_batch = {key: [] for key in batch}
+
+    if not drop_last:
+        remaining_batch = {key: transcribe_batch[key] + translate_batch[key] for key in transcribe_batch}
+        if remaining_batch[next(iter(remaining_batch))]:
+            yield remaining_batch
+
 
 
 def main():
