@@ -47,10 +47,12 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --streaming True \
     --use_auth_token True \
     --dtype bfloat16 \
+    --dtype_params bfloat16 \
     --hub_private_repo True \
     --resume_from_checkpoint True \
     --ignore_data_skip \
     --gradient_checkpointing True \
     --pad_target_to_multiple_of 448 \
     --max_prev_length 120 \
+    --push_to_hub_auto_lfs_prune True \
     --push_to_hub
