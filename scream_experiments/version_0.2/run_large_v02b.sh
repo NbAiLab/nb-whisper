@@ -27,7 +27,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --predict_with_generate \
     --warmup_steps 100 \
     --num_train_steps 5000 \
-    --eval_steps 100 \
+    --eval_steps 500 \
     --lr_scheduler_type linear \
     --learning_rate 3.5e-5 \
     --weight_decay 0.01 \
@@ -37,7 +37,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --bpe_dropout 0.2 \
     --activation_dropout 0.1 \
     --per_device_train_batch_size 8 \
-    --per_device_eval_batch_size 8 \
+    --per_device_eval_batch_size 1 \
     --preprocessing_num_workers 32 \
     --timestamp_column_name "timestamped_text" \
     --prev_column_name "previous_text" \
