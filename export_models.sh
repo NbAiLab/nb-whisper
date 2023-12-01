@@ -3,6 +3,10 @@ pip install "optimum[exporters]>=1.14.1" tensorflow
 
 python << END
 from transformers import WhisperForConditionalGeneration, TFWhisperForConditionalGeneration, WhisperTokenizerFast
+import shutil
+
+# Backup generation_config.json
+shutil.copyfile('./generation_config.json', './generation_config_backup.json')
 
 print("Saving model to PyTorch...", end=" ")
 model = WhisperForConditionalGeneration.from_pretrained("./", from_flax=True)
@@ -14,6 +18,9 @@ print("Saving model to TensorFlow...", end=" ")
 tf_model = TFWhisperForConditionalGeneration.from_pretrained("./", from_pt=True)
 tf_model.save_pretrained("./")
 print("Done.")
+
+# Restore the backup of generation_config.json
+shutil.move('./generation_config_backup.json', './generation_config.json')
 
 print("Saving model to ONNX...", end=" ")
 from optimum.onnxruntime import ORTModelForSpeechSeq2Seq
