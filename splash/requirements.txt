@@ -1,0 +1,8 @@
+git+https://github.com/huggingface/transformers.git
+torch
+torchaudio
+soundfile
+librosa
+moviepy
+matplotlib
+pillow
