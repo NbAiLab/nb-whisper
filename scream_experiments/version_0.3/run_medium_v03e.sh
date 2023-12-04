@@ -53,4 +53,5 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --gradient_checkpointing True \
     --pad_target_to_multiple_of 400 \
     --max_prev_length 120 \
+    --push_to_hub_auto_lfs_prune True \
     --push_to_hub
