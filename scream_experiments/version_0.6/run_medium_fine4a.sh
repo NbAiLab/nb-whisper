@@ -17,8 +17,9 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --text_column_name normsentence_text \
     --train_split_name train \
     --dataset_load_fn "utils.dataset_load_npsc.load_dataset_npsc_norm_nohes" \
-    --test_split_name "test_nst,test_clean_stortinget_no" \
-    --eval_split_name "validation_nst,validation_clean_stortinget_no" \
+    --test_split_name "test" \
+    --eval_split_name "validation" \
+    --max_eval_samples 256 \
     --hub_model_id NbAiLab/nb-whisper-medium-repl-fine4a \
     --output_dir ../../../nb-whisper-medium-repl-fine4a \
     --overwrite_output_dir \
