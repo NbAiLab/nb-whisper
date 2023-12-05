@@ -4,11 +4,13 @@ export CMALLOC_VERBOSE=0
 export TCMALLOC_VERBOSE=0
 export TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD=10000000000
 
+## RENAMED TO NbAiLabBeta/nb-whisper-base
+
 # Running the Python script
 python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
-    --model_name_or_path NbAiLab/nb-whisper-medium-RC1 \
-    --run_name "NB-Whisper - medium - dynamic eval v0.3b" \
-    --run_description "A NB-Whisper dynamic eval v0.3b" \
+    --model_name_or_path NbAiLab/nb-whisper-base-RC1 \
+    --run_name "NB-Whisper - base - dynamic eval v0.7" \
+    --run_description "A NB-Whisper base dynamic eval v0.7" \
     --wandb_entity "nbailab" \
     --wandb_project "NB-Whisper dynamic v0.1" \
     --dataset_name NbAiLab/ncc_speech_styling_v2 \
@@ -18,8 +20,8 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --dataset_load_fn "utils.dataset_load_rc_dynamic_noellipses_turndupwords.load_dataset_nbwhisper_rc_dynamic_eval_verbatim" \
     --test_split_name "test_nst,test_clean_stortinget_no" \
     --eval_split_name "validation_nst,validation_clean_stortinget_no" \
-    --hub_model_id NbAiLab/nb-whisper-medium-v0.3b \
-    --output_dir ../../../nb-whisper-medium-v0.3b \
+    --hub_model_id NbAiLab/nb-whisper-base-v0.7 \
+    --output_dir ../../../nb-whisper-base-v0.7 \
     --overwrite_output_dir \
     --do_train \
     --do_predict \
@@ -29,7 +31,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --num_train_steps 50000 \
     --eval_steps 5000 \
     --lr_scheduler_type linear \
-    --learning_rate 2.5e-5 \
+    --learning_rate 1e-4 \
     --weight_decay 0.01 \
     --adam_beta1 0.9 \
     --adam_beta2 0.98 \
