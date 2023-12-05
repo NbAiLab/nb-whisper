@@ -6,11 +6,11 @@ export TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD=10000000000
 
 # Running the Python script
 python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
-    --model_name_or_path NbAiLab/nb-whisper-medium-v0.3b \
-    --run_name "NB-Whisper - medium - dynamic eval v0.4d" \
-    --run_description "A NB-Whisper dynamic eval v0.4d" \
+    --model_name_or_path NbAiLabBeta/nb-whisper-medium \
+    --run_name "NB-Whisper - medium - dynamic semantic v0.7" \
+    --run_description "A NB-Whisper dynamic semantic v0.7" \
     --wandb_entity "nbailab" \
-    --wandb_project "NB-Whisper dynamic v0.1" \
+    --wandb_project "NB-Whisper semantic v0.1" \
     --dataset_name NbAiLab/ncc_speech_styling_v4 \
     --language Norwegian \
     --text_column_name text \
@@ -18,16 +18,16 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --dataset_load_fn "utils.dataset_load_rc_dynamic_downsampled_notranscribe.load_dataset_nbwhisper_rc_dynamic_eval_verbatim" \
     --test_split_name "test_nst,test_clean_stortinget_no" \
     --eval_split_name "validation_nst,validation_clean_stortinget_no" \
-    --hub_model_id NbAiLab/nb-whisper-medium-v0.4d \
-    --output_dir ../../../nb-whisper-medium-v0.4d \
+    --hub_model_id NbAiLab/nb-whisper-medium-v0.7-semantic \
+    --output_dir ../../../nb-whisper-medium-v0.7-semantic \
     --overwrite_output_dir \
     --do_train \
     --do_predict \
     --do_eval \
     --predict_with_generate \
-    --warmup_steps 10 \
-    --num_train_steps 100 \
-    --eval_steps 5 \
+    --warmup_steps 40 \
+    --num_train_steps 250 \
+    --eval_steps 40 \
     --lr_scheduler_type linear \
     --learning_rate 2.5e-5 \
     --weight_decay 0.01 \
@@ -37,7 +37,7 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --bpe_dropout 0.2 \
     --activation_dropout 0.1 \
     --per_device_train_batch_size 32 \
-    --per_device_eval_batch_size 8 \
+    --per_device_eval_batch_size 1 \
     --preprocessing_num_workers 32 \
     --timestamp_column_name "timestamped_text" \
     --prev_column_name "previous_text" \
