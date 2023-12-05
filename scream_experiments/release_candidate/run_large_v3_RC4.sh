@@ -56,3 +56,4 @@ python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
     --max_prev_length 120 \
     --push_to_hub_auto_lfs_prune True \
     --push_to_hub
+
