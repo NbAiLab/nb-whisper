@@ -110,7 +110,7 @@ asr("king.mp3", generate_kwargs={'task': 'transcribe', 'language': 'no'})
 ```
 </details>
 
-Examining the output, we see that there are multiple repetitions in the end. This is because the default length is 30 seconds and the video is 1:25 minutes. By passing the `chunk_lengt_s` argument, we can transcribe longer file.
+Examining the output, we see that there are multiple repetitions in the end. This is because the default length is 30 seconds and the video is 1:25 minutes. By passing the ```chunk_lengt_s``` argument, we can transcribe longer file.
 
 ```python
 asr("king.mp3", chunk_length_s=30, generate_kwargs={'task': 'transcribe', 'language': 'no'})
