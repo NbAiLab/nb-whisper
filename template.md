@@ -28,9 +28,10 @@ widget:
 #Finetuned#
 
 # NB-Whisper #Size# (Release Candidate)
-IMPORTANT: These are still only Release Candidates. We are now doing the final testing, and if all goes well, we will release models later this month.
 
-This is the **_Norwegian NB-Whisper #Size# model_** released by the National Library of Norway. NB-Whisper is a series of models for automatic speech recognition (ASR) and speech translation, building upon the foundation laid by [OpenAI's Whisper](https://arxiv.org/abs/2212.04356). All models are trained for a total of 250.000 steps on a dataset consisting of 8M samples of aligned 30 second audio clips. This amounts to totally 66.000 hours of speech. For more details about the training set, please see our forthcoming article.
+**IMPORTANT:** These models are currently Release Candidates. We are in the final stages of testing. If everything proceeds smoothly, we plan to officially release the models later this month.
+
+Introducing the **_Norwegian NB-Whisper #Size# model_**, proudly developed by the National Library of Norway. NB-Whisper is a cutting-edge series of models designed for automatic speech recognition (ASR) and speech translation. These models are based on the work of [OpenAI's Whisper](https://arxiv.org/abs/2212.04356). Each model in the series has been trained for 250,000 steps, utilizing a diverse dataset of 8 million samples. These samples consist of aligned audio clips, each 30 seconds long, culminating in a staggering 66,000 hours of speech. For an in-depth understanding of our training methodology and dataset composition, keep an eye out for our upcoming article.
 
 <center>
   <figure>
@@ -66,18 +67,17 @@ Please refer to the OpenAI Whisper model card for more details about the backbon
 - **Language(s) (NLP):** Norwegian, Norwegian Bokmål, Norwegian Nynorsk, English
 - **License:** [Creative Commons Attribution 4.0 International (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/)
 - **Trained from model:** [openai/whisper-#size#](https://huggingface.co/openai/whisper-#size#)
-
-### Model Sources
 - **Code Repository:** https://github.com/NbAiLab/nb-whisper/
 - **Paper:** _Coming soon_
 - **Demo:** _See Spaces on this page_
 
-## How to use the models
-### Online Demos
-It is possible to run the models directly from the HuggingFace Inference API on the right side of this page. However, this means that the model will first need to load and then it will run on a very small CPU. It is very slow. For a few days, we will however host some of the models on TPUs. This is a lot faster. Take a look under **Spaces** on the [Main Page](https://huggingface.co/NbAiLabBeta/).
+## How to Use the Models
 
-### HuggingFace
-You can download the models, and run them locally. The Tiny, Base and Small models are well suited to run on CPU. For Medium and Large we recommend a computer/server with a graphical card (GPU). Using the models with Transformers from HuggingFace is trivial as long as you have [Python](https://www.python.org/downloads/) installed on your computer. The examples are using this [sample mp3-file]([audio/king.mp3](https://github.com/NbAiLab/nb-whisper/raw/main/audio/king.mp3)).
+### Online Demos
+You can try the models directly through the HuggingFace Inference API, accessible on the right side of this page. Be aware that initially, the model needs to load and will run on limited CPU capacity, which might be slow. To enhance your experience, we are temporarily hosting some models on TPUs for a few days, significantly boosting their performance. Explore these under the **Spaces** section on the [Main Page](https://huggingface.co/NbAiLabBeta/).
+
+### Local Setup with HuggingFace
+Alternatively, you can download the models for local usage. The Tiny, Base, and Small models are optimized for CPU execution. For the Medium and Large models, we recommend a system equipped with a GPU to ensure efficient processing. Setting up and using these models with HuggingFace's Transformers is straightforward, provided you have [Python](https://www.python.org/downloads/) installed on your machine. For practical demonstrations, refer to examples using this [sample mp3 file](https://github.com/NbAiLab/nb-whisper/raw/main/audio/king.mp3).
 
 ```bash
 # Download the sample file
@@ -212,56 +212,37 @@ asr("king.mp3", chunk_length_s=30, return_timestamps="word", generate_kwargs={'t
 }
 ```
 </details>
-
 ### Whisper CPP
-Whisper CPP is a C++ implementation of the Whisper model.  The C++ version aims to provide the same functionalities while leveraging the efficiency and performance optimizations inherent in C++. This allows you to embed any Whisper model into a binary file, and build real applications around this. It does however require some knowledge about compiling C++ programs. Their [homepage](https://github.com/ggerganov/whisper.cpp) gives you several examples of how to build applications, including real-time transription.
-
-We have converted this model to the ggml-format needed to build Whisper CPP binaries. You can download the file [here](blob/main/ggml-model.bin).
+Whisper CPP is a C++ implementation of the Whisper model, offering the same functionalities with the added benefits of C++ efficiency and performance optimizations. This allows embedding any Whisper model into a binary file, facilitating the development of real applications. However, it requires some familiarity with compiling C++ programs. Their [homepage](https://github.com/ggerganov/whisper.cpp) provides examples of how to build applications, including real-time transcription. The ggml-format model for Whisper CPP binaries can be downloaded [here](blob/main/ggml-model.bin).
 
 ### API
-Check instructions within the demoes in Spaces for how to access the models through a simple API. Please note that the demoes are actually demoes, and will just be available a few weeks. 
+Instructions for accessing the models via a simple API are included in the demos under Spaces. Note that these demos are temporary and will only be available for a few weeks.
 
 ## Training Data
-Trained data comes from Språkbanken and the digital collection at the National Library of Norway. Training data includes:
+The training data originates from Språkbanken and the National Library of Norway's digital collection, including:
 
-- NST Norwegian ASR Database (16 kHz), and its corresponding dataset
-- Transcribed speeches from the Norwegian Parliament produced by Språkbanken
+- NST Norwegian ASR Database (16 kHz) and its corresponding dataset
+- Transcribed speeches from the Norwegian Parliament by Språkbanken
 - TV broadcast (NRK) subtitles (NLN digital collection)
 - Audiobooks (NLN digital collection)
 
-
 ### Downstream Use
 
-The models (and in particular the small sizes) are still known to show some hallucinations, as well as a tendency to drop part of the transcript from time to time. Please also note that the transcripts are typically not word by word. Spoken language and written language are often very different, and the model aims to "translate" spoken utterances into grammatically correct written sentences. We strongly believe that the best way to understand these models is to try them yourself.
-
-A significant part of the training material comes from TV subtitles. Subtitles often shorten the content to make it easier to read. Typically, non-essential parts of the utterance can be also dropped. In some cases, this is a desired ability, in other cases, this is undesired. The final release of these model will provida a mechanism to control for this beaviour.
-
-
+The models, especially the smaller ones, may exhibit occasional hallucinations and may drop parts of the transcript. They are designed to convert spoken language into grammatically correct written sentences, which might not always be word-for-word translations. The final release will include a mechanism to control for subtitle-like condensation, as a significant portion of the training material comes from TV subtitles known for content abbreviation. We encourage users to try the models themselves for a better understanding.
 
 ## Bias, Risks, and Limitations
 
-Production use without adequate assessment of risks and mitigation may be considered irresponsible or harmful. These models may have bias and/or any other undesirable distortions. When third parties, deploy or provide systems and/or services to other parties using any of these models (or using systems based on these models) or become users of the models, they should note that it is their responsibility to mitigate the risks arising from their use and, in any event, to comply with applicable regulations, including regulations regarding the use of artificial intelligence. In no event shall the owner of the models (The National Library of Norway) be liable for any results arising from the use made by third parties of these models.
-
+Using these models without adequate risk assessment and mitigation could be considered irresponsible. They may contain biases or other undesirable distortions. Users who deploy these models or integrate them into systems or services are responsible for mitigating risks and complying with applicable AI regulations. The National Library of Norway, as the model owner, disclaims liability for any outcomes resulting from third-party use of these models.
 
 #### Software
-The model is trained using Jax/Flax. The final model is then converted to Pytorch, Tensorflow, whisper.cpp and ONXX. You can find all these formats under `Files and versions`. Please tell us if you would like the models to be converted to other format. 
+The model is trained using Jax/Flax and converted to Pytorch, Tensorflow, whisper.cpp, and ONXX formats. These are available under `Files and versions`. We welcome requests for conversion to other formats.
 
 ## Citation & Contributors
-The development of this model was part of the contributors' professional roles at the National Library of Norway, under the _NoSTram_ project led by _Per Egil Kummervold (PEK)_. The Jax code, dataset loaders, and training scripts were collectively designed by _Javier de la Rosa (JdlR)_, _Freddy Wetjen (FW)_, _Rolv-Arild Braaten (RAB)_, and _PEK_. Primary dataset curation was handled by _FW_, _RAB_, and _PEK_, while _JdlR_ and _PEK_ crafted the documentation. The project was completed under the umbrella of AiLab, directed by _Svein Arne Brygfjeld_. 
-
-All contributors played a part in shaping the optimal training strategy for the Norwegian ASR model based on the Whisper architecture. 
-
-_A paper detailing our process and findings is underway!_
-
+The NB-Whisper #Size# model is a product of the NoSTram project led by Per Egil Kummervold (PEK) at the National Library of Norway. Key contributors include Javier de la Rosa (JdlR), Freddy Wetjen (FW), Rolv-Arild Braaten (RAB), and PEK. AiLab, under the direction of Svein Arne Brygfjeld, supported the project's successful completion. A detailed paper on our process and findings is forthcoming.
 
 ## Acknowledgements
 
-Thanks to [Google TPU Research Cloud](https://sites.research.google/trc/about/) for supporting this project with extensive training resources. Thanks to Google Cloud for supporting us with credits for translating large parts of the corpus. A special thanks to [Sanchit Ghandi](https://huggingface.co/sanchit-gandhi) at HuggingFace for providing thorough technical advice in debugging and with the work of getting this to train on Google TPUs. A special thanks to Per Erik Solberg at Språkbanken for the collaboration with regard to the Stortinget corpus.
+Our gratitude extends to [Google TPU Research Cloud](https://sites.research.google/trc/about/) for training resources, Google Cloud for translation credits, and HuggingFace's Sanchit Ghandi for technical support. A special thank you to Per Erik Solberg at Språkbanken for the collaboration on the Stortinget corpus.
 
 ## Contact
-Please do not hesitate to contact us with any experiences, insights, or suggestions that you may have. Your input is invaluable in helping us to improve the model and ensure that it effectively serves the needs of users. Whether you have technical concerns, usability suggestions, or ideas for future enhancements, we welcome your input. Thank you for participating in this critical stage of our model's development.
-
-If you intend to incorporate this model into your research, we kindly request that you reach out to us. We can provide you with the most current status of our upcoming paper, which you can cite to acknowledge and provide context for the work done on this model. 
-
-
-Please use this email as the main contact point, it is read by the entire team: <a rel="noopener nofollow" href="mailto:ailab@nb.no">ailab@nb.no</a>.
+For feedback, technical concerns, or collaboration inquiries, please contact <a rel="noopener nofollow" href="mailto:ailab@nb.no">ailab@nb.no</a>. If you plan to include this model in your research, contact us for the latest information on our upcoming paper for citation purposes.
