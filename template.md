@@ -240,7 +240,7 @@ The models, especially the smaller ones, may exhibit occasional hallucinations a
 
 Using these models without adequate risk assessment and mitigation could be considered irresponsible. They may contain biases or other undesirable distortions. Users who deploy these models or integrate them into systems or services are responsible for mitigating risks and complying with applicable AI regulations. The National Library of Norway, as the model owner, disclaims liability for any outcomes resulting from third-party use of these models.
 
-#### Software
+### Software
 The model is trained using Jax/Flax and converted to Pytorch, Tensorflow, whisper.cpp, and ONXX formats. These are available under `Files and versions`. We welcome requests for conversion to other formats.
 
 ## Citation & Contributors
