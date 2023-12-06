@@ -25,9 +25,10 @@ widget:
 - src: https://datasets-server.huggingface.co/assets/google/fleurs/--/nb_no/train/4/audio/audio.mp3
   example_title: FLEURS sample 2
 ---
+#Finetuned#
 
 # NB-Whisper #Size# (Release Candidate)
-Please not that these are still only Release Candidates. We are now doing the final testing, and if all goes well, we will release models later this month.
+IMPORTANT: These are still only Release Candidates. We are now doing the final testing, and if all goes well, we will release models later this month.
 
 This is the **_Norwegian NB-Whisper #Size# model_** released by the National Library of Norway. NB-Whisper is a series of models for automatic speech recognition (ASR) and speech translation, building upon the foundation laid by [OpenAI's Whisper](https://arxiv.org/abs/2212.04356). All models are trained for a total of 250.000 steps on a dataset consisting of 8M samples of aligned 30 second audio clips. This amounts to totally 66.000 hours of speech. For more details about the training set, please see our forthcoming article.
 
@@ -37,7 +38,7 @@ This is the **_Norwegian NB-Whisper #Size# model_** released by the National Lib
       <source src="https://huggingface.co/NbAiLab/nb-whisper-small-beta/resolve/main/king.mp4" type="video/mp4">
     Your browser does not support the video tag.
     </video>   
-  <figcaption><a href="https://www.royalcourt.no/tale.html?tid=137662&sek=28409&scope=27248" target="_blank">Speech given by His Majesty The King of Norway at the garden party hosted by Their Majesties The King and Queen at the Palace Park on 1 September 2016.</a>Transcribed using the Small model.</figcaption>
+  <figcaption><a href="https://www.royalcourt.no/tale.html?tid=137662&sek=28409&scope=27248" target="_blank">Speech given by His Majesty The King of Norway at the garden party hosted by Their Majesties The King and Queen at the Palace Park on 1st of September 2016.</a>Transcribed using the Small model.</figcaption>
 </figure> 
 </center>
 
