@@ -65,7 +65,7 @@ Please refer to the OpenAI Whisper model card for more details about the backbon
 - **Model type:** `whisper`
 - **Language(s) (NLP):** Norwegian, Norwegian Bokmål, Norwegian Nynorsk, English
 - **License:** [Creative Commons Attribution 4.0 International (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/)
-- **Finetuned from model:** [openai/whisper-small](https://huggingface.co/openai/whisper-small)
+- **Trained from model:** [openai/whisper-#size#](https://huggingface.co/openai/whisper-#size#)
 
 ### Model Sources
 - **Code Repository:** https://github.com/NbAiLab/nb-whisper/
