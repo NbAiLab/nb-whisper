@@ -25,11 +25,13 @@ widget:
 - src: https://datasets-server.huggingface.co/assets/google/fleurs/--/nb_no/train/4/audio/audio.mp3
   example_title: FLEURS sample 2
 ---
+#Finetuned#
 
 # NB-Whisper #Size# (Release Candidate)
-Please not that these are still only Release Candidates. We are now doing the final testing, and if all goes well, we will release models later this month.
 
-This is the **_Norwegian NB-Whisper #Size# model_** released by the National Library of Norway. NB-Whisper is a series of models for automatic speech recognition (ASR) and speech translation, building upon the foundation laid by [OpenAI's Whisper](https://arxiv.org/abs/2212.04356). All models are trained for a total of 250.000 steps on a dataset consisting of 8M samples of aligned 30 second audio clips. This amounts to totally 66.000 hours of speech. For more details about the training set, please see our forthcoming article.
+**IMPORTANT:** These models are currently Release Candidates. We are in the final stages of testing. If everything proceeds smoothly, we plan to officially release the models later this month.
+
+Introducing the **_Norwegian NB-Whisper #Size# model_**, proudly developed by the National Library of Norway. NB-Whisper is a cutting-edge series of models designed for automatic speech recognition (ASR) and speech translation. These models are based on the work of [OpenAI's Whisper](https://arxiv.org/abs/2212.04356). Each model in the series has been trained for 250,000 steps, utilizing a diverse dataset of 8 million samples. These samples consist of aligned audio clips, each 30 seconds long, culminating in a staggering 66,000 hours of speech. For an in-depth understanding of our training methodology and dataset composition, keep an eye out for our upcoming article.
 
 <center>
   <figure>
@@ -37,22 +39,27 @@ This is the **_Norwegian NB-Whisper #Size# model_** released by the National Lib
       <source src="https://huggingface.co/NbAiLab/nb-whisper-small-beta/resolve/main/king.mp4" type="video/mp4">
     Your browser does not support the video tag.
     </video>   
-  <figcaption><a href="https://www.royalcourt.no/tale.html?tid=137662&sek=28409&scope=27248" target="_blank">Speech given by His Majesty The King of Norway at the garden party hosted by Their Majesties The King and Queen at the Palace Park on 1 September 2016.</a>Transcribed using the Small model.</figcaption>
+  <figcaption><a href="https://www.royalcourt.no/tale.html?tid=137662&sek=28409&scope=27248" target="_blank">Speech given by His Majesty The King of Norway at the garden party hosted by Their Majesties The King and Queen at the Palace Park on 1st of September 2016.</a>Transcribed using the Small model.</figcaption>
 </figure> 
 </center>
 
 
 ## Model Details
 
-NB-Whisper models will be available in five different sizes:
+The NB-Whisper series offers models in five distinct sizes: Tiny, Base, Small, Medium, and Large, each designed to cater to different requirements. We generally recommend the Main models for most users, as they are balanced for common use cases. Additionally, there are two variants available for each size:
 
-| Model Size | Parameters | Main Model | Verbatim version |  Semantic version |
-|------------|------------|--------------|--------------|--------------|
-| tiny       | 39M        | [NB-Whisper Tiny](https://huggingface.co/NbAiLabBeta/nb-whisper-tiny) |[Tiny - verbatim](https://huggingface.co/NbAiLabBeta/nb-whisper-tiny-verbatim) |[Tiny - semantic](https://huggingface.co/NbAiLabBeta/nb-whisper-tiny-semantic) |
-| base       | 74M        | [NB-Whisper Base](https://huggingface.co/NbAiLabBeta/nb-whisper-base) |[Base - verbatim](https://huggingface.co/NbAiLabBeta/nb-whisper-base-verbatim) |[Base - semantic](https://huggingface.co/NbAiLabBeta/nb-whisper-base-semantic) |
-| small      | 244M       | [NB-Whisper Small](https://huggingface.co/NbAiLabBeta/nb-whisper-small) |[Small - verbatim](https://huggingface.co/NbAiLabBeta/nb-whisper-small-verbatim) |[Small - semantic](https://huggingface.co/NbAiLabBeta/nb-whisper-small-semantic) |
-| medium     | 769M       | [NB-Whisper Medium](https://huggingface.co/NbAiLabBeta/nb-whisper-medium) |[Medium - verbatim](https://huggingface.co/NbAiLabBeta/nb-whisper-medium-verbatim) |[Medium - semantic](https://huggingface.co/NbAiLabBeta/nb-whisper-medium-semantic) |
-| large      | 1550M      | [NB-Whisper Large](https://huggingface.co/NbAiLabBeta/nb-whisper-large) |[Large - verbatim](https://huggingface.co/NbAiLabBeta/nb-whisper-large-verbatim) |[Large - semantic](https://huggingface.co/NbAiLabBeta/nb-whisper-large-semantic) |
+- **Verbatim version**: This lower-cased variant is more literal and suitable for tasks requiring detailed transcription, such as linguistic analysis.
+- **Semantic version**: This variant focuses less on verbatim accuracy but captures the essence of content, ideal for meeting minutes and subtitling.
+
+All models are used in the same manner. Here are the available models:
+
+| Model Size | Parameters | Main Model | Verbatim version | Semantic version |
+|------------|------------|------------|------------------|------------------|
+| Tiny       | 39M        | [NB-Whisper Tiny](https://huggingface.co/NbAiLabBeta/nb-whisper-tiny) | [Tiny - verbatim](https://huggingface.co/NbAiLabBeta/nb-whisper-tiny-verbatim) | [Tiny - semantic](https://huggingface.co/NbAiLabBeta/nb-whisper-tiny-semantic) |
+| Base       | 74M        | [NB-Whisper Base](https://huggingface.co/NbAiLabBeta/nb-whisper-base) | [Base - verbatim](https://huggingface.co/NbAiLabBeta/nb-whisper-base-verbatim) | [Base - semantic](https://huggingface.co/NbAiLabBeta/nb-whisper-base-semantic) |
+| Small      | 244M       | [NB-Whisper Small](https://huggingface.co/NbAiLabBeta/nb-whisper-small) | [Small - verbatim](https://huggingface.co/NbAiLabBeta/nb-whisper-small-verbatim) | [Small - semantic](https://huggingface.co/NbAiLabBeta/nb-whisper-small-semantic) |
+| Medium     | 769M       | [NB-Whisper Medium](https://huggingface.co/NbAiLabBeta/nb-whisper-medium) | [Medium - verbatim](https://huggingface.co/NbAiLabBeta/nb-whisper-medium-verbatim) | [Medium - semantic](https://huggingface.co/NbAiLabBeta/nb-whisper-medium-semantic) |
+| Large      | 1550M      | [NB-Whisper Large](https://huggingface.co/NbAiLabBeta/nb-whisper-large) | [Large - verbatim](https://huggingface.co/NbAiLabBeta/nb-whisper-large-verbatim) | [Large - semantic](https://huggingface.co/NbAiLabBeta/nb-whisper-large-semantic) |
 
 
 Please refer to the OpenAI Whisper model card for more details about the backbone model.
@@ -64,108 +71,186 @@ Please refer to the OpenAI Whisper model card for more details about the backbon
 - **Model type:** `whisper`
 - **Language(s) (NLP):** Norwegian, Norwegian Bokmål, Norwegian Nynorsk, English
 - **License:** [Creative Commons Attribution 4.0 International (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/)
-- **Finetuned from model:** [openai/whisper-small](https://huggingface.co/openai/whisper-small)
-
-### Model Sources
+- **Trained from model:** [openai/whisper-#size#](https://huggingface.co/openai/whisper-#size#)
 - **Code Repository:** https://github.com/NbAiLab/nb-whisper/
 - **Paper:** _Coming soon_
 - **Demo:** _See Spaces on this page_
 
-## How to use the models
-### Online Demos
-It is possible to run the models directly from the HuggingFace Inference API on the right side of this page. However, this means that the model will first need to load and then it will run on a very small CPU. It is very slow. For a few days, we will however host some of the models on TPUs. This is a lot faster. Take a look under **Spaces** on the [Main Page](https://huggingface.co/NbAiLabBeta/).
+## How to Use the Models
 
-### HuggingFace
-You can download the models, and run them locally. The Tiny, Base and Small models are well suited to run on CPU. For Medium and Large we recommend a computer/server with a graphical card (GPU). Using the models with Transformers from HuggingFace is trivial as long as you have [Python](https://www.python.org/downloads/) installed on your computer. The examples are using this [sample mp3-file](audio/king.mp3),
+### Online Demos
+You can try the models directly through the HuggingFace Inference API, accessible on the right side of this page. Be aware that initially, the model needs to load and will run on limited CPU capacity, which might be slow. To enhance your experience, we are temporarily hosting some models on TPUs for a few days, significantly boosting their performance. Explore these under the **Spaces** section on the [Main Page](https://huggingface.co/NbAiLabBeta/).
+
+### Local Setup with HuggingFace
+Alternatively, you can download the models for local usage. The Tiny, Base, and Small models are optimized for CPU execution. For the Medium and Large models, we recommend a system equipped with a GPU to ensure efficient processing. Setting up and using these models with HuggingFace's Transformers is straightforward, provided you have [Python](https://www.python.org/downloads/) installed on your machine. For practical demonstrations, refer to examples using this [sample mp3 file](https://github.com/NbAiLab/nb-whisper/raw/main/audio/king.mp3).
 
 ```bash
-# Run from the command line to install necessary libraries. 
-> pip install transformers>=4.35.2
+# Download the sample file
+> wget -N https://github.com/NbAiLab/nb-whisper/raw/main/audio/king.mp3
 
+# Install necessary libraries. 
+> pip install transformers>=4.35.2
 ```
+
+After this is done, you should be able to run this in Python:
 
 ```python
 from transformers import pipeline
 
 # Load the model
-asr = pipeline("automatic-speech-recognition","#model_name#")
+asr = pipeline("automatic-speech-recognition", "#model_name#")
 
 #transcribe
-asr("king.mp3")
+asr("king.mp3", generate_kwargs={'task': 'transcribe', 'language': 'no'})
 
-
-,
-    generate_kwargs={'task': 'transcribe', 'language': 'no'}
-)
-# {'text': ' Så mange anga kører seg i så viktig sak, så vi får du kører det tilbake med. Om kabaret gudam i at vi skal hjælge. Kør seg vi gjør en uda? Nei noe skal å abelistera sonvorne skrifer. Det er sak, så kjent det bare handling i samtatsen til bargører. Trudet første lask. På den å først så å køre og en gange samme, og så får vi gjør å vorte vorte vorte når vi kjent dit.'}
 ```
 
-Timestamps can also be retrieved by passing in the right parameter.
+<details>
+<summary>Expected output</summary>
+
+```json
+{
+  {'text': ' Nordmenn er nordlendinger, trøndere, sørlendinger og folk fra alle andre regioner. Nordmenn er også innvandret fra Afghanistan, Pakistan, Polen, Sverige, Somalia og Syria. Det er ikke alltid så lett å si hvor vi er fra, hvilken nasjonalitet vi er fra. Hvilken nasjonalitet vi er fra. Hvilken nasjonalitet vi er fra. Hvilken nasjonalitet vi er fra. Hvilken nasjonalitet vi er fra. Hvilken nasjonalitet vi er fra. Hvilken nasjonalitet vi er fra.'}
+}
+```
+</details>
+
+Examining the output, we see that there are multiple repetitions in the end. This is because the default length is 30 seconds and the video is 1:25 minutes. By passing the ```chunk_lengt_s``` argument, we can transcribe longer file.
 
 ```python
-asr(
-    "audio.mp3",
-    generate_kwargs={'task': 'transcribe', 'language': 'no'},
-    return_timestamps=True,
-)
-# {'text': ' at så mange angar til seg så viktig sak, så vi får jo kjølget klare tilbakemeldingen om hva valget dem gjør at vi skal gjøre. Hva skjer vi gjøre nå da? Nei, nå skal jo administrationen vår skrivferdige sak, så kjem til behandling i samfærdshetshøyvalget, tror det første 
-#  r. Først så kan vi ta og henge dem kjemme, og så får vi gjøre vårt valget når vi kommer dit.',
-#  'chunks': [{'timestamp': (0.0, 5.34),
-#    'text': ' at så mange angar til seg så viktig sak, så vi får jo kjølget klare tilbakemeldingen om'},
-#   {'timestamp': (5.34, 8.64),
-#    'text': ' hva valget dem gjør at vi skal gjøre.'},
-#   {'timestamp': (8.64, 10.64), 'text': ' Hva skjer vi gjøre nå da?'},
-#   {'timestamp': (10.64, 17.44),
-#    'text': ' Nei, nå skal jo administrationen vår skrivferdige sak, så kjem til behandling i samfærdshetshøyvalget,'},
-#   {'timestamp': (17.44, 19.44), 'text': ' tror det første år.'},
-#   {'timestamp': (19.44, 23.94),
-#    'text': ' Først så kan vi ta og henge dem kjemme, og så får vi gjøre vårt valget når vi kommer dit.'}]}
+asr("king.mp3", chunk_length_s=30, generate_kwargs={'task': 'transcribe', 'language': 'no'})
+```
+<details>
+<summary>Expected output</summary>
+
+```json
+{
+{'text': ' Nordmenn er nordlendinger, trøndere, sørlendinger og folk fra alle andre regioner. Nordmenn er også innvandret fra Afghanistan, Pakistan, Polen, Sverige, Somalia og Syria. Det er ikke alltid så lett å si hvor vi er fra, hvilken nasjonalitet vi er fra. Hvilken nasjonalitet vi er fra. Hvilken nasjonalitet vi er fra. Hvilken nasjonalitet vi er fra. Hvilken nasjonalitet vi er fra. Hvilken nasjonalitet vi er fra, hvilken nasjonalitet vi tilhører. Det vi kaller hjem, er der hjertet vårt er, og det kan ikke alltid plasseres innenfor landegrenser. Nordmenn er jenter som er glad i jenter, gutter som er glad i gutter, og jenter og gutter som er glad i hverandre. Nordmenn trommer på Gud, Allah, Altet og ingenting. Nordmenn liker Grieg, Kygo, Helbilis og Kari Bremnes. Med andre ord, Norge er dere. Norge er oss. Mitt største håp for Norge er at vi skal klare å ta vare på hverandre, at vi skal bygge dette landet videre på tillit, fellesskap og raushet.'}
+```
+</details>
+
+Here the output looks a lot better. We can also ask the model to output timestamps:
+```python
+asr("king.mp3", chunk_length_s=30, return_timestamps=True, generate_kwargs={'task': 'transcribe', 'language': 'no'})
+```
+<details>
+<summary>Expected output</summary>
+
+```json
+{
+{'text': ' Nordmenn er nordlendinger, trøndere, sørlendinger og folk fra alle andre regioner. Nordmenn er også innvandret fra Afghanistan, Pakistan, Polen, Sverige, Somalia og Syria. Det er ikke alltid så lett å si hvor vi er fra, hvilken nasjonalitet vi er fra. Hvilken nasjonalitet vi er fra. hvilken nasjonalitet vi tilhører. Det vi kaller hjem, er der hjertet vårt er, og det kan ikke alltid plasseres innenfor landegrenser. Nordmenn er jenter som er glad i jenter, gutter som er glad i gutter, og jenter og gutter som er glad i hverandre. Nordmenn trommer på Gud, Allah, Altet og ingenting. Nordmenn liker Grieg, Kygo, Helbiles og Kari Bremnes. Med andre ord, Norge er dere. Norge er oss. Mitt største håp for Norge er at vi skal klare å ta vare på hverandre, at vi skal bygge dette landet videre på tillit, fellesskap og raushet.',
+ 'chunks': [{'timestamp': (0.0, 5.46),
+   'text': ' Nordmenn er nordlendinger, trøndere, sørlendinger'},
+  {'timestamp': (5.52, 8.68), 'text': ' og folk fra alle andre regioner.'},
+  {'timestamp': (8.68, 16.64),
+   'text': ' Nordmenn er også innvandret fra Afghanistan, Pakistan, Polen, Sverige, Somalia og Syria.'},
+  {'timestamp': (16.64, 13.3),
+   'text': ' Det er ikke alltid så lett å si hvor vi er fra, hvilken nasjonalitet vi er fra.'},
+  {'timestamp': (13.32, 30.28),
+   'text': ' Hvilken nasjonalitet vi er fra. hvilken nasjonalitet vi tilhører.'},
+  {'timestamp': (32.52, 39.16),
+   'text': ' Det vi kaller hjem, er der hjertet vårt er, og det kan ikke alltid plasseres'},
+  {'timestamp': (39.16, 42.0), 'text': ' innenfor landegrenser.'},
+  {'timestamp': (42.0, 46.74),
+   'text': ' Nordmenn er jenter som er glad i jenter, gutter som er glad i gutter,'},
+  {'timestamp': (46.74, 51.12),
+   'text': ' og jenter og gutter som er glad i hverandre.'},
+  {'timestamp': (51.16, 57.42),
+   'text': ' Nordmenn trommer på Gud, Allah, Altet og ingenting.'},
+  {'timestamp': (57.42, 64.3),
+   'text': ' Nordmenn liker Grieg, Kygo, Helbiles og Kari Bremnes.'},
+  {'timestamp': (64.34, 71.24),
+   'text': ' Med andre ord, Norge er dere. Norge er oss.'},
+  {'timestamp': (71.24, 78.04),
+   'text': ' Mitt største håp for Norge er at vi skal klare å ta vare på hverandre,'},
+  {'timestamp': (78.12, 84.68),
+   'text': ' at vi skal bygge dette landet videre på tillit, fellesskap og raushet.'}]}
+```
+</details>
+
+Some other cool features to look into:
+```python
+# Transcribe to Nynorsk
+asr("king.mp3", chunk_length_s=30, generate_kwargs={'task': 'transcribe', 'language': 'nn'})
+```
+<details>
+<summary>Expected output</summary>
+
+```json
+{
+  "text": "Nordmenn er nordlendingar, trøndarar, sørlendingar og folk frå alle andre regionar. Nordmenn er også innvandra frå Afghanistan, Pakistan, Polen, Sverige, Somalia og Syria. Det er ikkje alltid så lett å seie kvar vi er frå, kva nasjonalitet vi tilhøyrer. Det vi kallar heim, er der hjartet vårt er, og det kan ikkje alltid plasserast innanfor landegrenser. Nordmenn er jenter som er glad i jenter, gutar som erade i gutar, og jenter og gutar som er glade i kvarandre. Nordmenn trommar på Gud, Allah, Altet og ingenting. Nordmenn liker Grieg, Kygo, Helbiles og Kari Bremnes. Med andre ord, Noreg er dere! Noreg er oss. Mitt største håp for Noreg er at vi skal klare å ta vare på kvarandre, at vi skal byggje dette landet vidare på tillit, fellesskap og raushet."
+}
+```
+</details>
+
+```python
+# Transcribe to English
+asr("king.mp3", chunk_length_s=30, generate_kwargs={'task': 'transcribe', 'language': 'en'})
+```
+<details>
+<summary>Expected output</summary>
+
+```json
+{
+  "text": "Norwegians are Norwegians, trønders, southerners and people from all other regions. Norwegians are also invaded from Afghanistan, Pakistan, Poland, Sweden, Somalia and Suria. It is not always so easy to say where we are from, what nationality we belong to. What we call home is where our heart is, and it cannot always be placed within national borders. Norwegians are girls who like girls, boys who like boys, and girls and boys who like each other. Norwegians thrump on God, Allah, Altet and nothing. Norwegians like Grieg, Kygo, Helbilis and Kari Bremnes. In other words, Norway is you. Norway is us. My biggest hope for Norway is that we should be able to take care of each other, that we should build this country on trust, community and generosity."
+}
+```
+</details>
+
+```python
+# Return Word Level Timestamps
+asr("king.mp3", chunk_length_s=30, return_timestamps="word", generate_kwargs={'task': 'transcribe', 'language': 'no'})
 ```
 
+<details>
+<summary>Expected output</summary>
+
+```json
+{
+  "text": "Nordmenn er nordlendinger, trøndere, sørlendinger og folk fra alle andre regioner. Nordmenn er også innvandret fra Afghanistan, Pakistan, Polen, Sverige, Somalia og Syria. Det er ikke alltid så lett å si hvor vi er fra, hvilken nasjonalitet vi tilhører. Det vi kaller hjem, er der hjertet vårt er, og det kan ikke alltid plasseres innenfor landegrenser. Nordmenn er jenter som er glad i jenter, gutter som er glad i gutter, og jenter og gutter som er glad i hverandre. Nordmenn trommer på Gud, Allah, Altet og ingenting. Nordmenn liker Grieg, Kygo, Helbilis og Kari Bremnes. Med andre ord, Norge er dere. Norge er oss. Mitt største håp for Norge er at vi skal klare å ta vare på hverandre, at vi skal bygge dette landet videre på tillit, fellesskap og raushet.",
+  "chunks": [
+    {"text": "Nordmenn", "timestamp": [0.72, 1.42]},
+    {"text": "er", "timestamp": [1.42, 1.74]},
+    // ... more chunks ...
+    {"text": "raushet.", "timestamp": [83.1, 84.88]}
+  ]
+}
+```
+</details>
+
+### Whisper CPP
+Whisper CPP is a C++ implementation of the Whisper model, offering the same functionalities with the added benefits of C++ efficiency and performance optimizations. This allows embedding any Whisper model into a binary file, facilitating the development of real applications. However, it requires some familiarity with compiling C++ programs. Their [homepage](https://github.com/ggerganov/whisper.cpp) provides examples of how to build applications, including real-time transcription. 
+
+We have converted this model to the ggml-format model used by Whisper CPP binaries. The file can be downloaded [here](blob/main/ggml-model.bin).
+
 ### API
-Check instructions within the demoes in Spaces for how to access these through a simple API. Please note that the demoes are actually demoes, and will just be available a few weeks. 
+Instructions for accessing the models via a simple API are included in the demos under Spaces. Note that these demos are temporary and will only be available for a few weeks.
 
 ## Training Data
-Trained data comes from Språkbanken and the digital collection at the National Library of Norway. Training data includes:
+The training data originates from Språkbanken and the National Library of Norway's digital collection, including:
 
-- NST Norwegian ASR Database (16 kHz), and its corresponding dataset
-- Transcribed speeches from the Norwegian Parliament produced by Språkbanken
+- NST Norwegian ASR Database (16 kHz) and its corresponding dataset
+- Transcribed speeches from the Norwegian Parliament by Språkbanken
 - TV broadcast (NRK) subtitles (NLN digital collection)
 - Audiobooks (NLN digital collection)
 
+## Downstream Use
 
-### Downstream Use
-
-The models (and in particular the small sizes) are still known to show some hallucinations, as well as a tendency to drop part of the transcript from time to time. Please also note that the transcripts are typically not word by word. Spoken language and written language are often very different, and the model aims to "translate" spoken utterances into grammatically correct written sentences. We strongly believe that the best way to understand these models is to try them yourself.
-
-A significant part of the training material comes from TV subtitles. Subtitles often shorten the content to make it easier to read. Typically, non-essential parts of the utterance can be also dropped. In some cases, this is a desired ability, in other cases, this is undesired. The final release of these model will provida a mechanism to control for this beaviour.
-
-
+The models, especially the smaller ones, may exhibit occasional hallucinations and may drop parts of the transcript. They are designed to convert spoken language into grammatically correct written sentences, which might not always be word-for-word translations. We have made two extra model variant for users that want a different transcription style. We encourage users to try the models themselves to get a better understanding.
 
 ## Bias, Risks, and Limitations
 
-This is a public beta that is not intended for production. Production use without adequate assessment of risks and mitigation may be considered irresponsible or harmful. These models may have bias and/or any other undesirable distortions. When third parties, deploy or provide systems and/or services to other parties using any of these models (or using systems based on these models) or become users of the models, they should note that it is their responsibility to mitigate the risks arising from their use and, in any event, to comply with applicable regulations, including regulations regarding the use of artificial intelligence. In no event shall the owner of the models (The National Library of Norway) be liable for any results arising from the use made by third parties of these models.
+Using these models without adequate risk assessment and mitigation could be considered irresponsible. They may contain biases or other undesirable distortions. Users who deploy these models or integrate them into systems or services are responsible for mitigating risks and complying with applicable AI regulations. The National Library of Norway, as the model owner, disclaims liability for any outcomes resulting from third-party use of these models.
 
-
-#### Software
-The model is trained using Jax/Flax. The final model is then converted to Pytorch, Tensorflow, whisper.cpp and ONXX. Please tell us if you would like future models to be converted to other format. 
+### Software
+The model is trained using Jax/Flax and converted to Pytorch, Tensorflow, whisper.cpp, and ONXX formats. These are available under `Files and versions`. We welcome requests for conversion to other formats.
 
 ## Citation & Contributors
-The development of this model was part of the contributors' professional roles at the National Library of Norway, under the _NoSTram_ project led by _Per Egil Kummervold (PEK)_. The Jax code, dataset loaders, and training scripts were collectively designed by _Javier de la Rosa (JdlR)_, _Freddy Wetjen (FW)_, _Rolv-Arild Braaten (RAB)_, and _PEK_. Primary dataset curation was handled by _FW_, _RAB_, and _PEK_, while _JdlR_ and _PEK_ crafted the documentation. The project was completed under the umbrella of AiLab, directed by _Svein Arne Brygfjeld_. 
-
-All contributors played a part in shaping the optimal training strategy for the Norwegian ASR model based on the Whisper architecture. 
-
-_A paper detailing our process and findings is underway!_
-
+The NB-Whisper #Size# model is a product of the NoSTram project led by Per Egil Kummervold (PEK) at the National Library of Norway. Key contributors include Javier de la Rosa (JdlR), Freddy Wetjen (FW), Rolv-Arild Braaten (RAB), and PEK. AiLab, under the direction of Svein Arne Brygfjeld, supported the project's successful completion. A detailed paper on our process and findings is forthcoming.
 
 ## Acknowledgements
 
-Thanks to [Google TPU Research Cloud](https://sites.research.google/trc/about/) for supporting this project with extensive training resources. Thanks to Google Cloud for supporting us with credits for translating large parts of the corpus. A special thanks to [Sanchit Ghandi](https://huggingface.co/sanchit-gandhi) for providing thorough technical advice in debugging and with the work of getting this to train on Google TPUs. A special thanks to Per Erik Solberg at Språkbanken for the collaboration with regard to the Stortinget corpus.
+Our gratitude extends to [Google TPU Research Cloud](https://sites.research.google/trc/about/) for training resources, Google Cloud for translation credits, and HuggingFace's Sanchit Ghandi for technical support. A special thank you to Per Erik Solberg at Språkbanken for the collaboration on the Stortinget corpus.
 
 ## Contact
-By releasing this ASR Whisper model  to gather constructive feedback on its performance. Please do not hesitate to contact us with any experiences, insights, or suggestions that you may have. Your input is invaluable in helping us to improve the model and ensure that it effectively serves the needs of users. Whether you have technical concerns, usability suggestions, or ideas for future enhancements, we welcome your input. Thank you for participating in this critical stage of our model's development.
-
-If you intend to incorporate this model into your research, we kindly request that you reach out to us. We can provide you with the most current status of our upcoming paper, which you can cite to acknowledge and provide context for the work done on this model. 
-
-
-Please use this email as the main contact point, it is read by the entire team: <a rel="noopener nofollow" href="mailto:ailab@nb.no">ailab@nb.no</a>
+For feedback, technical concerns, or collaboration inquiries, please contact <a rel="noopener nofollow" href="mailto:ailab@nb.no">ailab@nb.no</a>. If you plan to include this model in your research, contact us for the latest information on our upcoming paper for citation purposes.
