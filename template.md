@@ -73,20 +73,28 @@ Please refer to the OpenAI Whisper model card for more details about the backbon
 
 ## How to use the models
 ### Online Demos
-It is possible to run the models directly from the HuggingFace Inference API on the right side of this page. However, this means that the model will first need to load and then it will run on a very small CPU. It is very slow. For a few days, we will however host some of the models on TPUs. This is a lot faster. Take a look under **Spaces** on the [Main Page](https://huggingface.co/NbAiLabBeta/)
+It is possible to run the models directly from the HuggingFace Inference API on the right side of this page. However, this means that the model will first need to load and then it will run on a very small CPU. It is very slow. For a few days, we will however host some of the models on TPUs. This is a lot faster. Take a look under **Spaces** on the [Main Page](https://huggingface.co/NbAiLabBeta/).
 
 ### HuggingFace
-The models can easily be loaded on your
+You can download the models, and run them locally. The Tiny, Base and Small models are well suited to run on CPU. For Medium and Large we recommend a computer/server with a graphical card (GPU). Using the models with Transformers from HuggingFace is trivial as long as you have [Python](https://www.python.org/downloads/) installed on your computer. The examples are using this [sample mp3-file](audio/king.mp3),
+
+```bash
+# Run from the command line to install necessary libraries. 
+> pip install transformers>=4.35.2
+
+```
 
 ```python
 from transformers import pipeline
 
-asr = pipeline(
-    "automatic-speech-recognition",
-    "#model_name#"
-)
-asr(
-    "audio.mp3",
+# Load the model
+asr = pipeline("automatic-speech-recognition","#model_name#")
+
+#transcribe
+asr("king.mp3")
+
+
+,
     generate_kwargs={'task': 'transcribe', 'language': 'no'}
 )
 # {'text': ' Så mange anga kører seg i så viktig sak, så vi får du kører det tilbake med. Om kabaret gudam i at vi skal hjælge. Kør seg vi gjør en uda? Nei noe skal å abelistera sonvorne skrifer. Det er sak, så kjent det bare handling i samtatsen til bargører. Trudet første lask. På den å først så å køre og en gange samme, og så får vi gjør å vorte vorte vorte når vi kjent dit.'}
@@ -113,6 +121,9 @@ asr(
 #   {'timestamp': (19.44, 23.94),
 #    'text': ' Først så kan vi ta og henge dem kjemme, og så får vi gjøre vårt valget når vi kommer dit.'}]}
 ```
+
+### API
+Check instructions within the demoes in Spaces for how to access these through a simple API. Please note that the demoes are actually demoes, and will just be available a few weeks. 
 
 ## Training Data
 Trained data comes from Språkbanken and the digital collection at the National Library of Norway. Training data includes:
