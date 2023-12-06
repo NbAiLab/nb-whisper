@@ -76,13 +76,17 @@ Please refer to the OpenAI Whisper model card for more details about the backbon
 It is possible to run the models directly from the HuggingFace Inference API on the right side of this page. However, this means that the model will first need to load and then it will run on a very small CPU. It is very slow. For a few days, we will however host some of the models on TPUs. This is a lot faster. Take a look under **Spaces** on the [Main Page](https://huggingface.co/NbAiLabBeta/).
 
 ### HuggingFace
-You can download the models, and run them locally. The Tiny, Base and Small models are well suited to run on CPU. For Medium and Large we recommend a computer/server with a graphical card (GPU). Using the models with Transformers from HuggingFace is trivial as long as you have [Python](https://www.python.org/downloads/) installed on your computer. The examples are using this [sample mp3-file](audio/king.mp3),
+You can download the models, and run them locally. The Tiny, Base and Small models are well suited to run on CPU. For Medium and Large we recommend a computer/server with a graphical card (GPU). Using the models with Transformers from HuggingFace is trivial as long as you have [Python](https://www.python.org/downloads/) installed on your computer. The examples are using this [sample mp3-file]([audio/king.mp3](https://github.com/NbAiLab/nb-whisper/raw/main/audio/king.mp3)),
 
 ```bash
-# Run from the command line to install necessary libraries. 
-> pip install transformers>=4.35.2
+# Download the sample file
+> wget -N https://github.com/NbAiLab/nb-whisper/raw/main/audio/king.mp3
 
+# Install necessary libraries. 
+> pip install transformers>=4.35.2
 ```
+
+After this is done, you should be able to run this in Python:
 
 ```python
 from transformers import pipeline
@@ -92,12 +96,15 @@ asr = pipeline("automatic-speech-recognition","#model_name#")
 
 #transcribe
 asr("king.mp3")
+```
 
+<details>
+<summary>Expected output</summary>
 
-,
-    generate_kwargs={'task': 'transcribe', 'language': 'no'}
-)
-# {'text': ' Så mange anga kører seg i så viktig sak, så vi får du kører det tilbake med. Om kabaret gudam i at vi skal hjælge. Kør seg vi gjør en uda? Nei noe skal å abelistera sonvorne skrifer. Det er sak, så kjent det bare handling i samtatsen til bargører. Trudet første lask. På den å først så å køre og en gange samme, og så får vi gjør å vorte vorte vorte når vi kjent dit.'}
+```json
+{
+  "text": "Så mange anga kører seg i så viktig sak, så vi får du kører det tilbake med. Om kabaret gudam i at vi skal hjælge. Kør seg vi gjør en uda? Nei noe skal å abelistera sonvorne skrifer. Det er sak, så kjent det bare handling i samtatsen til bargører. Trudet første lask. På den å først så å køre og en gange samme, og så får vi gjør å vorte vorte vorte når vi kjent dit."
+}
 ```
 
 Timestamps can also be retrieved by passing in the right parameter.
