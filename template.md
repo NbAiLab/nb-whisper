@@ -234,7 +234,7 @@ The training data originates from Språkbanken and the National Library of Norwa
 - TV broadcast (NRK) subtitles (NLN digital collection)
 - Audiobooks (NLN digital collection)
 
-### Downstream Use
+## Downstream Use
 
 The models, especially the smaller ones, may exhibit occasional hallucinations and may drop parts of the transcript. They are designed to convert spoken language into grammatically correct written sentences, which might not always be word-for-word translations. The final release will include a mechanism to control for subtitle-like condensation, as a significant portion of the training material comes from TV subtitles known for content abbreviation. We encourage users to try the models themselves for a better understanding.
 
