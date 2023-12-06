@@ -27,8 +27,9 @@ widget:
 ---
 
 # NB-Whisper #Size# (Release Candidate)
+Please not that these are still only Release Candidates. We are now doing the final testing, and if all goes well, we will release models later this month.
 
-This is a **_release candidate_** of the Norwegian NB-Whisper #Size# model released by the National Library of Norway. NB-Whisper is a series of models for automatic speech recognition (ASR) and speech translation, building upon the foundation laid by [OpenAI's Whisper](https://arxiv.org/abs/2212.04356). All models are trained on 20,000 hours of labeled data.
+This is the **_Norwegian NB-Whisper #Size# model_** released by the National Library of Norway. NB-Whisper is a series of models for automatic speech recognition (ASR) and speech translation, building upon the foundation laid by [OpenAI's Whisper](https://arxiv.org/abs/2212.04356). All models are trained for a total of 250.000 steps on a dataset consisting of 8M samples of aligned 30 second audio clips. This amounts to totally 66.000 hours of speech. For more details about the training set, please see our forthcoming article.
 
 <center>
   <figure>
@@ -45,15 +46,14 @@ This is a **_release candidate_** of the Norwegian NB-Whisper #Size# model relea
 
 NB-Whisper models will be available in five different sizes:
 
-| Model Size | Parameters | Availability |
-|------------|------------|--------------|
-| tiny       | 39M        | [NB-Whisper Tiny (release candidate)](https://huggingface.co/NbAiLabBeta/nb-whisper-tiny-v0.2) |
-| base       | 74M        | [NB-Whisper Base (release candidate)](https://huggingface.co/NbAiLabBeta/nb-whisper-base-v0.2) |
-| small      | 244M       | [NB-Whisper Small (release candidate)](https://huggingface.co/NbAiLabBeta/nb-whisper-small-v0.2) |
-| medium     | 769M       | [NB-Whisper Medium (release candidate)](https://huggingface.co/NbAiLabBeta/nb-whisper-medium-v0.2) |
-| large      | 1550M      | [NB-Whisper Large (release candidate)](https://huggingface.co/NbAiLabBeta/nb-whisper-large-v0.2) |
+| Model Size | Parameters | Main Model | Verbatim version |  Semantic version |
+|------------|------------|--------------|--------------|--------------|
+| tiny       | 39M        | [NB-Whisper Tiny](https://huggingface.co/NbAiLabBeta/nb-whisper-tiny) |[Tiny - verbatim](https://huggingface.co/NbAiLabBeta/nb-whisper-tiny-verbatim) |[Tiny - semantic](https://huggingface.co/NbAiLabBeta/nb-whisper-tiny-semantic) |
+| base       | 74M        | [NB-Whisper Base](https://huggingface.co/NbAiLabBeta/nb-whisper-base) |[Base - verbatim](https://huggingface.co/NbAiLabBeta/nb-whisper-base-verbatim) |[Base - semantic](https://huggingface.co/NbAiLabBeta/nb-whisper-base-semantic) |
+| small      | 244M       | [NB-Whisper Small](https://huggingface.co/NbAiLabBeta/nb-whisper-small) |[Small - verbatim](https://huggingface.co/NbAiLabBeta/nb-whisper-small-verbatim) |[Small - semantic](https://huggingface.co/NbAiLabBeta/nb-whisper-small-semantic) |
+| medium     | 769M       | [NB-Whisper Medium](https://huggingface.co/NbAiLabBeta/nb-whisper-medium) |[Medium - verbatim](https://huggingface.co/NbAiLabBeta/nb-whisper-medium-verbatim) |[Medium - semantic](https://huggingface.co/NbAiLabBeta/nb-whisper-medium-semantic) |
+| large      | 1550M      | [NB-Whisper Large](https://huggingface.co/NbAiLabBeta/nb-whisper-large) |[Large - verbatim](https://huggingface.co/NbAiLabBeta/nb-whisper-large-verbatim) |[Large - semantic](https://huggingface.co/NbAiLabBeta/nb-whisper-large-semantic) |
 
-An official release of NB-Whisper models is planned for December 2023.
 
 Please refer to the OpenAI Whisper model card for more details about the backbone model.
 
@@ -71,40 +71,30 @@ Please refer to the OpenAI Whisper model card for more details about the backbon
 - **Paper:** _Coming soon_
 - **Demo:** _See Spaces on this page_
 
-## Uses
+## How to use the models
+### Online Demos
+It is possible to run the models directly from the HuggingFace Inference API on the right side of this page. However, this means that the model will first need to load and then it will run on a very small CPU. It is very slow. For a few days, we will however host some of the models on TPUs. This is a lot faster. Take a look under **Spaces** on the [Main Page](https://huggingface.co/NbAiLabBeta/).
 
-### Direct Use
+### HuggingFace
+You can download the models, and run them locally. The Tiny, Base and Small models are well suited to run on CPU. For Medium and Large we recommend a computer/server with a graphical card (GPU). Using the models with Transformers from HuggingFace is trivial as long as you have [Python](https://www.python.org/downloads/) installed on your computer. The examples are using this [sample mp3-file](audio/king.mp3),
 
-This is a **_release candidate_**. The models published in this repository are intended for a generalist purpose and are available to third parties.
+```bash
+# Run from the command line to install necessary libraries. 
+> pip install transformers>=4.35.2
 
-
-### Downstream Use
-
-The models (and in particular the small sizes) are still known to show some hallucinations, as well as a tendency to drop part of the transcript from time to time. Please also note that the transcripts are typically not word by word. Spoken language and written language are often very different, and the model aims to "translate" spoken utterances into grammatically correct written sentences. We strongly believe that the best way to understand these models is to try them yourself.
-
-A significant part of the training material comes from TV subtitles. Subtitles often shorten the content to make it easier to read. Typically, non-essential parts of the utterance can be also dropped. In some cases, this is a desired ability, in other cases, this is undesired. The final release of these model will provida a mechanism to control for this beaviour.
-
-
-
-## Bias, Risks, and Limitations
-
-This is a public beta that is not intended for production. Production use without adequate assessment of risks and mitigation may be considered irresponsible or harmful. These models may have bias and/or any other undesirable distortions. When third parties, deploy or provide systems and/or services to other parties using any of these models (or using systems based on these models) or become users of the models, they should note that it is their responsibility to mitigate the risks arising from their use and, in any event, to comply with applicable regulations, including regulations regarding the use of artificial intelligence. In no event shall the owner of the models (The National Library of Norway) be liable for any results arising from the use made by third parties of these models.
-
-
-
-## How to Get Started with the Model
-
-Use the code below to get started with the model.
+```
 
 ```python
 from transformers import pipeline
 
-asr = pipeline(
-    "automatic-speech-recognition",
-    "NbAiLab/nb-whisper-small-beta"
-)
-asr(
-    "audio.mp3",
+# Load the model
+asr = pipeline("automatic-speech-recognition","#model_name#")
+
+#transcribe
+asr("king.mp3")
+
+
+,
     generate_kwargs={'task': 'transcribe', 'language': 'no'}
 )
 # {'text': ' Så mange anga kører seg i så viktig sak, så vi får du kører det tilbake med. Om kabaret gudam i at vi skal hjælge. Kør seg vi gjør en uda? Nei noe skal å abelistera sonvorne skrifer. Det er sak, så kjent det bare handling i samtatsen til bargører. Trudet første lask. På den å først så å køre og en gange samme, og så får vi gjør å vorte vorte vorte når vi kjent dit.'}
@@ -132,6 +122,9 @@ asr(
 #    'text': ' Først så kan vi ta og henge dem kjemme, og så får vi gjøre vårt valget når vi kommer dit.'}]}
 ```
 
+### API
+Check instructions within the demoes in Spaces for how to access these through a simple API. Please note that the demoes are actually demoes, and will just be available a few weeks. 
+
 ## Training Data
 Trained data comes from Språkbanken and the digital collection at the National Library of Norway. Training data includes:
 
@@ -141,8 +134,20 @@ Trained data comes from Språkbanken and the digital collection at the National 
 - Audiobooks (NLN digital collection)
 
 
-#### Software
+### Downstream Use
 
+The models (and in particular the small sizes) are still known to show some hallucinations, as well as a tendency to drop part of the transcript from time to time. Please also note that the transcripts are typically not word by word. Spoken language and written language are often very different, and the model aims to "translate" spoken utterances into grammatically correct written sentences. We strongly believe that the best way to understand these models is to try them yourself.
+
+A significant part of the training material comes from TV subtitles. Subtitles often shorten the content to make it easier to read. Typically, non-essential parts of the utterance can be also dropped. In some cases, this is a desired ability, in other cases, this is undesired. The final release of these model will provida a mechanism to control for this beaviour.
+
+
+
+## Bias, Risks, and Limitations
+
+This is a public beta that is not intended for production. Production use without adequate assessment of risks and mitigation may be considered irresponsible or harmful. These models may have bias and/or any other undesirable distortions. When third parties, deploy or provide systems and/or services to other parties using any of these models (or using systems based on these models) or become users of the models, they should note that it is their responsibility to mitigate the risks arising from their use and, in any event, to comply with applicable regulations, including regulations regarding the use of artificial intelligence. In no event shall the owner of the models (The National Library of Norway) be liable for any results arising from the use made by third parties of these models.
+
+
+#### Software
 The model is trained using Jax/Flax. The final model is then converted to Pytorch, Tensorflow, whisper.cpp and ONXX. Please tell us if you would like future models to be converted to other format. 
 
 ## Citation & Contributors
