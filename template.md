@@ -236,7 +236,7 @@ The training data originates from Språkbanken and the National Library of Norwa
 
 ## Downstream Use
 
-The models, especially the smaller ones, may exhibit occasional hallucinations and may drop parts of the transcript. They are designed to convert spoken language into grammatically correct written sentences, which might not always be word-for-word translations. The final release will include a mechanism to control for subtitle-like condensation, as a significant portion of the training material comes from TV subtitles known for content abbreviation. We encourage users to try the models themselves for a better understanding.
+The models, especially the smaller ones, may exhibit occasional hallucinations and may drop parts of the transcript. They are designed to convert spoken language into grammatically correct written sentences, which might not always be word-for-word translations. We have made two extra model variant for users that want a different transcription style. We encourage users to try the models themselves to get a better understanding.
 
 ## Bias, Risks, and Limitations
 
