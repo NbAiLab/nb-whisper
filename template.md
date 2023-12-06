@@ -92,10 +92,10 @@ After this is done, you should be able to run this in Python:
 from transformers import pipeline
 
 # Load the model
-asr = pipeline("automatic-speech-recognition","#model_name#")
+asr = pipeline("automatic-speech-recognition", "#model_name#")
 
 #transcribe
-asr("king.mp3")
+asr("king.mp3", generate_kwargs={'task': 'transcribe', 'language': 'no'})
 
 ```
 
@@ -104,14 +104,97 @@ asr("king.mp3")
 
 ```json
 {
-  "text": "Så mange anga kører seg i så viktig sak, så vi får du kører det tilbake med. Om kabaret gudam i at vi skal hjælge. Kør seg vi gjør en uda? Nei noe skal å abelistera sonvorne skrifer. Det er sak, så kjent det bare handling i samtatsen til bargører. Trudet første lask. På den å først så å køre og en gange samme, og så får vi gjør å vorte vorte vorte når vi kjent dit."
+  {'text': ' Nordmenn er nordlendinger, trøndere, sørlendinger og folk fra alle andre regioner. Nordmenn er også innvandret fra Afghanistan, Pakistan, Polen, Sverige, Somalia og Syria. Det er ikke alltid så lett å si hvor vi er fra, hvilken nasjonalitet vi er fra. Hvilken nasjonalitet vi er fra. Hvilken nasjonalitet vi er fra. Hvilken nasjonalitet vi er fra. Hvilken nasjonalitet vi er fra. Hvilken nasjonalitet vi er fra. Hvilken nasjonalitet vi er fra.'}
 }
 ```
 </details>
 
-Timestamps can also be retrieved by passing in the right parameter.
+Examining the output, we see that there are multiple repetitions in the end. This is because the default length is 30 seconds and the video is 1:25 minutes. By passing the `chunk_lengt_s` argument, we can transcribe longer file.
 
 ```python
+asr("king.mp3", chunk_length_s=30, generate_kwargs={'task': 'transcribe', 'language': 'no'})
+```
+<details>
+<summary>Expected output</summary>
+
+```json
+{
+{'text': ' Nordmenn er nordlendinger, trøndere, sørlendinger og folk fra alle andre regioner. Nordmenn er også innvandret fra Afghanistan, Pakistan, Polen, Sverige, Somalia og Syria. Det er ikke alltid så lett å si hvor vi er fra, hvilken nasjonalitet vi er fra. Hvilken nasjonalitet vi er fra. Hvilken nasjonalitet vi er fra. Hvilken nasjonalitet vi er fra. Hvilken nasjonalitet vi er fra. Hvilken nasjonalitet vi er fra, hvilken nasjonalitet vi tilhører. Det vi kaller hjem, er der hjertet vårt er, og det kan ikke alltid plasseres innenfor landegrenser. Nordmenn er jenter som er glad i jenter, gutter som er glad i gutter, og jenter og gutter som er glad i hverandre. Nordmenn trommer på Gud, Allah, Altet og ingenting. Nordmenn liker Grieg, Kygo, Helbilis og Kari Bremnes. Med andre ord, Norge er dere. Norge er oss. Mitt største håp for Norge er at vi skal klare å ta vare på hverandre, at vi skal bygge dette landet videre på tillit, fellesskap og raushet.'}
+```
+</details>
+
+Here the output looks a lot better. We can also ask the model to output timestamps:
+```python
+asr("king.mp3", chunk_length_s=30, return_timestamps=True, generate_kwargs={'task': 'transcribe', 'language': 'no'})
+```
+<details>
+<summary>Expected output</summary>
+
+```json
+{
+{'text': ' Nordmenn er nordlendinger, trøndere, sørlendinger og folk fra alle andre regioner. Nordmenn er også innvandret fra Afghanistan, Pakistan, Polen, Sverige, Somalia og Syria. Det er ikke alltid så lett å si hvor vi er fra, hvilken nasjonalitet vi er fra. Hvilken nasjonalitet vi er fra. hvilken nasjonalitet vi tilhører. Det vi kaller hjem, er der hjertet vårt er, og det kan ikke alltid plasseres innenfor landegrenser. Nordmenn er jenter som er glad i jenter, gutter som er glad i gutter, og jenter og gutter som er glad i hverandre. Nordmenn trommer på Gud, Allah, Altet og ingenting. Nordmenn liker Grieg, Kygo, Helbiles og Kari Bremnes. Med andre ord, Norge er dere. Norge er oss. Mitt største håp for Norge er at vi skal klare å ta vare på hverandre, at vi skal bygge dette landet videre på tillit, fellesskap og raushet.',
+ 'chunks': [{'timestamp': (0.0, 5.46),
+   'text': ' Nordmenn er nordlendinger, trøndere, sørlendinger'},
+  {'timestamp': (5.52, 8.68), 'text': ' og folk fra alle andre regioner.'},
+  {'timestamp': (8.68, 16.64),
+   'text': ' Nordmenn er også innvandret fra Afghanistan, Pakistan, Polen, Sverige, Somalia og Syria.'},
+  {'timestamp': (16.64, 13.3),
+   'text': ' Det er ikke alltid så lett å si hvor vi er fra, hvilken nasjonalitet vi er fra.'},
+  {'timestamp': (13.32, 30.28),
+   'text': ' Hvilken nasjonalitet vi er fra. hvilken nasjonalitet vi tilhører.'},
+  {'timestamp': (32.52, 39.16),
+   'text': ' Det vi kaller hjem, er der hjertet vårt er, og det kan ikke alltid plasseres'},
+  {'timestamp': (39.16, 42.0), 'text': ' innenfor landegrenser.'},
+  {'timestamp': (42.0, 46.74),
+   'text': ' Nordmenn er jenter som er glad i jenter, gutter som er glad i gutter,'},
+  {'timestamp': (46.74, 51.12),
+   'text': ' og jenter og gutter som er glad i hverandre.'},
+  {'timestamp': (51.16, 57.42),
+   'text': ' Nordmenn trommer på Gud, Allah, Altet og ingenting.'},
+  {'timestamp': (57.42, 64.3),
+   'text': ' Nordmenn liker Grieg, Kygo, Helbiles og Kari Bremnes.'},
+  {'timestamp': (64.34, 71.24),
+   'text': ' Med andre ord, Norge er dere. Norge er oss.'},
+  {'timestamp': (71.24, 78.04),
+   'text': ' Mitt største håp for Norge er at vi skal klare å ta vare på hverandre,'},
+  {'timestamp': (78.12, 84.68),
+   'text': ' at vi skal bygge dette landet videre på tillit, fellesskap og raushet.'}]}
+```
+</details>
+
+Some other cool features to look into:
+```python
+# Transcribe to Nynorsk
+asr("king.mp3", chunk_length_s=30, generate_kwargs={'task': 'transcribe', 'language': 'nn'})
+```
+<details>
+<summary>Expected output</summary>
+```json
+{
+{'text': ' Nordmenn er nordlendingar, trøndarar, sørlendingar og folk frå alle andre regionar. Nordmenn er også innvandra frå Afghanistan, Pakistan, Polen, Sverige, Somalia og Syria. Det er ikkje alltid så lett å seie kvar vi er frå, kva nasjonalitet vi tilhøyrer. Det vi kallar heim, er der hjartet vårt er, og det kan ikkje alltid plasserast innanfor landegrenser. Nordmenn er jenter som er glad i jenter, gutar som erade i gutar, og jenter og gutar som er glade i kvarandre. Nordmenn trommar på Gud, Allah, Altet og ingenting. Nordmenn liker Grieg, Kygo, Helbiles og Kari Bremnes. Med andre ord, Noreg er dere! Noreg er oss. Mitt største håp for Noreg er at vi skal klare å ta vare på kvarandre, at vi skal byggje dette landet vidare på tillit, fellesskap og raushet.'}
+```
+</details>
+
+```python
+# Transcribe to English
+asr("king.mp3", chunk_length_s=30, generate_kwargs={'task': 'transcribe', 'language': 'en'})
+```
+<details>
+<summary>Expected output</summary>
+{'text': ' Norwegians are Norwegians, trønders, southerners and people from all other regions. Norwegians are also invaded from Afghanistan, Pakistan, Poland, Sweden, Somalia and Suria. It is not always so easy to say where we are from, what nationality we belong to. What we call home is where our heart is, and it cannot always be placed within national borders. Norwegians are girls who like girls, boys who like boys, and girls and boys who like each other. Norwegians thrump on God, Allah, Altet and nothing. Norwegians like Grieg, Kygo, Helbilis and Kari Bremnes. In other words, Norway is you. Norway is us. My biggest hope for Norway is that we should be able to take care of each other, that we should build this country on trust, community and generosity.'}
+</details>
+
+```python
+# Return Word Level Timestamps
+asr("king.mp3", chunk_length_s=30, return_timestamps="word", generate_kwargs={'task': 'transcribe', 'language': 'no'})
+```
+
+<details>
+<summary>Expected output</summary>
+{'text': ' Norwegians are Norwegians, trønders, southerners and people from all other regions. Norwegians are also invaded from Afghanistan, Pakistan, Poland, Sweden, Somalia and Suria. It is not always so easy to say where we are from, what nationality we belong to. What we call home is where our heart is, and it cannot always be placed within national borders. Norwegians are girls who like girls, boys who like boys, and girls and boys who like each other. Norwegians thrump on God, Allah, Altet and nothing. Norwegians like Grieg, Kygo, Helbilis and Kari Bremnes. In other words, Norway is you. Norway is us. My biggest hope for Norway is that we should be able to take care of each other, that we should build this country on trust, community and generosity.'}
+</details>
+
+
 asr(
     "audio.mp3",
     generate_kwargs={'task': 'transcribe', 'language': 'no'},
