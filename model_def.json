@@ -1,0 +1,9 @@
+{
+    "template_url": "https://raw.githubusercontent.com/NbAiLab/nb-whisper/main/template.md",
+    "replacements": {
+        "#Finetuned#": "",
+        "#Size#": "Small",
+        "#size#": "small",
+        "#model_name#": "NbAiLabBeta/nb-whisper-small"
+    }
+}
