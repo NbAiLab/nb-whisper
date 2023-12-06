@@ -107,7 +107,7 @@ asr("king.mp3")
   "text": "Så mange anga kører seg i så viktig sak, så vi får du kører det tilbake med. Om kabaret gudam i at vi skal hjælge. Kør seg vi gjør en uda? Nei noe skal å abelistera sonvorne skrifer. Det er sak, så kjent det bare handling i samtatsen til bargører. Trudet første lask. På den å først så å køre og en gange samme, og så får vi gjør å vorte vorte vorte når vi kjent dit."
 }
 ```
-<\details>
+</details>
 
 Timestamps can also be retrieved by passing in the right parameter.
 
