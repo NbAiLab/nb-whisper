@@ -6,7 +6,7 @@ export TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD=10000000000
 
 # Running the Python script
 python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
-    --model_name_or_path NbAiLab/nb-whisper-large-v0.7 \
+    --model_name_or_path NbAiLabBeta/nb-whisper-large \
     --run_name "NB-Whisper - large - dynamic semantic v0.7" \
     --run_description "A NB-Whisper dynamic semantic v0.7" \
     --wandb_entity "nbailab" \
