@@ -217,6 +217,7 @@ asr("king.mp3", chunk_length_s=30, return_timestamps="word", generate_kwargs={'t
 }
 ```
 </details>
+
 ### Whisper CPP
 Whisper CPP is a C++ implementation of the Whisper model, offering the same functionalities with the added benefits of C++ efficiency and performance optimizations. This allows embedding any Whisper model into a binary file, facilitating the development of real applications. However, it requires some familiarity with compiling C++ programs. Their [homepage](https://github.com/ggerganov/whisper.cpp) provides examples of how to build applications, including real-time transcription. The ggml-format model for Whisper CPP binaries can be downloaded [here](blob/main/ggml-model.bin).
 
