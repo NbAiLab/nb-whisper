@@ -1864,7 +1864,13 @@ def main():
             if current_host_idx  == 0:
                 params = jax.device_get(
                     jax.tree_util.tree_map(lambda x: x[0], state.params))
-                model.save_pretrained(training_args.output_dir, params=params)
+                # Disable scan if necessary when saving
+                if data_args.use_scan and getattr(model, disable_scan):
+                    model.disable_scan()
+                    model.save_pretrained(training_args.output_dir, params=params)
+                    model.enable_scan()
+                else:
+                    model.save_pretrained(training_args.output_dir, params=params)
                 tokenizer.save_pretrained(training_args.output_dir)
                 # Report eval results if training is done
                 if step == data_args.num_train_steps - 1:
