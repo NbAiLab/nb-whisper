@@ -1,5 +1,6 @@
 #!/bin/bash
 pip install "optimum[exporters]>=1.14.1" tensorflow
+git lfs track *.onnx*
 
 python << END
 from transformers import WhisperForConditionalGeneration, TFWhisperForConditionalGeneration, WhisperTokenizerFast
