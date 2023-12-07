@@ -34,20 +34,6 @@ widget:
 
 Introducing the **_Norwegian NB-Whisper #Size# model_**, proudly developed by the National Library of Norway. NB-Whisper is a cutting-edge series of models designed for automatic speech recognition (ASR) and speech translation. These models are based on the work of [OpenAI's Whisper](https://arxiv.org/abs/2212.04356). Each model in the series has been trained for 250,000 steps, utilizing a diverse dataset of 8 million samples. These samples consist of aligned audio clips, each 30 seconds long, culminating in a staggering 66,000 hours of speech. For an in-depth understanding of our training methodology and dataset composition, keep an eye out for our upcoming article.
 
-<center>
-  <figure>
-    <video controls>
-      <source src="https://huggingface.co/NbAiLab/nb-whisper-small-beta/resolve/main/king.mp4" type="video/mp4">
-    Your browser does not support the video tag.
-    </video>   
-  <figcaption><a href="https://www.royalcourt.no/tale.html?tid=137662&sek=28409&scope=27248" target="_blank">Speech given by His Majesty The King of Norway at the garden party hosted by Their Majesties The King and Queen at the Palace Park on 1st of September 2016.</a> Transcribed using the Small model.</figcaption>
-</figure> 
-</center>
-
-
-## Main Model
-The NB-Whisper series offers models in five distinct sizes: Tiny, Base, Small, Medium, and Large, each designed to cater to different requirements. All models are trained for 250.000 steps starting from the OpenAI Whisper checkpoints. Please refer to their site for more information about the backbone models. The NB-Whisper models are suitable for most common use cases.
-
 | Model Size | Parameters | Model |
 |------------|------------|------------|
 | Tiny       | 39M        | [NB-Whisper Tiny](https://huggingface.co/NbAiLabBeta/nb-whisper-tiny) |
@@ -57,8 +43,9 @@ The NB-Whisper series offers models in five distinct sizes: Tiny, Base, Small, M
 | Large      | 1550M      | [NB-Whisper Large](https://huggingface.co/NbAiLabBeta/nb-whisper-large) |
 
 
+
 ### Specialised Models
-To demonstrate how easy it is to change the output of the main model, we have generated these specialised models for more targetted use:
+While the main models are suitable for most transcription task, we demonstrate how easy it is to change the output of the main model. The following models are trained 250 additional steps from the main models above, and might be suitable for more targetted use cases:
 - **Verbatim version**: This lower-cased variant is more literal and suitable for tasks requiring detailed transcription, such as linguistic analysis.
 - **Semantic version**: This variant focuses less on verbatim accuracy but captures the essence of content, ideal for meeting minutes and subtitling.
 
@@ -72,8 +59,6 @@ To demonstrate how easy it is to change the output of the main model, we have ge
 | Large      | 1550M      | [Large - verbatim](https://huggingface.co/NbAiLabBeta/nb-whisper-large-verbatim) | [Large - semantic](https://huggingface.co/NbAiLabBeta/nb-whisper-large-semantic) |
 
 
-Please refer to the OpenAI Whisper model card for more details about the backbone model.
-
 ### Model Description
 
 - **Developed by:** [NB AI-Lab](https://ai.nb.no/)
@@ -85,6 +70,18 @@ Please refer to the OpenAI Whisper model card for more details about the backbon
 - **Code Repository:** https://github.com/NbAiLab/nb-whisper/
 - **Paper:** _Coming soon_
 - **Demo:** _See Spaces on this page_
+
+## Example transcription
+<center>
+  <figure>
+    <video controls>
+      <source src="https://huggingface.co/NbAiLab/nb-whisper-small-beta/resolve/main/king.mp4" type="video/mp4">
+    Your browser does not support the video tag.
+    </video>   
+  <figcaption><a href="https://www.royalcourt.no/tale.html?tid=137662&sek=28409&scope=27248" target="_blank">Speech given by His Majesty The King of Norway at the garden party hosted by Their Majesties The King and Queen at the Palace Park on 1st of September 2016.</a> Transcribed using the Small model.</figcaption>
+</figure> 
+</center>
+
 
 ## How to Use the Models
 
