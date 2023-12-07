@@ -71,17 +71,6 @@ While the main models are suitable for most transcription task, we demonstrate h
 - **Paper:** _Coming soon_
 - **Demo:** _See Spaces on this page_
 
-## Example transcription
-<center>
-  <figure>
-    <video controls>
-      <source src="https://huggingface.co/NbAiLab/nb-whisper-small-beta/resolve/main/king.mp4" type="video/mp4">
-    Your browser does not support the video tag.
-    </video>   
-  <figcaption><a href="https://www.royalcourt.no/tale.html?tid=137662&sek=28409&scope=27248" target="_blank">Speech given by His Majesty The King of Norway at the garden party hosted by Their Majesties The King and Queen at the Palace Park on 1st of September 2016.</a> Transcribed using the Small model.</figcaption>
-</figure> 
-</center>
-
 
 ## How to Use the Models
 
