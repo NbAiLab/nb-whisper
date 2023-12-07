@@ -47,20 +47,31 @@ Introducing the **_Norwegian NB-Whisper #Size# model_**, proudly developed by th
 
 ## Model Details
 
-The NB-Whisper series offers models in five distinct sizes: Tiny, Base, Small, Medium, and Large, each designed to cater to different requirements. We generally recommend the Main models for most users, as they are balanced for common use cases. Additionally, there are two variants available for each size:
+The NB-Whisper series offers models in five distinct sizes: Tiny, Base, Small, Medium, and Large, each designed to cater to different requirements. These models are balanced for common use cases.
+
+
+| Model Size | Parameters | Model |
+|------------|------------|------------|
+| Tiny       | 39M        | [NB-Whisper Tiny](https://huggingface.co/NbAiLabBeta/nb-whisper-tiny) |
+| Base       | 74M        | [NB-Whisper Base](https://huggingface.co/NbAiLabBeta/nb-whisper-base) |
+| Small      | 244M       | [NB-Whisper Small](https://huggingface.co/NbAiLabBeta/nb-whisper-small) |
+| Medium     | 769M       | [NB-Whisper Medium](https://huggingface.co/NbAiLabBeta/nb-whisper-medium) |
+| Large      | 1550M      | [NB-Whisper Large](https://huggingface.co/NbAiLabBeta/nb-whisper-large) |
+
+Additionally, there are two variants available for each size:
 
 - **Verbatim version**: This lower-cased variant is more literal and suitable for tasks requiring detailed transcription, such as linguistic analysis.
 - **Semantic version**: This variant focuses less on verbatim accuracy but captures the essence of content, ideal for meeting minutes and subtitling.
 
 All models are used in the same manner. Here are the available models:
 
-| Model Size | Parameters | Main Model | Verbatim version | Semantic version |
-|------------|------------|------------|------------------|------------------|
-| Tiny       | 39M        | [NB-Whisper Tiny](https://huggingface.co/NbAiLabBeta/nb-whisper-tiny) | [Tiny - verbatim](https://huggingface.co/NbAiLabBeta/nb-whisper-tiny-verbatim) | [Tiny - semantic](https://huggingface.co/NbAiLabBeta/nb-whisper-tiny-semantic) |
-| Base       | 74M        | [NB-Whisper Base](https://huggingface.co/NbAiLabBeta/nb-whisper-base) | [Base - verbatim](https://huggingface.co/NbAiLabBeta/nb-whisper-base-verbatim) | [Base - semantic](https://huggingface.co/NbAiLabBeta/nb-whisper-base-semantic) |
-| Small      | 244M       | [NB-Whisper Small](https://huggingface.co/NbAiLabBeta/nb-whisper-small) | [Small - verbatim](https://huggingface.co/NbAiLabBeta/nb-whisper-small-verbatim) | [Small - semantic](https://huggingface.co/NbAiLabBeta/nb-whisper-small-semantic) |
-| Medium     | 769M       | [NB-Whisper Medium](https://huggingface.co/NbAiLabBeta/nb-whisper-medium) | [Medium - verbatim](https://huggingface.co/NbAiLabBeta/nb-whisper-medium-verbatim) | [Medium - semantic](https://huggingface.co/NbAiLabBeta/nb-whisper-medium-semantic) |
-| Large      | 1550M      | [NB-Whisper Large](https://huggingface.co/NbAiLabBeta/nb-whisper-large) | [Large - verbatim](https://huggingface.co/NbAiLabBeta/nb-whisper-large-verbatim) | [Large - semantic](https://huggingface.co/NbAiLabBeta/nb-whisper-large-semantic) |
+| Model Size | Parameters | Verbatim version | Semantic version |
+|------------|------------|------------|------------------|
+| Tiny       | 39M        | [Tiny - verbatim](https://huggingface.co/NbAiLabBeta/nb-whisper-tiny-verbatim) | [Tiny - semantic](https://huggingface.co/NbAiLabBeta/nb-whisper-tiny-semantic) |
+| Base       | 74M        | [Base - verbatim](https://huggingface.co/NbAiLabBeta/nb-whisper-base-verbatim) | [Base - semantic](https://huggingface.co/NbAiLabBeta/nb-whisper-base-semantic) |
+| Small      | 244M       | [Small - verbatim](https://huggingface.co/NbAiLabBeta/nb-whisper-small-verbatim) | [Small - semantic](https://huggingface.co/NbAiLabBeta/nb-whisper-small-semantic) |
+| Medium     | 769M       | [Medium - verbatim](https://huggingface.co/NbAiLabBeta/nb-whisper-medium-verbatim) | [Medium - semantic](https://huggingface.co/NbAiLabBeta/nb-whisper-medium-semantic) |
+| Large      | 1550M      | [Large - verbatim](https://huggingface.co/NbAiLabBeta/nb-whisper-large-verbatim) | [Large - semantic](https://huggingface.co/NbAiLabBeta/nb-whisper-large-semantic) |
 
 
 Please refer to the OpenAI Whisper model card for more details about the backbone model.
