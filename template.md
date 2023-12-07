@@ -216,7 +216,7 @@ $ cd whisper.cpp/
 $ make
 
 # We also need to convert the audio to WAV as that is the only format supported by whisper.cpp
-$ wget -N https://github.com/NbAiLab/nb-whisper/raw/main/audio/king.mp3
+$ wget -N https://github.com/NbAiLab/nb-whisper-#size#/raw/main/audio/king.mp3
 $ ffmpeg -i king.mp3 -ar 16000 -ac 1 -c:a pcm_s16le king.wav                                        
 
 # And run it with the f16 default model
