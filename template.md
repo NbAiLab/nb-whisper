@@ -98,10 +98,10 @@ Alternatively, you can download the models for local usage. The Tiny, Base, and 
 
 ```bash
 # Download the sample file
-> wget -N https://github.com/NbAiLab/nb-whisper/raw/main/audio/king.mp3
+$ wget -N https://github.com/NbAiLab/nb-whisper/raw/main/audio/king.mp3
 
 # Install necessary libraries. 
-> pip install transformers>=4.35.2
+$ pip install transformers>=4.35.2
 ```
 
 After this is done, you should be able to run this in Python:
@@ -181,10 +181,12 @@ asr("king.mp3", chunk_length_s=30, return_timestamps=True, generate_kwargs={'tas
 </details>
 
 Some other cool features to look into:
+
 ```python
 # Transcribe to Nynorsk
 asr("king.mp3", chunk_length_s=30, generate_kwargs={'task': 'transcribe', 'language': 'nn'})
 ```
+
 <details>
 <summary>Expected output</summary>
 
@@ -233,7 +235,24 @@ asr("king.mp3", chunk_length_s=30, return_timestamps="word", generate_kwargs={'t
 ### Whisper CPP
 Whisper CPP is a C++ implementation of the Whisper model, offering the same functionalities with the added benefits of C++ efficiency and performance optimizations. This allows embedding any Whisper model into a binary file, facilitating the development of real applications. However, it requires some familiarity with compiling C++ programs. Their [homepage](https://github.com/ggerganov/whisper.cpp) provides examples of how to build applications, including real-time transcription. 
 
-We have converted this model to the ggml-format model used by Whisper CPP binaries. The file can be downloaded [here](blob/main/ggml-model.bin).
+We have converted this model to the ggml-format model used by Whisper CPP binaries. The file can be downloaded [here](blob/main/ggml-model.bin), and a `q5_0` quantized version is also available [here](blob/main/ggml-model-q5_0.bin).
+
+```bash
+# We can download and compile whisper.cpp
+$ git clone --depth 1 https://github.com/ggerganov/whisper.cpp --branch v1.5.1
+$ cd whisper.cpp/
+$ make
+
+# We also need to convert the audio to WAV as that is the only format supported by whisper.cpp
+$ wget -N https://github.com/NbAiLab/nb-whisper/raw/main/audio/king.mp3
+$ ffmpeg -i king.mp3 -ar 16000 -ac 1 -c:a pcm_s16le king.wav                                        
+
+# And run it with the f16 default model
+$ ./main -m /path/to/ggml-model.bin king.wav
+
+# Or the quantized version
+$ ./main -m /path/to/ggml-model-q5_0.bin king.wav
+```
 
 ### API
 Instructions for accessing the models via a simple API are included in the demos under Spaces. Note that these demos are temporary and will only be available for a few weeks.
