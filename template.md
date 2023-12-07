@@ -45,10 +45,8 @@ Introducing the **_Norwegian NB-Whisper #Size# model_**, proudly developed by th
 </center>
 
 
-## Model Details
-
-The NB-Whisper series offers models in five distinct sizes: Tiny, Base, Small, Medium, and Large, each designed to cater to different requirements. These models are balanced for common use cases.
-
+## Main Model
+The NB-Whisper series offers models in five distinct sizes: Tiny, Base, Small, Medium, and Large, each designed to cater to different requirements. All models are trained for 250.000 steps starting from the OpenAI Whisper checkpoints. Please refer to their site for more information about the backbone models. The NB-Whisper models are suitable for most common use cases.
 
 | Model Size | Parameters | Model |
 |------------|------------|------------|
@@ -58,12 +56,12 @@ The NB-Whisper series offers models in five distinct sizes: Tiny, Base, Small, M
 | Medium     | 769M       | [NB-Whisper Medium](https://huggingface.co/NbAiLabBeta/nb-whisper-medium) |
 | Large      | 1550M      | [NB-Whisper Large](https://huggingface.co/NbAiLabBeta/nb-whisper-large) |
 
-Additionally, there are two variants available for each size:
 
+### Specialised Models
+To demonstrate how easy it is to change the output of the main model, we have generated these specialised models for more targetted use:
 - **Verbatim version**: This lower-cased variant is more literal and suitable for tasks requiring detailed transcription, such as linguistic analysis.
 - **Semantic version**: This variant focuses less on verbatim accuracy but captures the essence of content, ideal for meeting minutes and subtitling.
 
-All models are used in the same manner. Here are the available models:
 
 | Model Size | Parameters | Verbatim version | Semantic version |
 |------------|------------|------------|------------------|
