@@ -216,14 +216,18 @@ $ cd whisper.cpp/
 $ make
 
 # We also need to convert the audio to WAV as that is the only format supported by whisper.cpp
-$ wget -N https://github.com/NbAiLab/nb-whisper-#size#/raw/main/audio/king.mp3
+$ wget -N https://github.com/NbAiLab/nb-whisper/raw/main/audio/king.mp3
 $ ffmpeg -i king.mp3 -ar 16000 -ac 1 -c:a pcm_s16le king.wav                                        
 
+# Lets download the two ggml-files from this site
+wget -N https://huggingface.co/NbAiLabBeta/nb-whisper-#size#/resolve/main/ggml-model.bin -O models/nb-#size#-ggml-model.bin
+wget -N https://huggingface.co/NbAiLabBeta/nb-whisper-#size#/resolve/main/ggml-model-q5_0.bin -O models/nb-#size#-ggml-model-q5_0.bin
+
 # And run it with the f16 default model
-$ ./main -m /path/to/ggml-model.bin king.wav
+$ ./main -l no -m models/nb-#size#-ggml-model.bin king.wav
 
 # Or the quantized version
-$ ./main -m /path/to/ggml-model-q5_0.bin king.wav
+$ ./main -l no -m models/nb-#size#-ggml-model-q5_0.bin king.wav
 ```
 
 ### API
