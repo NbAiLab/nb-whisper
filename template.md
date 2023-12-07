@@ -249,6 +249,10 @@ The model was trained using Jax/Flax and converted to PyTorch, Tensorflow, whisp
 ## Citation & Contributors
 The NB-Whisper #Size# model is a product of the NoSTram project led by Per Egil Kummervold ([@pere](https://huggingface.co/pere) at the National Library of Norway. Key contributors include Javier de la Rosa ([@versae](https://huggingface.co/versae), Freddy Wetjen ([@](https://huggingface.co/freddyw), and Rolv-Arild Braaten ([@Rolv-Arild](https://huggingface.co/Rolv-Arild). NB AI-Lab, under the direction of Svein Arne Brygfjeld ([@Brygfjeld](https://huggingface.co/Brygfjeld), supported the project's successful completion. A detailed paper on our process and findings is forthcoming.
 
+## Disclaimer
+
+The models published in this repository are intended for a generalist purpose and are available to third parties. These models may have bias and/or any other undesirable distortions. When third parties, deploy or provide systems and/or services to other parties using any of these models (or using systems based on these models) or become users of the models, they should note that it is their responsibility to mitigate the risks arising from their use and, in any event, to comply with applicable regulations, including regulations regarding the use of artificial intelligence. In no event shall the owner of the models (The National Library of Norway) be liable for any results arising from the use made by third parties of these models.
+
 ## Acknowledgements
 
 Our gratitude extends to [Google TPU Research Cloud](https://sites.research.google/trc/about/) for training resources, Google Cloud for translation credits, and HuggingFace's Sanchit Ghandi for technical support. A special thank you to Per Erik Solberg at Språkbanken for the collaboration on the Stortinget corpus.
