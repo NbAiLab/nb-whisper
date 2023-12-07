@@ -1,5 +1,5 @@
 ---
-license: cc-by-4.0
+license: apache-2.0
 language:
 - 'no'
 - nb
@@ -71,7 +71,7 @@ Please refer to the OpenAI Whisper model card for more details about the backbon
 - **Shared by:** [NB AI-Lab](https://ai.nb.no/)
 - **Model type:** `whisper`
 - **Language(s) (NLP):** Norwegian, Norwegian Bokmål, Norwegian Nynorsk, English
-- **License:** [Creative Commons Attribution 4.0 International (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/)
+- **License:** [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0)
 - **Trained from model:** [openai/whisper-#size#](https://huggingface.co/openai/whisper-#size#)
 - **Code Repository:** https://github.com/NbAiLab/nb-whisper/
 - **Paper:** _Coming soon_
