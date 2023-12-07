@@ -9,6 +9,7 @@ datasets:
 - NbAiLab/ncc_speech
 - NbAiLab/NST
 - NbAiLab/NPSC
+base_model: openai/whisper-#size#
 tags:
 - audio
 - asr
@@ -246,7 +247,7 @@ Using these models without adequate risk assessment and mitigation could be cons
 The model is trained using Jax/Flax and converted to Pytorch, Tensorflow, whisper.cpp, and ONXX formats. These are available under `Files and versions`. We welcome requests for conversion to other formats.
 
 ## Citation & Contributors
-The NB-Whisper #Size# model is a product of the NoSTram project led by Per Egil Kummervold (PEK) at the National Library of Norway. Key contributors include Javier de la Rosa (JdlR), Freddy Wetjen (FW), Rolv-Arild Braaten (RAB), and PEK. AiLab, under the direction of Svein Arne Brygfjeld, supported the project's successful completion. A detailed paper on our process and findings is forthcoming.
+The NB-Whisper #Size# model is a product of the NoSTram project led by Per Egil Kummervold ([@pere](https://huggingface.co/pere) at the National Library of Norway. Key contributors include Javier de la Rosa ([@versae](https://huggingface.co/versae), Freddy Wetjen ([@](https://huggingface.co/freddyw), and Rolv-Arild Braaten ([@Rolv-Arild](https://huggingface.co/Rolv-Arild). NB AI-Lab, under the direction of Svein Arne Brygfjeld ([@Brygfjeld](https://huggingface.co/Brygfjeld), supported the project's successful completion. A detailed paper on our process and findings is forthcoming.
 
 ## Acknowledgements
 
