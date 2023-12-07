@@ -244,7 +244,7 @@ The models, especially the smaller ones, may exhibit occasional hallucinations a
 Using these models without adequate risk assessment and mitigation could be considered irresponsible. They may contain biases or other undesirable distortions. Users who deploy these models or integrate them into systems or services are responsible for mitigating risks and complying with applicable AI regulations. The National Library of Norway, as the model owner, disclaims liability for any outcomes resulting from third-party use of these models.
 
 ### Software
-The model is trained using Jax/Flax and converted to Pytorch, Tensorflow, whisper.cpp, and ONXX formats. These are available under `Files and versions`. We welcome requests for conversion to other formats.
+The model was trained using Jax/Flax and converted to PyTorch, Tensorflow, whisper.cpp, and ONXX formats. These are available under `Files and versions`. We welcome requests for conversion to other formats. All training code and scripts are released under the Apache License 2.0 in the GitHub repository [nb-whisper](https://github.com/NbAiLab/nb-whisper/).
 
 ## Citation & Contributors
 The NB-Whisper #Size# model is a product of the NoSTram project led by Per Egil Kummervold ([@pere](https://huggingface.co/pere) at the National Library of Norway. Key contributors include Javier de la Rosa ([@versae](https://huggingface.co/versae), Freddy Wetjen ([@](https://huggingface.co/freddyw), and Rolv-Arild Braaten ([@Rolv-Arild](https://huggingface.co/Rolv-Arild). NB AI-Lab, under the direction of Svein Arne Brygfjeld ([@Brygfjeld](https://huggingface.co/Brygfjeld), supported the project's successful completion. A detailed paper on our process and findings is forthcoming.
