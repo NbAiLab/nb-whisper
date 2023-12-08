@@ -1,5 +1,6 @@
 #!/bin/bash
 pip install "optimum[exporters]>=1.14.1" tensorflow
+git lfs track *.onnx*
 
 python << END
 from transformers import WhisperForConditionalGeneration, TFWhisperForConditionalGeneration, WhisperTokenizerFast
@@ -30,10 +31,21 @@ print("Done")
 
 END
 
-echo "Saving model to GGML (whisper.cpp)"
+echo "Saving model to GGML (whisper.cpp)..."
 wget -O convert-h5-to-ggml.py "https://raw.githubusercontent.com/ggerganov/whisper.cpp/94aa56f19eed8b2419bc5ede6b7fda85d5ca59be/models/convert-h5-to-ggml.py"
 mkdir -p whisper/assets
 wget -O whisper/assets/mel_filters.npz "https://github.com/openai/whisper/raw/c5d42560760a05584c1c79546a098287e5a771eb/whisper/assets/mel_filters.npz"
 python ./convert-h5-to-ggml.py ./ ./ ./
 rm ./convert-h5-to-ggml.py
 rm -rf ./whisper
+echo "Done"
+
+echo "Quantizing GGML model..."
+git clone --depth 1 https://github.com/ggerganov/whisper.cpp --branch v1.5.1
+cd whisper.cpp/
+make -j 32
+make quantize -j 32
+./quantize ../ggml-model.bin ../ggml-model-q5_0.bin q5_0
+cd ..
+rm -rf whisper.cpp
+echo "Done"
