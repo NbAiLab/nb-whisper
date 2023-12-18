@@ -29,6 +29,15 @@ ort_model = ORTModelForSpeechSeq2Seq.from_pretrained("./", export=True)
 ort_model.save_pretrained("./onnx")
 print("Done")
 
+print("Saving model to CTranslate...", end=" ")
+ct2-transformers-converter --model . --output_dir ct2
+cp ct2/model.bin .
+cp ct2/vocabulary.json .
+cp config.json config_hf.json
+jq -s '.[0] * .[1]' ct2/config.json config_hf.json > config.json
+print("Done")
+
+
 END
 
 echo "Saving model to GGML (whisper.cpp)..."
