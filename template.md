@@ -112,23 +112,26 @@ asr("king.mp3", generate_kwargs={'task': 'transcribe', 'language': 'no'})
 </details>
 
 #### Extended HuggingFace
-Examining the output above, we see that there are multiple repetitions at the end. This is because the default length is 30 seconds and the video is 1:25 minutes. By passing the ```chunk_lengt_s``` argument, we can transcribe longer file. The examples below also illustrates how to transcribe to English or Nynorsk, and how to get timestamps for sentences and words.
+Examining the output above, we see that there are multiple repetitions at the end. This is because the video is longer than 30 seconds. By passing the ```chunk_lengt_s``` argument, we can transcribe longer file. Our experience is that we get slightly better result by setting that to 28 seconds instead of the default 30 seconds. We also recommend setting the beam size to 5 if possible. This greatly increases the accuracy but takes a bit longer and requires slightly more memory. The examples below also illustrates how to transcribe to English or Nynorsk, and how to get timestamps for sentences and words.
 
 ```python
 # Long Transcripts
-asr("king.mp3", chunk_length_s=30, generate_kwargs={'task': 'transcribe', 'language': 'no'})
+asr("king.mp3", chunk_length_s=28, generate_kwargs={'task': 'transcribe', 'language': 'no'})
+
+# Increase accuracy by setting beam size to 5
+asr("king.mp3", chunk_length_s=28, return_timestamps=True, generate_kwargs={'num_beams': 5, 'task': 'transcribe', 'language': 'no'})
 
 # Return Timestamps
-asr("king.mp3", chunk_length_s=30, return_timestamps=True, generate_kwargs={'task': 'transcribe', 'language': 'no'})
+asr("king.mp3", chunk_length_s=28, return_timestamps=True, generate_kwargs={'task': 'transcribe', 'language': 'no'})
 
 # Return Word Level Timestamps
-asr("king.mp3", chunk_length_s=30, return_timestamps="word", generate_kwargs={'task': 'transcribe', 'language': 'no'})
+asr("king.mp3", chunk_length_s=28, return_timestamps="word", generate_kwargs={'task': 'transcribe', 'language': 'no'})
 
 # Transcribe to Nynorsk
-asr("king.mp3", chunk_length_s=30, generate_kwargs={'task': 'transcribe', 'language': 'nn'})
+asr("king.mp3", chunk_length_s=28, generate_kwargs={'task': 'transcribe', 'language': 'nn'})
 
 # Transcribe to English
-asr("king.mp3", chunk_length_s=30, generate_kwargs={'task': 'transcribe', 'language': 'en'})
+asr("king.mp3", chunk_length_s=28, generate_kwargs={'task': 'transcribe', 'language': 'en'})
 
 ```
 <details>
