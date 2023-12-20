@@ -230,6 +230,31 @@ $ ./main -l no -m models/nb-#size#-ggml-model.bin king.wav
 $ ./main -l no -m models/nb-#size#-ggml-model-q5_0.bin king.wav
 ```
 
+### WhisperX and Speaker Diarization
+Speaker diarization is a technique in natural language processing and automatic speech recognition that identifies and separates different speakers in an audio recording. It segments the audio into parts based on who is speaking, enhancing the quality of transcribing meetings or phone calls. We find that [WhisperX](https://github.com/m-bain/whisperX) is the easiest way to use our models for diarizing speech. In addition, WhisperX is using phoneme-based Wav2Vec-models for improving the alignment of the timestamps. As of December 2023 it also has native support for using the nb-wav2vec-models. It currently uses [PyAnnote-audio](https://github.com/pyannote/pyannote-audio) for doing the actual diarization. This package has a fairly strict licence where you have to agree to user terms. Follow the instructions below. 
+
+```bash
+# Follow the install instructions on https://github.com/m-bain/whisperX
+# Make sure you have a HuggingFace account and have agreed to the pyannote terms
+
+# Log in (or supply HF Token in command line)
+huggingface-cli login
+
+# Download a test file
+wget -N https://github.com/NbAiLab/nb-whisper/raw/main/audio/knuthamsun.mp3
+
+# Optional. If you get complains about not support for Norwegian, do:
+pip uninstall whisperx && pip install git+https://github.com/m-bain/whisperx.git@8540ff5985fceee764acbed94f656063d7f56540
+
+# Transcribe the test file. All transcripts will end up in the directory of the mp3-file
+whisperx knuthamsun.mp3 --model NbAiLabBeta/nb-whisper-large --language no --diarize --batch_size 4
+```
+
+You can also run WhisperX from Python. Please take a look at the instructions on [WhisperX homepage](https://github.com/m-bain/whisperX).
+
+
+
+
 ### API
 Instructions for accessing the models via a simple API are included in the demos under Spaces. Note that these demos are temporary and will only be available for a few weeks.
 
