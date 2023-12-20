@@ -247,7 +247,8 @@ wget -N https://github.com/NbAiLab/nb-whisper/raw/main/audio/knuthamsun.mp3
 pip uninstall whisperx && pip install git+https://github.com/m-bain/whisperx.git@8540ff5985fceee764acbed94f656063d7f56540
 
 # Transcribe the test file. All transcripts will end up in the directory of the mp3-file
-whisperx knuthamsun.mp3 --model NbAiLabBeta/nb-whisper-large --language no --diarize --batch_size 4
+whisperx knuthamsun.mp3 --model #model_name# --language no --diarize
+
 ```
 
 You can also run WhisperX from Python. Please take a look at the instructions on [WhisperX homepage](https://github.com/m-bain/whisperX).
