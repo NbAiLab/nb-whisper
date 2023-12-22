@@ -112,23 +112,26 @@ asr("king.mp3", generate_kwargs={'task': 'transcribe', 'language': 'no'})
 </details>
 
 #### Extended HuggingFace
-Examining the output above, we see that there are multiple repetitions at the end. This is because the default length is 30 seconds and the video is 1:25 minutes. By passing the ```chunk_lengt_s``` argument, we can transcribe longer file. The examples below also illustrates how to transcribe to English or Nynorsk, and how to get timestamps for sentences and words.
+Examining the output above, we see that there are multiple repetitions at the end. This is because the video is longer than 30 seconds. By passing the ```chunk_lengt_s``` argument, we can transcribe longer file. Our experience is that we get slightly better result by setting that to 28 seconds instead of the default 30 seconds. We also recommend setting the beam size to 5 if possible. This greatly increases the accuracy but takes a bit longer and requires slightly more memory. The examples below also illustrates how to transcribe to English or Nynorsk, and how to get timestamps for sentences and words.
 
 ```python
 # Long Transcripts
-asr("king.mp3", chunk_length_s=30, generate_kwargs={'task': 'transcribe', 'language': 'no'})
+asr("king.mp3", chunk_length_s=28, generate_kwargs={'task': 'transcribe', 'language': 'no'})
+
+# Increase accuracy by setting beam size to 5
+asr("king.mp3", chunk_length_s=28, return_timestamps=True, generate_kwargs={'num_beams': 5, 'task': 'transcribe', 'language': 'no'})
 
 # Return Timestamps
-asr("king.mp3", chunk_length_s=30, return_timestamps=True, generate_kwargs={'task': 'transcribe', 'language': 'no'})
+asr("king.mp3", chunk_length_s=28, return_timestamps=True, generate_kwargs={'task': 'transcribe', 'language': 'no'})
 
 # Return Word Level Timestamps
-asr("king.mp3", chunk_length_s=30, return_timestamps="word", generate_kwargs={'task': 'transcribe', 'language': 'no'})
+asr("king.mp3", chunk_length_s=28, return_timestamps="word", generate_kwargs={'task': 'transcribe', 'language': 'no'})
 
 # Transcribe to Nynorsk
-asr("king.mp3", chunk_length_s=30, generate_kwargs={'task': 'transcribe', 'language': 'nn'})
+asr("king.mp3", chunk_length_s=28, generate_kwargs={'task': 'transcribe', 'language': 'nn'})
 
 # Transcribe to English
-asr("king.mp3", chunk_length_s=30, generate_kwargs={'task': 'transcribe', 'language': 'en'})
+asr("king.mp3", chunk_length_s=28, generate_kwargs={'task': 'transcribe', 'language': 'en'})
 
 ```
 <details>
@@ -229,6 +232,32 @@ $ ./main -l no -m models/nb-#size#-ggml-model.bin king.wav
 # Or the quantized version
 $ ./main -l no -m models/nb-#size#-ggml-model-q5_0.bin king.wav
 ```
+
+### WhisperX and Speaker Diarization
+Speaker diarization is a technique in natural language processing and automatic speech recognition that identifies and separates different speakers in an audio recording. It segments the audio into parts based on who is speaking, enhancing the quality of transcribing meetings or phone calls. We find that [WhisperX](https://github.com/m-bain/whisperX) is the easiest way to use our models for diarizing speech. In addition, WhisperX is using phoneme-based Wav2Vec-models for improving the alignment of the timestamps. As of December 2023 it also has native support for using the nb-wav2vec-models. It currently uses [PyAnnote-audio](https://github.com/pyannote/pyannote-audio) for doing the actual diarization. This package has a fairly strict licence where you have to agree to user terms. Follow the instructions below. 
+
+```bash
+# Follow the install instructions on https://github.com/m-bain/whisperX
+# Make sure you have a HuggingFace account and have agreed to the pyannote terms
+
+# Log in (or supply HF Token in command line)
+huggingface-cli login
+
+# Download a test file
+wget -N https://github.com/NbAiLab/nb-whisper/raw/main/audio/knuthamsun.mp3
+
+# Optional. If you get complains about not support for Norwegian, do:
+pip uninstall whisperx && pip install git+https://github.com/m-bain/whisperx.git@8540ff5985fceee764acbed94f656063d7f56540
+
+# Transcribe the test file. All transcripts will end up in the directory of the mp3-file
+whisperx knuthamsun.mp3 --model #model_name# --language no --diarize
+
+```
+
+You can also run WhisperX from Python. Please take a look at the instructions on [WhisperX homepage](https://github.com/m-bain/whisperX).
+
+
+
 
 ### API
 Instructions for accessing the models via a simple API are included in the demos under Spaces. Note that these demos are temporary and will only be available for a few weeks.
