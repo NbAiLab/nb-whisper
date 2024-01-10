@@ -16,7 +16,7 @@ model.save_pretrained("./")
 print("Done.")
 
 print("Saving model to TensorFlow...", end=" ")
-tf_model = TFWhisperForConditionalGeneration.from_pretrained("./", from_pt=True)
+tf_model = TFWhisperForConditionalGeneration.from_pretrained("./")
 tf_model.save_pretrained("./")
 print("Done.")
 
