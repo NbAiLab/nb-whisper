@@ -84,7 +84,7 @@ encoder = json.load((dir_model / "vocab.json").open("r", encoding="utf8"))
 encoder_added = json.load((dir_model / "added_tokens.json").open( "r", encoding="utf8"))
 hparams = json.load((dir_model / "config.json").open("r", encoding="utf8") )
 
-model = WhisperForConditionalGeneration.from_pretrained(dir_model)
+model = WhisperForConditionalGeneration.from_pretrained(dir_model, from_flax=True)
 
 #code.interact(local=locals())
 
