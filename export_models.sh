@@ -41,7 +41,7 @@ print("Done")
 END
 
 echo "Saving model to GGML (whisper.cpp)..."
-wget -O convert-h5-to-ggml.py "https://raw.githubusercontent.com/ggerganov/whisper.cpp/94aa56f19eed8b2419bc5ede6b7fda85d5ca59be/models/convert-h5-to-ggml.py"
+wget -O convert-h5-to-ggml.py "https://raw.githubusercontent.com/NbAiLab/nb-whisper/main/convert-h5-to-ggml.py"
 mkdir -p whisper/assets
 wget -O whisper/assets/mel_filters.npz "https://github.com/openai/whisper/raw/c5d42560760a05584c1c79546a098287e5a771eb/whisper/assets/mel_filters.npz"
 python ./convert-h5-to-ggml.py ./ ./ ./
