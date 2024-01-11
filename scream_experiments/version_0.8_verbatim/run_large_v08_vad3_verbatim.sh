@@ -6,7 +6,7 @@ export TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD=10000000000
 
 # Running the Python script
 python ../../run_nb_flax_speech_recognition_seq2seq_streaming_dev.py \
-    --model_name_or_path NbAiLab/nb-whisper-large-v0.8-vad3 \
+    --model_name_or_path NbAiLabBeta/nb-whisper-large \
     --run_name "Scream - large-v0.8-vad3-verbatim-npsck" \
     --run_description "A large NB-Whisper NPSC" \
     --wandb_entity "nbailab" \
