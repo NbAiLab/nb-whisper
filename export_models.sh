@@ -12,7 +12,7 @@ shutil.copyfile('./generation_config.json', './generation_config_backup.json')
 print("Saving model to PyTorch...", end=" ")
 model = WhisperForConditionalGeneration.from_pretrained("./", from_flax=True)
 model.save_pretrained("./", safe_serialization=True)
-model.save_pretrained("./")
+model.save_pretrained("./", safe_serialization=False)
 print("Done.")
 
 print("Saving model to TensorFlow...", end=" ")
