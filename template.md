@@ -28,35 +28,32 @@ widget:
 ---
 #Finetuned#
 
-# NB-Whisper #Size# (Release Candidate)
-
-**IMPORTANT:** These models are currently Release Candidates. We are in the final stages of testing. If everything proceeds smoothly, we plan to officially release the models later this month.
+# NB-Whisper #Size#
 
 Introducing the **_Norwegian NB-Whisper #Size# model_**, proudly developed by the National Library of Norway. NB-Whisper is a cutting-edge series of models designed for automatic speech recognition (ASR) and speech translation. These models are based on the work of [OpenAI's Whisper](https://arxiv.org/abs/2212.04356). Each model in the series has been trained for 250,000 steps, utilizing a diverse dataset of 8 million samples. These samples consist of aligned audio clips, each 30 seconds long, culminating in a staggering 66,000 hours of speech. For an in-depth understanding of our training methodology and dataset composition, keep an eye out for our upcoming article.
 
 | Model Size | Parameters | Model |
 |------------|------------|------------|
-| Tiny       | 39M        | [NB-Whisper Tiny](https://huggingface.co/NbAiLabBeta/nb-whisper-tiny) |
-| Base       | 74M        | [NB-Whisper Base](https://huggingface.co/NbAiLabBeta/nb-whisper-base) |
-| Small      | 244M       | [NB-Whisper Small](https://huggingface.co/NbAiLabBeta/nb-whisper-small) |
-| Medium     | 769M       | [NB-Whisper Medium](https://huggingface.co/NbAiLabBeta/nb-whisper-medium) |
-| Large      | 1550M      | [NB-Whisper Large](https://huggingface.co/NbAiLabBeta/nb-whisper-large) |
+| Tiny       | 39M        | [NB-Whisper Tiny](https://huggingface.co/NbAiLab/nb-whisper-tiny) |
+| Base       | 74M        | [NB-Whisper Base](https://huggingface.co/NbAiLab/nb-whisper-base) |
+| Small      | 244M       | [NB-Whisper Small](https://huggingface.co/NbAiLab/nb-whisper-small) |
+| Medium     | 769M       | [NB-Whisper Medium](https://huggingface.co/NbAiLab/nb-whisper-medium) |
+| Large      | 1550M      | [NB-Whisper Large](https://huggingface.co/NbAiLab/nb-whisper-large) |
 
 
 
-### Specialised Models
+### Verbatim Model
 While the main models are suitable for most transcription task, we demonstrate how easy it is to change the output of the main model. The following models are trained 250 additional steps from the main models above, and might be suitable for more targetted use cases:
 - **Verbatim version**: This lower-cased variant is more literal and suitable for tasks requiring detailed transcription, such as linguistic analysis.
-- **Semantic version**: This variant focuses less on verbatim accuracy but captures the essence of content, ideal for meeting minutes and subtitling.
 
 
-| Model Size | Parameters | Verbatim version | Semantic version |
-|------------|------------|------------|------------------|
-| Tiny       | 39M        | [Tiny - verbatim](https://huggingface.co/NbAiLabBeta/nb-whisper-tiny-verbatim) | [Tiny - semantic](https://huggingface.co/NbAiLabBeta/nb-whisper-tiny-semantic) |
-| Base       | 74M        | [Base - verbatim](https://huggingface.co/NbAiLabBeta/nb-whisper-base-verbatim) | [Base - semantic](https://huggingface.co/NbAiLabBeta/nb-whisper-base-semantic) |
-| Small      | 244M       | [Small - verbatim](https://huggingface.co/NbAiLabBeta/nb-whisper-small-verbatim) | [Small - semantic](https://huggingface.co/NbAiLabBeta/nb-whisper-small-semantic) |
-| Medium     | 769M       | [Medium - verbatim](https://huggingface.co/NbAiLabBeta/nb-whisper-medium-verbatim) | [Medium - semantic](https://huggingface.co/NbAiLabBeta/nb-whisper-medium-semantic) |
-| Large      | 1550M      | [Large - verbatim](https://huggingface.co/NbAiLabBeta/nb-whisper-large-verbatim) | [Large - semantic](https://huggingface.co/NbAiLabBeta/nb-whisper-large-semantic) |
+| Model Size | Parameters | Semantic version |
+|------------|------------|------------------|
+| Tiny       | 39M        | [Tiny - semantic](https://huggingface.co/NbAiLab/nb-whisper-tiny-semantic) |
+| Base       | 74M        | [Base - semantic](https://huggingface.co/NbAiLab/nb-whisper-base-semantic) |
+| Small      | 244M       | [Small - semantic](https://huggingface.co/NbAiLab/nb-whisper-small-semantic) |
+| Medium     | 769M       | [Medium - semantic](https://huggingface.co/NbAiLab/nb-whisper-medium-semantic) |
+| Large      | 1550M      | [Large - semantic](https://huggingface.co/NbAiLab/nb-whisper-large-semantic) |
 
 
 ### Model Description
@@ -75,7 +72,7 @@ While the main models are suitable for most transcription task, we demonstrate h
 ## How to Use the Models
 
 ### Online Demos
-You can try the models directly through the HuggingFace Inference API, accessible on the right side of this page. Be aware that initially, the model needs to load and will run on limited CPU capacity, which might be slow. To enhance your experience, we are temporarily hosting some models on TPUs for a few days, significantly boosting their performance. Explore these under the **Spaces** section on the [Main Page](https://huggingface.co/NbAiLabBeta/).
+You can try the models directly through the HuggingFace Inference API, accessible on the right side of this page. Be aware that initially, the model needs to load and will run on limited CPU capacity, which might be slow. To enhance your experience, we are temporarily hosting some models on TPUs for a few days, significantly boosting their performance. Explore these under the **Spaces** section on the [Main Page](https://huggingface.co/NbAiLab/).
 
 ### Local Setup with HuggingFace
 Alternatively, you can run the models locally. The Tiny, Base, and Small models are optimized for CPU execution. For the Medium and Large models, we recommend a system equipped with a GPU to ensure efficient processing. Setting up and using these models with HuggingFace's Transformers is straightforward, provided you have [Python](https://www.python.org/downloads/) installed on your machine. For practical demonstrations, refer to examples using this [sample mp3 file](https://github.com/NbAiLab/nb-whisper/raw/main/audio/king.mp3).
@@ -223,8 +220,8 @@ $ wget -N https://github.com/NbAiLab/nb-whisper/raw/main/audio/king.mp3
 $ ffmpeg -i king.mp3 -ar 16000 -ac 1 -c:a pcm_s16le king.wav                                        
 
 # Lets download the two ggml-files from this site
-wget -N https://huggingface.co/NbAiLabBeta/nb-whisper-#size#/resolve/main/ggml-model.bin -O models/nb-#size#-ggml-model.bin
-wget -N https://huggingface.co/NbAiLabBeta/nb-whisper-#size#/resolve/main/ggml-model-q5_0.bin -O models/nb-#size#-ggml-model-q5_0.bin
+wget -N https://huggingface.co/NbAiLab/nb-whisper-#size#/resolve/main/ggml-model.bin -O models/nb-#size#-ggml-model.bin
+wget -N https://huggingface.co/NbAiLab/nb-whisper-#size#/resolve/main/ggml-model-q5_0.bin -O models/nb-#size#-ggml-model-q5_0.bin
 
 # And run it with the f16 default model
 $ ./main -l no -m models/nb-#size#-ggml-model.bin king.wav
