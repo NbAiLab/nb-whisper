@@ -27,5 +27,4 @@ python run_pseudo_labelling.py \
   --report_to "wandb" \
   --streaming \
   --push_to_hub \
-  --dataloader_num_workers 32 \
-  --hub_token "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"
+  --dataloader_num_workers 32 
